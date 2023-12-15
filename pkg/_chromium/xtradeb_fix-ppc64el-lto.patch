@@ -1,0 +1,11 @@
+--- a/build/config/BUILDCONFIG.gn
++++ b/build/config/BUILDCONFIG.gn
+@@ -138,7 +138,7 @@ declare_args() {
+   # Set to true when compiling with the Clang compiler.
+   is_clang = current_os != "linux" ||
+              (current_cpu != "s390x" && current_cpu != "s390" &&
+-              current_cpu != "ppc64" && current_cpu != "ppc" &&
++              current_cpu != "xtradeb#ppc64" && current_cpu != "ppc" &&
+               current_cpu != "mips" && current_cpu != "mips64" &&
+               current_cpu != "riscv64")
+ 

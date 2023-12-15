@@ -1,0 +1,14 @@
+--- a/third_party/node/node_modules.py
++++ b/third_party/node/node_modules.py
+@@ -9,6 +9,11 @@ import os
+ 
+ NODE_MODULES = os_path.join(os_path.dirname(__file__), 'node_modules')
+ 
++# XtraDeb fix: Use the Node/TS stuff under third_party/devtools-frontend/,
++# because only that area is fixed by bullseye/downgrade-typescript.patch
++#
++NODE_MODULES = os.path.normpath(os.path.join(os_path.dirname(__file__), '../devtools-frontend/src/node_modules'))
++
+ os.environ['NODE_PATH'] = '/usr/share/nodejs'
+ 
+ 

@@ -1,0 +1,18 @@
+Fix cribbed from
+
+  https://github.com/WebAssembly/wasi-sdk/issues/329
+
+--- a/modules/woff2/src/woff2_out.cc
++++ b/modules/woff2/src/woff2_out.cc
+@@ -61,3 +61,11 @@ bool WOFF2MemoryOut::Write(const void *b
+ }
+ 
+ } // namespace woff2
++
++// Fix libc++ link errors
++extern "C"
++{
++  void *__cxa_allocate_exception(size_t)    { abort(); }
++  void  __cxa_throw(void *, void *, void *) { abort(); }
++  void  __cxa_rethrow()                     { abort(); }
++}

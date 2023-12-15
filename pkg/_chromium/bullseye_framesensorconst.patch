@@ -1,0 +1,23 @@
+author: Andres Salomon <dilinger@debian.org>
+
+../../content/browser/generic_sensor/frame_sensor_provider_proxy.cc:24:1: error: constexpr function's return type 'std::vector<blink::mojom::PermissionsPolicyFeature>' is not a literal type
+SensorTypeToPermissionsPolicyFeatures(SensorType type) {
+^
+/usr/bin/../lib/gcc/x86_64-linux-gnu/10/../../../../include/c++/10/bits/stl_vector.h:389:11: note: 'vector<blink::mojom::PermissionsPolicyFeature>' is not literal because it is not an aggregate and has no constexpr constructors other than copy or move constructors
+    class vector : protected _Vector_base<_Tp, _Alloc>
+          ^
+1 error generated.
+
+Index: chromium-120.0.6099.71/content/browser/generic_sensor/frame_sensor_provider_proxy.cc
+===================================================================
+--- chromium-120.0.6099.71.orig/content/browser/generic_sensor/frame_sensor_provider_proxy.cc
++++ chromium-120.0.6099.71/content/browser/generic_sensor/frame_sensor_provider_proxy.cc
+@@ -20,7 +20,7 @@ namespace content {
+ 
+ namespace {
+ 
+-constexpr std::vector<blink::mojom::PermissionsPolicyFeature>
++const std::vector<blink::mojom::PermissionsPolicyFeature>
+ SensorTypeToPermissionsPolicyFeatures(SensorType type) {
+   switch (type) {
+     case SensorType::AMBIENT_LIGHT:

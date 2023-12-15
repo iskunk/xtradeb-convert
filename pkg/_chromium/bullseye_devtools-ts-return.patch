@@ -1,0 +1,25 @@
+author: Andres Salomon <dilinger@debian.org>
+
+Fix the following build error:
+../../third_party/devtools-frontend/src/front_end/entrypoints/formatter_worker/JavaScriptFormatter.ts(94,42): error TS7030: Not all code paths return a value.
+
+https://chromium.googlesource.com/devtools/devtools-frontend/+/4164e91fa6444c988d56d85bd3314def5fde5c98%5E%21/
+https://crbug.com/1477210
+
+This is the commit that broke it. I *think* that return is benign, and was
+simply included because older typescript needed it. But we're still using
+an older typescript (see bullseye/downgrade-typescript.patch), so we need it.
+
+
+Index: chromium-120.0.6099.71/third_party/devtools-frontend/src/front_end/entrypoints/formatter_worker/JavaScriptFormatter.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/third_party/devtools-frontend/src/front_end/entrypoints/formatter_worker/JavaScriptFormatter.ts
++++ chromium-120.0.6099.71/third_party/devtools-frontend/src/front_end/entrypoints/formatter_worker/JavaScriptFormatter.ts
+@@ -105,6 +105,7 @@ export class JavaScriptFormatter {
+       const format = this.#formatToken(node.parent, token);
+       this.#push(token, format);
+     }
++    return;
+   }
+ 
+   #afterVisit(node: Acorn.ESTree.Node): void {

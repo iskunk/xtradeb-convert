@@ -1,0 +1,49 @@
+This patch is an update of a small portion of what used to be
+bookworm/struct-ctor.patch that is still needed in Ubuntu lunar.
+
+This fixes link errors in the Ubuntu lunar build of the following form:
+
+  ld.lld-16: error: undefined symbol: content::DestinationURLEvent::~DestinationURLEvent()
+  >>> referenced by render_frame_host_impl.cc
+  >>>               thinlto-cache/llvmcache-41C579BBAC854CFC...
+  [...]
+
+  ld.lld-16: error: undefined symbol: content::DestinationEnumEvent::~DestinationEnumEvent()
+  >>> referenced by render_frame_host_impl.cc
+  >>>               thinlto-cache/llvmcache-41C579BBAC854CFC...
+  [...]
+  clang++-16: error: linker command failed with exit code 1 (use -v to see invocation)
+
+Refer to the original patch at
+https://salsa.debian.org/chromium-team/chromium/-/raw/debian/118.0.5993.70-1/debian/patches/bookworm/struct-ctor.patch
+
+
+--- a/content/browser/fenced_frame/fenced_frame_reporter.h
++++ b/content/browser/fenced_frame/fenced_frame_reporter.h
+@@ -49,6 +49,8 @@ struct DestinationEnumEvent {
+   bool operator==(const DestinationEnumEvent& other) const {
+     return std::tie(type, data) == std::tie(other.type, other.data);
+   }
++
++  DestinationEnumEvent(auto t, auto d) : type(t), data(d) { }
+ };
+ 
+ // An event to be sent to a custom url.
+@@ -62,6 +64,8 @@ struct DestinationURLEvent {
+   bool operator==(const DestinationURLEvent& other) const {
+     return url == other.url;
+   }
++
++  DestinationURLEvent(auto u) : url(u) { }
+ };
+ 
+ // An event to be sent to a preregistered url as the result of an automatic
+@@ -76,6 +80,8 @@ struct AutomaticBeaconEvent {
+   bool operator==(const AutomaticBeaconEvent& other) const {
+     return std::tie(type, data) == std::tie(other.type, other.data);
+   }
++
++  AutomaticBeaconEvent(auto t, auto d) : type(t), data(d) { }
+ };
+ 
+ // Class that receives report events from fenced frames, and uses a

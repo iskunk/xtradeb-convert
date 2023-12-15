@@ -1,0 +1,24 @@
+Fix the following error in a ThinLTO build with clang <= 16:
+
+  ld.lld: error: -mllvm: ld.lld: Unknown command line argument '-disable-auto-upgrade-debug-info'.  Try: '/usr/bin/ld.lld --help'
+  ld.lld: Did you mean '--disable-arm-parallel-dsp'?
+  clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+
+https://bugs.debian.org/1033305#29
+
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -795,13 +795,6 @@ config("compiler") {
+       if (is_apple) {
+         ldflags += [ "-Wcrl,object_path_lto" ]
+       }
+-      if (!is_chromeos) {
+-        # TODO(https://crbug.com/972449): turn on for ChromeOS when that
+-        # toolchain has this flag.
+-        # We only use one version of LLVM within a build so there's no need to
+-        # upgrade debug info, which can be expensive since it runs the verifier.
+-        ldflags += [ "-Wl,-mllvm,-disable-auto-upgrade-debug-info" ]
+-      }
+     }
+ 
+     # TODO(https://crbug.com/1211155): investigate why this isn't effective on

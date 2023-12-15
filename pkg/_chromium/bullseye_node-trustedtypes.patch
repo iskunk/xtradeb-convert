@@ -1,0 +1,449 @@
+author: Andres Salomon <dilinger@debian.org>
+
+This reverts the following commit, plus adds like 20 more workarounds in
+various other places. Necessary for our older typescript.
+
+
+
+commit 63d6d3edb0bb9481e21ac2ae90893c88564615bd
+Author: dpapad <dpapad@chromium.org>
+Date:   Sat Oct 22 01:06:42 2022 +0000
+
+    WebUI: Remove remaining innerHTML 'as unknown as string' casts.
+    
+    This type cast is no longer necessary after adding a workaround for [1]
+    in third_party/node/node_modules/typescript at crrev.com/c/3970137.
+    
+    [1] https://github.com/microsoft/TypeScript/issues/30024
+    
+    Bug: 1098690
+    Change-Id: I990822c645cba1416ba9096a65eaa527350bb30e
+    Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/3972236
+    Reviewed-by: Rebekah Potter <rbpotter@chromium.org>
+    Commit-Queue: Demetrios Papadopoulos <dpapad@chromium.org>
+    Cr-Commit-Position: refs/heads/main@{#1062442}
+
+Index: chromium-120.0.6099.71/chrome/browser/resources/media/media_engagement.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/media/media_engagement.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/media/media_engagement.ts
+@@ -57,8 +57,9 @@ function createRow(rowInfo: MediaEngagem
+  */
+ function clearTable() {
+   assert(engagementTableBody);
+-  engagementTableBody.innerHTML =
+-      window.trustedTypes ? window.trustedTypes.emptyHTML : '';
++  engagementTableBody.innerHTML = window.trustedTypes ?
++      window.trustedTypes.emptyHTML as unknown as string :
++      '';
+ }
+ 
+ /**
+@@ -122,8 +123,9 @@ function createConfigRow(name: string, v
+ 
+ function renderConfigTable(config: MediaEngagementConfig) {
+   assert(configTableBody);
+-  configTableBody.innerHTML =
+-      window.trustedTypes ? (window.trustedTypes.emptyHTML) : '';
++  configTableBody.innerHTML = window.trustedTypes ?
++      (window.trustedTypes.emptyHTML as unknown as string) :
++      '';
+ 
+   configTableBody.appendChild(
+       createConfigRow('Min Sessions', config.scoreMinVisits));
+Index: chromium-120.0.6099.71/chrome/browser/resources/sync_file_system_internals/dump_database.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/sync_file_system_internals/dump_database.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/sync_file_system_internals/dump_database.ts
+@@ -66,7 +66,7 @@ function onGetDatabaseDump(
+       document.querySelector<HTMLElement>('#dump-database-placeholder');
+   assert(placeholder);
+   assert(window.trustedTypes);
+-  placeholder.innerHTML = window.trustedTypes.emptyHTML;
++  placeholder.innerHTML = window.trustedTypes.emptyHTML as unknown as string;
+   for (let i = 0; i < databaseDump.length; ++i) {
+     const div = document.createElement('div');
+     const table = document.createElement('table');
+Index: chromium-120.0.6099.71/chrome/browser/resources/sync_file_system_internals/sync_service.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/sync_file_system_internals/sync_service.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/sync_file_system_internals/sync_service.ts
+@@ -66,7 +66,7 @@ function clearLogs() {
+   const logEntries = document.querySelector<HTMLElement>('#log-entries');
+   assert(logEntries);
+   assert(window.trustedTypes);
+-  logEntries.innerHTML = window.trustedTypes.emptyHTML;
++  logEntries.innerHTML = window.trustedTypes.emptyHTML as unknown as string;
+ }
+ 
+ /**
+Index: chromium-120.0.6099.71/chrome/browser/resources/usb_internals/app.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/usb_internals/app.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/usb_internals/app.ts
+@@ -37,8 +37,8 @@ export class UsbInternalsAppElement exte
+ 
+     this.attachShadow({mode: 'open'});
+     const template = document.createElement('template');
+-    template.innerHTML =
+-        UsbInternalsAppElement.template || window.trustedTypes!.emptyHTML;
++    template.innerHTML = (UsbInternalsAppElement.template ||
++                          window.trustedTypes!.emptyHTML) as unknown as string;
+     this.shadowRoot!.appendChild(template.content.cloneNode(true));
+   }
+ 
+@@ -82,7 +82,7 @@ export class UsbInternalsAppElement exte
+     const response = await this.usbManagerTest_.getTestDevices();
+ 
+     const tableBody = this.$<HTMLElement>('#test-device-list');
+-    tableBody.innerHTML = window.trustedTypes!.emptyHTML;
++    tableBody.innerHTML = window.trustedTypes!.emptyHTML as unknown as string;
+ 
+     const rowTemplate = this.$<HTMLTemplateElement>('#test-device-row');
+     const td = rowTemplate.content.querySelectorAll('td');
+Index: chromium-120.0.6099.71/chrome/browser/resources/usb_internals/devices_page.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/usb_internals/devices_page.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/usb_internals/devices_page.ts
+@@ -42,7 +42,7 @@ export class DevicesPage {
+ 
+     const tableBody = this.root_.querySelector<HTMLElement>('#device-list');
+     assert(tableBody);
+-    tableBody.innerHTML = window.trustedTypes!.emptyHTML;
++    tableBody.innerHTML = window.trustedTypes!.emptyHTML as unknown as string;
+ 
+     const rowTemplate =
+         this.root_.querySelector<HTMLTemplateElement>('#device-row');
+Index: chromium-120.0.6099.71/ui/webui/resources/js/custom_element.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/ui/webui/resources/js/custom_element.ts
++++ chromium-120.0.6099.71/ui/webui/resources/js/custom_element.ts
+@@ -24,8 +24,11 @@ export class CustomElement extends HTMLE
+ 
+     this.attachShadow({mode: 'open'});
+     const template = document.createElement('template');
+-    template.innerHTML =
++    const html =
+         (this.constructor as typeof CustomElement).template || emptyHTML();
++    // This is a workaround for the fact that the innerHTML setter only accepts
++    // a string and not TrustedHTML.
++    template.innerHTML = html as unknown as string;
+     this.shadowRoot!.appendChild(template.content.cloneNode(true));
+   }
+ 
+Index: chromium-120.0.6099.71/components/commerce/core/internals/resources/commerce_internals.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/components/commerce/core/internals/resources/commerce_internals.ts
++++ chromium-120.0.6099.71/components/commerce/core/internals/resources/commerce_internals.ts
+@@ -17,7 +17,7 @@ function entryVerificationElement(value:
+   const crossmarkHTML = getTrustedHTML`&#10006;`;
+   const span = document.createElement('span');
+   const isValid: boolean = value === expected;
+-  span.innerHTML = isValid ? checkmarkHTML : crossmarkHTML;
++  span.innerHTML = isValid ? checkmarkHTML as unknown as string : crossmarkHTML as unknown as string;
+   span.classList.add(isValid ? 'eligible' : 'ineligible');
+   return span;
+ }
+Index: chromium-120.0.6099.71/ui/webui/resources/cr_components/localized_link/localized_link.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/ui/webui/resources/cr_components/localized_link/localized_link.ts
++++ chromium-120.0.6099.71/ui/webui/resources/cr_components/localized_link/localized_link.ts
+@@ -98,7 +98,7 @@ export class LocalizedLinkElement extend
+   private getAriaLabelledContent_(localizedString: string, linkUrl: string):
+       string {
+     const tempEl = document.createElement('div');
+-    tempEl.innerHTML = sanitizeInnerHtml(localizedString, {attrs: ['id']});
++    tempEl.innerHTML = sanitizeInnerHtml(localizedString, {attrs: ['id']}) as unknown as string;
+ 
+     const ariaLabelledByIds: string[] = [];
+     tempEl.childNodes.forEach((node, index) => {
+@@ -156,7 +156,7 @@ export class LocalizedLinkElement extend
+         'id',
+         'tabindex',
+       ],
+-    });
++    }) as unknown as string;
+     const anchorTag = this.shadowRoot!.querySelector('a');
+     if (anchorTag) {
+       anchorTag.addEventListener(
+Index: chromium-120.0.6099.71/chrome/browser/resources/location_internals/diagnose_info_table.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/location_internals/diagnose_info_table.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/location_internals/diagnose_info_table.ts
+@@ -37,8 +37,8 @@ export class DiagnoseInfoTableElement ex
+   hideTable() {
+     this.style.display = 'none';
+     this.tableTitle_.textContent = '';
+-    this.tableHead_.innerHTML = getTrustedHTML``;
+-    this.tableBody_.innerHTML = getTrustedHTML``;
++    this.tableHead_.innerHTML = getTrustedHTML`` as unknown as string;
++    this.tableBody_.innerHTML = getTrustedHTML`` as unknown as string;
+     this.tableFooter_.textContent = '';
+   }
+ 
+@@ -56,8 +56,8 @@ export class DiagnoseInfoTableElement ex
+     this.lastTableEntries_ = entries;
+     this.style.display = 'block';
+     this.tableTitle_.textContent = tableName;
+-    this.tableHead_.innerHTML = getTrustedHTML``;
+-    this.tableBody_.innerHTML = getTrustedHTML``;
++    this.tableHead_.innerHTML = getTrustedHTML`` as unknown as string;
++    this.tableBody_.innerHTML = getTrustedHTML`` as unknown as string;
+     const tableHeadFirstRow = document.createElement('tr');
+     this.tableHead_.appendChild(tableHeadFirstRow);
+     for (let i: number = 0; i < entries.length; i++) {
+Index: chromium-120.0.6099.71/chrome/browser/resources/engagement/app.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/engagement/app.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/engagement/app.ts
+@@ -200,7 +200,7 @@ export class SiteEngagementAppElement ex
+    */
+   private clearTable() {
+     assert(this.engagementTableBody);
+-    this.engagementTableBody.innerHTML = window.trustedTypes!.emptyHTML;
++    this.engagementTableBody.innerHTML = window.trustedTypes!.emptyHTML as unknown as string;
+   }
+ 
+   /**
+Index: chromium-120.0.6099.71/chrome/browser/resources/segmentation_internals/segmentation_internals.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/segmentation_internals/segmentation_internals.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/segmentation_internals/segmentation_internals.ts
+@@ -39,14 +39,14 @@ function addSegmentInfoToParent(
+   const buttonDiv = document.createElement('div');
+   if (info.canExecuteSegment) {
+     const btn = document.createElement('button');
+-    btn.innerHTML = getTrustedHTML`Execute model`;
++    btn.innerHTML = getTrustedHTML`Execute model` as unknown as string;
+     btn.addEventListener('click', () => {
+       getProxy().executeModel(info.segmentId);
+     });
+     buttonDiv.appendChild(btn);
+   }
+   const overwriteText = document.createElement('label');
+-  overwriteText.innerHTML = getTrustedHTML`Overwrite result: `;
++  overwriteText.innerHTML = getTrustedHTML`Overwrite result: ` as unknown as string;
+   buttonDiv.appendChild(overwriteText);
+   const overwriteValue = document.createElement('input');
+   overwriteValue.type = 'number';
+@@ -54,14 +54,14 @@ function addSegmentInfoToParent(
+   overwriteValue.className = 'overwrite';
+   buttonDiv.appendChild(overwriteValue);
+   const overwriteBtn = document.createElement('button');
+-  overwriteBtn.innerHTML = getTrustedHTML`Overwrite`;
++  overwriteBtn.innerHTML = getTrustedHTML`Overwrite` as unknown as string;
+   overwriteBtn.addEventListener('click', () => {
+     getProxy().overwriteResult(
+         info.segmentId, parseFloat(overwriteValue.value));
+   });
+   buttonDiv.appendChild(overwriteBtn);
+   const setSelectionBtn = document.createElement('button');
+-  setSelectionBtn.innerHTML = getTrustedHTML`Set Selected`;
++  setSelectionBtn.innerHTML = getTrustedHTML`Set Selected` as unknown as string;
+   setSelectionBtn.addEventListener('click', () => {
+     getProxy().setSelected(segmentationKey, info.segmentId);
+   });
+Index: chromium-120.0.6099.71/components/history_clusters/history_clusters_internals/resources/history_clusters_internals.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/components/history_clusters/history_clusters_internals/resources/history_clusters_internals.ts
++++ chromium-120.0.6099.71/components/history_clusters/history_clusters_internals/resources/history_clusters_internals.ts
+@@ -75,7 +75,7 @@ function initialize() {
+         if (logMessageContainer) {
+           const logmessage = logMessageContainer.insertRow();
+           const cell = logmessage.insertCell();
+-          cell.innerHTML = window.trustedTypes!.emptyHTML;
++          cell.innerHTML = window.trustedTypes!.emptyHTML as unknown as string;
+           const pre = document.createElement('pre');
+           pre.textContent = message;
+           cell.appendChild(pre);
+Index: chromium-120.0.6099.71/components/version_ui/resources/about_version.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/components/version_ui/resources/about_version.ts
++++ chromium-120.0.6099.71/components/version_ui/resources/about_version.ts
+@@ -135,7 +135,7 @@ function copyToClipboard() {
+ 
+ function announceCopy() {
+   const messagesDiv = getRequiredElement('messages');
+-  messagesDiv.innerHTML = window.trustedTypes!.emptyHTML;
++  messagesDiv.innerHTML = window.trustedTypes!.emptyHTML as unknown as string;
+ 
+   // <if expr="is_macosx">
+   // VoiceOver on Mac does not seem to consistently read out the contents of
+Index: chromium-120.0.6099.71/ui/webui/resources/cr_elements/cr_a11y_announcer/cr_a11y_announcer.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/ui/webui/resources/cr_elements/cr_a11y_announcer/cr_a11y_announcer.ts
++++ chromium-120.0.6099.71/ui/webui/resources/cr_elements/cr_a11y_announcer/cr_a11y_announcer.ts
+@@ -87,7 +87,7 @@ export class CrA11yAnnouncerElement exte
+ 
+     this.currentTimeout_ = setTimeout(() => {
+       const messagesDiv = this.shadowRoot!.querySelector('#messages')!;
+-      messagesDiv.innerHTML = window.trustedTypes!.emptyHTML;
++      messagesDiv.innerHTML = window.trustedTypes!.emptyHTML as unknown as string;
+ 
+       // <if expr="is_macosx">
+       // VoiceOver on Mac does not seem to consistently read out the contents of
+Index: chromium-120.0.6099.71/content/browser/resources/histograms/histograms_internals.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/content/browser/resources/histograms/histograms_internals.ts
++++ chromium-120.0.6099.71/content/browser/resources/histograms/histograms_internals.ts
+@@ -38,7 +38,7 @@ function requestHistograms() {
+ 
+ /** Clears all loaded histograms on the webpage. */
+ function clearHistograms(): void {
+-  getRequiredElement('histograms').innerHTML = window.trustedTypes!.emptyHTML;
++  getRequiredElement('histograms').innerHTML = window.trustedTypes!.emptyHTML as unknown as string;
+ }
+ 
+ /** Makes the subprocess checkbox disabled, and sets a tooltip. */
+Index: chromium-120.0.6099.71/chrome/browser/resources/browsing_topics/browsing_topics_internals.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/browsing_topics/browsing_topics_internals.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/browsing_topics/browsing_topics_internals.ts
+@@ -169,7 +169,7 @@ async function asyncGetBrowsingTopicsCon
+ async function asyncGetBrowsingTopicsState(calculateNow: boolean) {
+   // Clear and hide existing content.
+   document.querySelector('#epoch-div-list-wrapper')!.innerHTML =
+-      window.trustedTypes!.emptyHTML;
++      window.trustedTypes!.emptyHTML as unknown as string;
+   setElementVisible('topics-state-override-status-message-div', false);
+   setElementVisible('topics-state-div', false);
+ 
+@@ -284,7 +284,7 @@ function clearHostsClassificationResult(
+ 
+   const div = document.querySelector<HTMLElement>(
+       '#hosts-classification-input-validation-error');
+-  div!.innerHTML = window.trustedTypes!.emptyHTML;
++  div!.innerHTML = window.trustedTypes!.emptyHTML as unknown as string;
+ 
+   setElementVisible('hosts-classification-loader-div', false);
+   setElementVisible('hosts-classification-input-validation-error', false);
+Index: chromium-120.0.6099.71/chrome/browser/resources/downloads/item.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/downloads/item.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/downloads/item.ts
+@@ -719,7 +719,7 @@ export class DownloadsItemElement extend
+   }
+ 
+   private observeControlledBy_() {
+-    this.$['controlled-by'].innerHTML = sanitizeInnerHtml(this.controlledBy_);
++    this.$['controlled-by'].innerHTML = sanitizeInnerHtml(this.controlledBy_) as unknown as string;
+     if (this.controlledBy_) {
+       const link = this.shadowRoot!.querySelector('#controlled-by a');
+       link!.setAttribute('focus-row-control', '');
+Index: chromium-120.0.6099.71/chrome/browser/resources/webui_gallery/app.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/webui_gallery/app.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/webui_gallery/app.ts
+@@ -195,7 +195,7 @@ export class WebuiGalleryAppElement exte
+     assert(tagName);
+ 
+     const demoElement = document.createElement(tagName);
+-    this.$.main.innerHTML = window.trustedTypes!.emptyHTML;
++    this.$.main.innerHTML = window.trustedTypes!.emptyHTML as unknown as string;
+     this.$.main.appendChild(demoElement);
+   }
+ 
+Index: chromium-120.0.6099.71/components/optimization_guide/optimization_guide_internals/resources/optimization_guide_internals.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/components/optimization_guide/optimization_guide_internals/resources/optimization_guide_internals.ts
++++ chromium-120.0.6099.71/components/optimization_guide/optimization_guide_internals/resources/optimization_guide_internals.ts
+@@ -194,7 +194,7 @@ function initialize() {
+         });
+         const logMessage = logMessageContainer.insertRow();
+         logMessage.innerHTML =
+-            window.trustedTypes ? window.trustedTypes.emptyHTML : '';
++            window.trustedTypes ? window.trustedTypes.emptyHTML as unknown as string : '';
+         appendTD(logMessage, eventTimeStr, 'event-logs-time');
+         appendTD(logMessage, logSourceStr, 'event-logs-log-source');
+         createChromiumSourceLink(
+Index: chromium-120.0.6099.71/components/policy/resources/webui/logs/policy_logs.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/components/policy/resources/webui/logs/policy_logs.ts
++++ chromium-120.0.6099.71/components/policy/resources/webui/logs/policy_logs.ts
+@@ -38,7 +38,7 @@ function displayList() {
+ 
+   // TrustedTypes is not supported on iOS
+   if (window.trustedTypes) {
+-    logMessageContainer.innerHTML = window.trustedTypes!.emptyHTML;
++    logMessageContainer.innerHTML = window.trustedTypes!.emptyHTML as unknown as string;
+   } else {
+     logMessageContainer.innerHTML = '';
+   }
+Index: chromium-120.0.6099.71/components/policy/resources/webui/status_box.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/components/policy/resources/webui/status_box.ts
++++ chromium-120.0.6099.71/components/policy/resources/webui/status_box.ts
+@@ -63,7 +63,7 @@ export class StatusBoxElement extends Cu
+   private setLabelInnerHtmlAndShow(
+       labelName: string, labelValue: string, needsToBeShown: boolean = true) {
+     const labelElement = this.shadowRoot!.querySelector(labelName);
+-    labelElement!.innerHTML = sanitizeInnerHtml(` ${labelValue}`);
++    labelElement!.innerHTML = sanitizeInnerHtml(` ${labelValue}`) as unknown as string;
+     if (needsToBeShown) {
+       labelElement!.parentElement!.hidden = false;
+     }
+Index: chromium-120.0.6099.71/components/sync/service/resources/sync_search.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/components/sync/service/resources/sync_search.ts
++++ chromium-120.0.6099.71/components/sync/service/resources/sync_search.ts
+@@ -106,7 +106,7 @@ export class SyncSearchManager {
+     this.selected_ = null;
+     this.selectedIndex_ = -1;
+     this.resultsControl_.innerHTML =
+-        window.trustedTypes ? window.trustedTypes.emptyHTML : '';
++        window.trustedTypes ? window.trustedTypes.emptyHTML as unknown as string : '';
+     this.resultsData_.forEach((item: object, index: number) => {
+       const li = document.createElement('li');
+       li.setAttribute('role', 'listitem');
+Index: chromium-120.0.6099.71/chrome/browser/resources/new_tab_page/app.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/new_tab_page/app.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/new_tab_page/app.ts
+@@ -95,7 +95,7 @@ function recordCustomizeChromeOpen(eleme
+ function ensureLazyLoaded() {
+   const script = document.createElement('script');
+   script.type = 'module';
+-  script.src = getTrustedScriptURL`./lazy_load.js`;
++  script.src = getTrustedScriptURL`./lazy_load.js` as unknown as string;
+   document.body.appendChild(script);
+ }
+ 
+Index: chromium-120.0.6099.71/chrome/browser/resources/new_tab_page/modules/modules.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/new_tab_page/modules/modules.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/new_tab_page/modules/modules.ts
+@@ -179,7 +179,7 @@ export class ModulesElement extends Poly
+   }
+ 
+   private appendModuleContainers_(moduleContainers: HTMLElement[]) {
+-    this.$.modules.innerHTML = window.trustedTypes!.emptyHTML;
++    this.$.modules.innerHTML = window.trustedTypes!.emptyHTML as unknown as string;
+     this.modulesShownToUser = false;
+     moduleContainers.forEach((moduleContainer: HTMLElement) => {
+       if (!moduleContainer.hidden) {
+Index: chromium-120.0.6099.71/chrome/browser/resources/signin/profile_picker/ensure_lazy_loaded.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/signin/profile_picker/ensure_lazy_loaded.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/signin/profile_picker/ensure_lazy_loaded.ts
+@@ -13,7 +13,7 @@ export function ensureLazyLoaded(): Prom
+   if (!lazyLoadPromise) {
+     const script = document.createElement('script');
+     script.type = 'module';
+-    script.src = getTrustedScriptURL`./lazy_load.js`;
++    script.src = getTrustedScriptURL`./lazy_load.js` as unknown as string;
+     document.body.appendChild(script);
+ 
+     lazyLoadPromise = Promise
+Index: chromium-120.0.6099.71/chrome/browser/resources/settings/ensure_lazy_loaded.ts
+===================================================================
+--- chromium-120.0.6099.71.orig/chrome/browser/resources/settings/ensure_lazy_loaded.ts
++++ chromium-120.0.6099.71/chrome/browser/resources/settings/ensure_lazy_loaded.ts
+@@ -11,7 +11,7 @@ export function ensureLazyLoaded(): Prom
+   if (lazyLoadPromise === null) {
+     const script = document.createElement('script');
+     script.type = 'module';
+-    script.src = getTrustedScriptURL`./lazy_load.js`;
++    script.src = getTrustedScriptURL`./lazy_load.js` as unknown as string;
+     document.body.appendChild(script);
+ 
+     lazyLoadPromise =
