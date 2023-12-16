@@ -109,7 +109,8 @@ new_patch()
 	local patch_path=$1
 	local patch_file=$(echo $patch_path | tr / _)
 
-	if grep -Fqx $patch_path $patch_series_tmp
+	if [ -f $patch_series_tmp ] && \
+	   grep -Fqx $patch_path $patch_series_tmp
 	then
 		echo "$0: error: patch \"$patch_path\" already added"
 		exit 1

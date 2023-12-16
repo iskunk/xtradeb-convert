@@ -49,10 +49,11 @@ sed -i '/^export CLANG_VERS *=/s/\bDebian\b/Ubuntu/' $debian/rules
 sed -i '/@BUILD_DIST@/s!\bcat /etc/debian_version\b!lsb_release -rs 2>/dev/null!' $debian/rules
 
 # Also update the launcher script in the same way
+# (note: script could be named "ungoogled-chromium")
 sed -i \
 	-e '/^DIST=/s!\bcat /etc/debian_version\b!lsb_release -rs 2>/dev/null!' \
 	-e '/^export CHROME_VERSION_EXTRA=/s/\bDebian\b/Ubuntu/g' \
-	$debian/scripts/chromium
+	$debian/scripts/*chromium
 
 # Enable thin LTO for better performance
 # https://bugs.debian.org/1033305
