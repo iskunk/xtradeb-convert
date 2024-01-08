@@ -120,7 +120,7 @@ perl -pi -e 's/(filter buster bullseye bookworm),/$1  jammy lunar mantic,/' \
 #	$debian/browser.install.in \
 #	$debian/browser.lintian-overrides.in
 
-if (case $ubuntu_dist in lunar|mantic) exit 0 ;; esac; exit 1)
+if ubuntu_dist lunar mantic
 then
 	# Fix for https://bugs.launchpad.net/bugs/2033450
 	perl -pi \
@@ -140,7 +140,7 @@ perl -pi -e '/^\s+cbindgen .+,$/ and s/^/%%xtradeb%%/' $debian/control.in
 ##
 
 # Fix for https://bugs.launchpad.net/bugs/2033572
-if (case $ubuntu_dist in lunar|mantic) exit 0 ;; esac; exit 1)
+if ubuntu_dist lunar mantic
 then
 	new_patch xtradeb/fix-libc++-wasm-link-error.patch
 fi

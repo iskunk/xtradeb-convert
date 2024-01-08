@@ -41,10 +41,7 @@ initialize()
 	esac
 
 	# Verify that these packages are installed
-	for pkg in dpkg-dev devscripts quilt
-	do
-		dpkg --status $pkg >/dev/null || exit
-	done
+	dpkg --status dpkg-dev devscripts quilt >/dev/null || exit
 
 	if [ $ubuntu_dist = jammy ]
 	then
