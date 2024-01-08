@@ -1,0 +1,44 @@
+Fix compilation errors of the following form:
+
+  In file included from .../firefox-121.0+build1/build/pure_virtual/pure_virtual.c:5:
+  .../firefox-121.0+build1/obj-x86_64-linux-gnu/dist/include/mozilla/Assertions.h:281:3: error: expected identifier or '('
+    MOZ_REALLY_CRASH(aLine);
+    ^
+  .../firefox-121.0+build1/obj-x86_64-linux-gnu/dist/include/mozilla/Assertions.h:219:21: note: expanded from macro 'MOZ_REALLY_CRASH'
+          MOZ_NOMERGE abort();                                        \
+                      ^
+  .../firefox-121.0+build1/build/pure_virtual/pure_virtual.c:25:3: error: expected identifier or '('
+    MOZ_CRASH("pure virtual call");
+    ^
+  .../firefox-121.0+build1/obj-x86_64-linux-gnu/dist/include/mozilla/Assertions.h:250:7: note: expanded from macro 'MOZ_CRASH'
+        MOZ_REALLY_CRASH(__LINE__);                                             \
+        ^
+  .../firefox-121.0+build1/obj-x86_64-linux-gnu/dist/include/mozilla/Assertions.h:219:21: note: expanded from macro 'MOZ_REALLY_CRASH'
+          MOZ_NOMERGE abort();                                        \
+                      ^
+
+  In file included from .../firefox-121.0+build1/mozglue/misc/AutoProfilerLabel.cpp:9:
+  .../firefox-121.0+build1/obj-x86_64-linux-gnu/dist/include/mozilla/Assertions.h:281:3: error: no type named 'abort' in the global namespace
+    MOZ_REALLY_CRASH(aLine);
+    ^~~~~~~~~~~~~~~~~~~~~~~
+  .../firefox-121.0+build1/obj-x86_64-linux-gnu/dist/include/mozilla/Assertions.h:213:23: note: expanded from macro 'MOZ_REALLY_CRASH'
+          MOZ_NOMERGE ::abort();                                      \
+                      ~~^
+  .../firefox-121.0+build1/obj-x86_64-linux-gnu/dist/include/mozilla/Assertions.h:281:3: error: expected unqualified-id
+  .../firefox-121.0+build1/obj-x86_64-linux-gnu/dist/include/mozilla/Assertions.h:213:29: note: expanded from macro 'MOZ_REALLY_CRASH'
+          MOZ_NOMERGE ::abort();                                      \
+                              ^
+
+Clang 11 and 12 appear not to implement the "nomerge" attribute properly.
+
+--- a/mfbt/Attributes.h
++++ b/mfbt/Attributes.h
+@@ -98,7 +98,7 @@
+  *
+  * This is useful to have clearer information on assertion failures.
+  */
+-#if defined(__clang__) && __has_attribute(nomerge)
++#if defined(__clang__) && __has_attribute(nomerge) && __clang_major__ >= 13
+ #  define MOZ_NOMERGE __attribute__((nomerge))
+ #else
+ #  define MOZ_NOMERGE

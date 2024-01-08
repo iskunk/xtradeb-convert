@@ -12,8 +12,10 @@ ubuntu_dist="$2"
 base_dir=$(dirname $0)
 . $base_dir/_common/functions.sh
 
-# TODO: need "cdbs" installed? what about "debhelper"?
 initialize firefox
+
+# Need cdbs to regenerate the control file
+dpkg --status cdbs >/dev/null || exit
 
 if ! grep -Fqx 'Source: firefox' $debian/control 2>/dev/null
 then
@@ -68,17 +70,17 @@ rm -f $debian/xtradeb.tmp
 # after changes to the former are complete.
 
 # * Bump up debhelper compat level to 10 (quells warnings)
-# * Allow use of clang-15 to avoid installing older version
+# * Allow building with clang-11 (for jammy) up to clang-14 (for noble)
 perl -pi \
 	-e 's/\b(debhelper) \(>= 9\),/$1 (>= 10),/;' \
-	-e 's/\b((llvm|(?:lib)?clang)-13(-dev)?)\b/$2-15$3 | $1/' \
+	-e 's/\b((llvm|(?:lib)?clang)-10(-dev)?)\b/$1 | $2-11$3 | $2-12$3 | $2-13$3 | $2-14$3/' \
 	$debian/control.in
 
 # Also needed for debhelper
 echo 10 >$debian/compat
 
-# Also needed to use clang-15
-perl -pi -e 's/^(LLVM_VERSIONS) = (.+)$/$1 = 15 $2/' $debian/build/rules.mk
+# Also needed to use clang-[11,14]
+perl -pi -e 's/^(LLVM_VERSIONS) = (.+)$/$1 = $2 11 12 13 14/' $debian/build/rules.mk
 
 # Ubuntu jammy still needs the special nodejs-mozilla package; later
 # releases can just use regular nodejs
@@ -88,6 +90,15 @@ then
 		$debian/control.in
 	perl -pi -e '/\bNODEJS=/ and s/^/#xtradeb#/' \
 		$debian/config/mozconfig.in
+fi
+
+##
+## Patch series modifications
+##
+
+if ubuntu_dist jammy
+then
+	new_patch xtradeb/disable-nomerge.patch
 fi
 
 ################################################################
