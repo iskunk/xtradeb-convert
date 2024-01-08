@@ -47,7 +47,7 @@ Types: deb
 URIs: https://mirrors.ocf.berkeley.edu/ubuntu-ports
 #URIs: https://ftp.tu-chemnitz.de/pub/linux/ubuntu-ports
 Architectures: $arch
-Suites: $suite
+Suites: $suite $suite-updates
 Components: main universe
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 
@@ -55,7 +55,7 @@ Types: deb
 #URIs: http://archive.ubuntu.com/ubuntu
 URIs: https://mirror.us.leaseweb.net/ubuntu
 Architectures: amd64
-Suites: $suite
+Suites: $suite $suite-updates
 Components: main universe
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 
@@ -130,17 +130,19 @@ run_cmd apt-get -y install nodejs:amd64
 N=16
 
 llvm_pkgs=$(echo \
-	clang-16 \
-	clang-format-16 \
-	libclang-common-16-dev:all \
-	libclang-cpp16 \
-	libclang-rt-16-dev \
-	libclang1-16 \
-	lld-16 \
-	llvm-16-linker-tools \
+	clang-$N \
+	clang-format-$N \
+	libclang-common-$N-dev:all \
+	libclang-cpp$N \
+	$(test $N -lt 16 && echo libclang-$N-dev || echo libclang-rt-$N-dev) \
+	libclang1-$N \
+	lld-$N \
+	llvm-$N-linker-tools \
 )
 
-llvm_dep_pkgs=libllvm16
+# Install this subset natively so we don't need to set LD_LIBRARY_PATH
+#
+llvm_dep_pkgs="libllvm$N"
 
 run_cmd apt-get -y install $llvm_pkgs
 
@@ -227,5 +229,15 @@ do
 	run_cmd mv -f /usr/bin/$name /usr/bin/$name.$arch
 	run_cmd ln -s /opt/llvm-amd64/bin/$name /usr/bin
 done
+
+# This library may be needed for some things, but cannot be installed
+# natively (at least for N=11) due to lack of multi-arch support
+#
+x=/opt/llvm-amd64/lib/x86_64-linux-gnu/libclang-cpp.so.$N
+y=/usr/lib/x86_64-linux-gnu/libclang-cpp.so.$N
+if [ -f $x -a ! -f $y ]
+then
+	run_cmd ln -s $x $y
+fi
 
 # end hybrid-amd64-setup.sh
