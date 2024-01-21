@@ -21,3 +21,5 @@ $wget -O bullseye_framesensorconst.patch \
 
 $wget -O bullseye_node-trustedtypes.patch \
 	https://salsa.debian.org/chromium-team/chromium/-/raw/bullseye/debian/patches/bullseye/node-trustedtypes.patch
+
+$wget https://bazaar.launchpad.net/~mozillateam/firefox/firefox.focal/download/head:/debian/build/keepalive-wrapper.py

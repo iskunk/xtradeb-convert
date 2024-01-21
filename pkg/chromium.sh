@@ -73,6 +73,10 @@ then
 # XtraDeb: use ThinLTO everywhere except for armhf (insufficient RAM)
 ifeq ($(filter armhf,$(DEB_HOST_ARCH)),)
 defines+=use_thin_lto=true
+ifneq ($(filter arm64,$(DEB_HOST_ARCH)),)
+# final link takes >150m, don't let Launchpad kill the build prematurely
+keepalive=debian/scripts/keepalive-wrapper.py 6000
+endif
 else
 defines+=use_thin_lto=false concurrent_links=1
 endif
@@ -80,6 +84,10 @@ END
 	(cd $debian && \
 		sed -i -r -e '/^defines\+=host_cpu=."arm."/{N;r xtradeb.tmp' -e '}' rules)
 	rm -f $debian/xtradeb.tmp
+	perl -pi -e 's/(ninja .* chrome )/\$(keepalive) $1/' $debian/rules
+
+	# Borrow the keepalive wrapper from the Ubuntu 20.04 Firefox build
+	cp -fp $base_dir/_chromium/keepalive-wrapper.py $debian/scripts/
 fi
 
 ################################################################
