@@ -1,0 +1,19 @@
+On Ubuntu, when Rust support is enabled, the final link fails with errors
+like the following:
+
+  ld.lld-16: error: Linking two modules of different target triples: 'obj/skia/libbridge_rust_side_cxx_generated.a(ffi.rs.o at 3620)' is 'x86_64-pc-linux-gnu' whereas './libbridge_rust_side.rlib(libbridge_rust_side.bridge_rust_side.aa90d3873ab471f4-cgu.0.rcgu.o at 235564)' is 'x86_64-unknown-linux-gnu'
+
+--- a/build/config/linux/BUILD.gn
++++ b/build/config/linux/BUILD.gn
+@@ -27,6 +27,11 @@
+       asmflags += [ "-mbranch-protection=pac-ret" ]
+     }
+   }
++  if (current_cpu == "x64") {
++    # XtraDeb: Clang defaults to generating x86_64-pc-linux-gnu, but
++    # Rust can only work with x86_64-unknown-linux-gnu
++    cflags = [ "--target=x86_64-unknown-linux-gnu" ]
++  }
+ }
+ 
+ # This is included by reference in the //build/config/compiler:runtime_library

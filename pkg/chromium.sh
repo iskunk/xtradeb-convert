@@ -42,7 +42,7 @@ END
 rm -f $debian/xtradeb.tmp
 
 # Avoid setting an empty value here
-sed -i '/^export CLANG_VERS *=/s/\bDebian\b/Ubuntu/' $debian/rules
+sed -i '/^export CLANG_MVERS *=/s/\bDebian\b/Ubuntu/' $debian/rules
 
 # /etc/debian_version is not meaningful on an Ubuntu system
 # (Note that lsb_release(1) sometimes prints "No LSB modules are available")
@@ -61,12 +61,11 @@ sed -i \
 thin_lto=yes
 if [ $thin_lto = yes ]
 then
+	# Note: use_thin_lto=true requires concurrent_links to be unset
 	sed -i \
 		-e '/\buse_thin_lto=false\b/d' \
 		-e '/\bconcurrent_links=1\b/d' \
 		$debian/rules
-
-	# Note: use_thin_lto=true requires concurrent_links to be unset
 
 	# TODO: check if i386 needs to be excluded too
 	cat >$debian/xtradeb.tmp <<'END'
@@ -130,6 +129,25 @@ END
 		$debian/rules
 fi
 
+if ubuntu_dist jammy lunar
+then
+	# Can't handle the Rust build
+	sed -i -r '/^ +rustc .+,$/d' $debian/control
+	perl -pi -e '/^defines\+=rustc_version=/ and $_.="defines+=enable_rust=false\n"' \
+		$debian/rules
+fi
+
+if ubuntu_dist noble
+then
+	# Chromium's build scripts set -D_FORTIFY_SOURCE=2, and dpkg
+	# previously did as well (in CPPFLAGS) with hardening=+all,
+	# but as of noble it sets the value to 3 and a gazillion
+	# "'_FORTIFY_SOURCE' macro redefined" warnings result
+	# (see /usr/share/perl5/Dpkg/Vendor/Debian.pm)
+	perl -pi -e '/^export DEB_BUILD_MAINT_OPTIONS=hardening=\+all$/ and s/$/,-fortify/' \
+		$debian/rules
+fi
+
 perl -pi \
 	-e '/ninja .+ chrome/ and $_= <<END . $_;' \
 	-e '	# XtraDeb workaround for https://crbug.com/1503348' \
@@ -173,6 +191,11 @@ case $ubuntu_dist in
 	new_patch xtradeb/absl-optional-libstdc++-12.patch
 	;;
 esac
+
+if ubuntu_dist mantic noble
+then
+	new_patch xtradeb/clang-match-rust-target.patch
+fi
 
 if ubuntu_dist lunar
 then
