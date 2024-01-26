@@ -10,11 +10,11 @@ $wget -O bookworm_constcountrycode.patch \
 $wget -O bookworm_generate-ninja.patch \
 	https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/bookworm/generate-ninja.patch
 
+$wget -O bookworm_undo-rust-req.patch \
+https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/bookworm/undo-rust-req.patch
+
 $wget -O bullseye_devtools-ts-return.patch \
 	https://salsa.debian.org/chromium-team/chromium/-/raw/bullseye/debian/patches/bullseye/devtools-ts-return.patch
-
-$wget -O bullseye_downgrade-typescript.patch \
-	https://salsa.debian.org/chromium-team/chromium/-/raw/ccc82236fe8a/debian/patches/bullseye/downgrade-typescript.patch
 
 $wget -O bullseye_framesensorconst.patch \
 	https://salsa.debian.org/chromium-team/chromium/-/raw/bullseye/debian/patches/bullseye/framesensorconst.patch

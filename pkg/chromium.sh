@@ -74,7 +74,7 @@ ifeq ($(filter armhf,$(DEB_HOST_ARCH)),)
 defines+=use_thin_lto=true
 ifneq ($(filter arm64,$(DEB_HOST_ARCH)),)
 # final link takes >150m, don't let Launchpad kill the build prematurely
-keepalive=debian/scripts/keepalive-wrapper.py 6000
+keepalive=debian/scripts/keepalive-wrapper.py 7200
 endif
 else
 defines+=use_thin_lto=false concurrent_links=1
@@ -129,14 +129,6 @@ END
 		$debian/rules
 fi
 
-if ubuntu_dist jammy lunar
-then
-	# Can't handle the Rust build
-	sed -i -r '/^ +rustc .+,$/d' $debian/control
-	perl -pi -e '/^defines\+=rustc_version=/ and $_.="defines+=enable_rust=false\n"' \
-		$debian/rules
-fi
-
 if ubuntu_dist noble
 then
 	# Chromium's build scripts set -D_FORTIFY_SOURCE=2, and dpkg
@@ -147,13 +139,6 @@ then
 	perl -pi -e '/^export DEB_BUILD_MAINT_OPTIONS=hardening=\+all$/ and s/$/,-fortify/' \
 		$debian/rules
 fi
-
-perl -pi \
-	-e '/ninja .+ chrome/ and $_= <<END . $_;' \
-	-e '	# XtraDeb workaround for https://crbug.com/1503348' \
-	-e '	ninja -j\$(njobs) -C out/Release ui/webui/resources/cr_components/history_clusters:build_ts' \
-	-e 'END' \
-	$debian/rules
 
 ##
 ## Patch series modifications
@@ -169,12 +154,21 @@ then
 	new_patch bookworm/generate-ninja.patch
 fi
 
+if ubuntu_dist jammy lunar
+then
+	# Can't handle the Rust build
+	sed -i -r '/^ +rustc .+,$/d' $debian/control
+	perl -pi -e '/^defines\+=rustc_version=/ and $_.="defines+=enable_rust=false\n"' \
+		$debian/rules
+
+	new_patch bookworm/undo-rust-req.patch
+fi
+
 if ubuntu_dist jammy && \
    ! grep -Fqx bullseye/av1-vaapi.patch $debian/patches/series
 then
 	new_patch bullseye/av1-vaapi.patch
 	new_patch bullseye/devtools-ts-return.patch
-	new_patch bullseye/downgrade-typescript.patch
 	new_patch bullseye/framesensorconst.patch
 	new_patch bullseye/node-trustedtypes.patch
 	new_patch bullseye/webui.patch
