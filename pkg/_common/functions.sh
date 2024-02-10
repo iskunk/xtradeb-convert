@@ -76,7 +76,7 @@ initialize()
 		$debian/$control
 
 	# In case there are now multiple XSBC-Original-Maintainer: fields
-	perl -pi -e '/^XSBC-Original-Maintainer:/ && !/\b(debian\.org)\b/ and $_=""' \
+	perl -pi -e '/^XSBC-Original-Maintainer:/ && !/\b(debian\.(net|org))\b/ and $_=""' \
 		$debian/$control
 
 	# Remove Uploaders: field (mind the multiple lines)
@@ -85,6 +85,8 @@ initialize()
 	patch_series_changed=no
 	patch_series_tmp=$debian/patches/xtradeb-series.tmp
 	rm -f $patch_series_tmp
+
+	changelog_text='New Debian package release.'
 }
 
 ubuntu_dist()
@@ -105,6 +107,12 @@ new_patch()
 {
 	local patch_path=$1
 	local patch_file=$(echo $patch_path | tr / _)
+
+	if [ ! -f $debian/patches/series ]
+	then
+		echo "$0: error: package lacks a patch series to amend"
+		exit 1
+	fi
 
 	if [ -f $patch_series_tmp ] && \
 	   grep -Fqx $patch_path $patch_series_tmp
@@ -135,6 +143,12 @@ disable_patch()
 {
 	local patch_path=$1
 
+	if [ ! -f $debian/patches/series ]
+	then
+		echo "$0: error: package lacks a patch series to amend"
+		exit 1
+	fi
+
 	if grep -Fqx $patch_path $debian/patches/series
 	then
 		echo " * $patch_path  (disabled)"
@@ -163,15 +177,18 @@ finish()
 		patch_series_changed=yes
 	fi
 
-	# Check that all referenced patches are present
-	for patch in $(grep -v '^#' $debian/patches/series | grep .)
-	do
-		if [ ! -f $debian/patches/$patch ]
-		then
-			echo "error: $patch: missing patch file"
-			exit 1
-		fi
-	done
+	if [ -f $debian/patches/series ]
+	then
+		# Check that all referenced patches are present
+		for patch in $(grep -v '^#' $debian/patches/series | grep .)
+		do
+			if [ ! -f $debian/patches/$patch ]
+			then
+				echo "error: $patch: missing patch file"
+				exit 1
+			fi
+		done
+	fi
 
 	# Use the same urgency as the upstream release
 	urgency=$(dpkg-parsechangelog \
@@ -186,7 +203,7 @@ finish()
 		--local $version_suffix \
 		--urgency $urgency \
 		--changelog $debian/changelog \
-		'New Debian package release.'
+		"$changelog_text"
 
 	if [ $patch_series_changed = yes -a -f $debian/../.pc/applied-patches ]
 	then
