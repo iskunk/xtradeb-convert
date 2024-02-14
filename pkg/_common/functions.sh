@@ -46,9 +46,11 @@ initialize()
 	if [ $ubuntu_dist = jammy ]
 	then
 		# LTS release
-		version_suffix="~xtradeb"
+		version_suffix="xtradeb"
+		changelog_text='Rebuild for XtraDeb.'
 	else
-		version_suffix="~xtradeb1$ubuntu_dist"
+		version_suffix="xtradeb1${ubuntu_dist}"
+		changelog_text="Rebuild for XtraDeb ${ubuntu_dist}."
 	fi
 
 	cur_dist=$(dpkg-parsechangelog \
@@ -85,8 +87,6 @@ initialize()
 	patch_series_changed=no
 	patch_series_tmp=$debian/patches/xtradeb-series.tmp
 	rm -f $patch_series_tmp
-
-	changelog_text='New Debian package release.'
 }
 
 ubuntu_dist()
