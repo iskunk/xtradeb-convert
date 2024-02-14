@@ -82,15 +82,12 @@ echo 10 >$debian/compat
 # Also needed to use clang-[11,14]
 perl -pi -e 's/^(LLVM_VERSIONS) = (.+)$/$1 = $2 11 12 13 14/' $debian/build/rules.mk
 
-# Ubuntu jammy still needs the special nodejs-mozilla package; later
-# releases can just use regular nodejs
-if [ $ubuntu_dist != jammy ]
-then
-	perl -pi -e 's/\b(nodejs)-mozilla\b/$1/;' \
-		$debian/control.in
-	perl -pi -e '/\bNODEJS=/ and s/^/#xtradeb#/' \
-		$debian/config/mozconfig.in
-fi
+# Depend on the regular nodejs package instead of nodejs-mozilla. (Note
+# that on jammy, a backported version of nodejs is needed)
+perl -pi -e 's/\b(nodejs)-mozilla\b/$1/;' \
+	$debian/control.in
+perl -pi -e '/\bNODEJS=/ and s/^/#xtradeb#/' \
+	$debian/config/mozconfig.in
 
 ##
 ## Patch series modifications
