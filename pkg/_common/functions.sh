@@ -35,7 +35,7 @@ initialize()
 		ubuntu_dist=$(lsb_release -cs)
 	fi
 	case "$ubuntu_dist" in
-		jammy | kinetic | lunar | mantic | noble) ;;
+		jammy | mantic | noble) ;;
 		'') ubuntu_dist=jammy ;;
 		*) echo "$0: error: invalid Ubuntu distribution \"$ubuntu_dist\""; exit 1 ;;
 	esac

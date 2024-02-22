@@ -149,12 +149,12 @@ then
 	new_patch bookworm/constcountrycode.patch
 fi
 
-if ubuntu_dist jammy lunar
+if ubuntu_dist jammy
 then
 	new_patch bookworm/generate-ninja.patch
 fi
 
-if ubuntu_dist jammy lunar
+if ubuntu_dist jammy
 then
 	# Can't handle the Rust build
 	sed -i -r '/^ +rustc .+,$/d' $debian/control
@@ -174,26 +174,15 @@ then
 	new_patch bullseye/webui.patch
 fi
 
-case $ubuntu_dist in
-	jammy)
+if ubuntu_dist jammy
+then
 	disable_patch fixes/absl-optional.patch
 	new_patch xtradeb/absl-optional-libstdc++-11.patch
-	;;
-
-	lunar)
-	disable_patch fixes/absl-optional.patch
-	new_patch xtradeb/absl-optional-libstdc++-12.patch
-	;;
-esac
+fi
 
 if ubuntu_dist mantic noble
 then
 	new_patch xtradeb/clang-match-rust-target.patch
-fi
-
-if ubuntu_dist lunar
-then
-	new_patch xtradeb/fix-no-canonical-prefixes.patch
 fi
 
 # TEMPORARY: Remove once Timothy Pearson's patches incorporate this
@@ -205,11 +194,6 @@ if [ $thin_lto = yes ]
 then
 	# Needed for Clang 16 generally
 	new_patch xtradeb/lld-options.patch
-fi
-
-if ubuntu_dist lunar
-then
-	new_patch xtradeb/struct-ctor.patch
 fi
 
 if ubuntu_dist jammy

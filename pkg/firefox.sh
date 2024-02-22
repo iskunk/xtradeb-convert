@@ -112,7 +112,7 @@ perl -pi -e '/^\%if DIST == bullseye/ and s/$/  || DIST == jammy/' \
 perl -pi -e '/^\%if DIST != bullseye/ and s/$/  \&\& DIST != jammy/' \
 	$debian/control.in
 
-perl -pi -e 's/(filter buster bullseye bookworm),/$1  jammy lunar mantic,/' \
+perl -pi -e 's/(filter buster bullseye bookworm),/$1  jammy mantic,/' \
 	$debian/rules
 
 ## This conditional doesn't handle USE_SYSTEM_NSS=0 properly
@@ -120,7 +120,7 @@ perl -pi -e 's/(filter buster bullseye bookworm),/$1  jammy lunar mantic,/' \
 #	$debian/browser.install.in \
 #	$debian/browser.lintian-overrides.in
 
-if ubuntu_dist lunar mantic
+if ubuntu_dist mantic
 then
 	# Fix for https://bugs.launchpad.net/bugs/2033450
 	perl -pi \
@@ -140,7 +140,7 @@ perl -pi -e '/^\s+cbindgen .+,$/ and s/^/%%xtradeb%%/' $debian/control.in
 ##
 
 # Fix for https://bugs.launchpad.net/bugs/2033572
-if ubuntu_dist lunar mantic
+if ubuntu_dist mantic
 then
 	new_patch xtradeb/fix-libc++-wasm-link-error.patch
 fi
