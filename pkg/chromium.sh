@@ -100,8 +100,7 @@ then
 	# Jammy's older GN chokes on syntax in build/nocompile.gni
 	cat >$debian/xtradeb.tmp <<'END'
 # XtraDeb
-defines+=enable_nocompile_tests=false \
-         enable_nocompile_tests_new=false
+defines+=enable_nocompile_tests=false
 
 END
 	(cd $debian && sed -i '/^# enabled features/e cat xtradeb.tmp' rules)
@@ -126,17 +125,6 @@ END
 	perl -pi \
 		-e '/^defines\+=host_cpu=."arm64."/ and s/use_v4l2_codec=true (use_vaapi)=false/$1=true/;' \
 		-e '/^defines\+=host_cpu=."arm."/ and s/\s*use_v4l2_codec=true//' \
-		$debian/rules
-fi
-
-if ubuntu_dist noble
-then
-	# Chromium's build scripts set -D_FORTIFY_SOURCE=2, and dpkg
-	# previously did as well (in CPPFLAGS) with hardening=+all,
-	# but as of noble it sets the value to 3 and a gazillion
-	# "'_FORTIFY_SOURCE' macro redefined" warnings result
-	# (see /usr/share/perl5/Dpkg/Vendor/Debian.pm)
-	perl -pi -e '/^export DEB_BUILD_MAINT_OPTIONS=hardening=\+all$/ and s/$/,-fortify/' \
 		$debian/rules
 fi
 
@@ -185,20 +173,30 @@ then
 	new_patch xtradeb/clang-match-rust-target.patch
 fi
 
+if ubuntu_dist jammy
+then
+	new_patch xtradeb/fix-constexpr.patch
+fi
+
 # TEMPORARY: Remove once Timothy Pearson's patches incorporate this
 # https://github.com/ungoogled-software/ungoogled-chromium-debian/issues/334#issuecomment-1767888316
 # https://github.com/ungoogled-software/ungoogled-chromium-debian/issues/334#issuecomment-1769452191
 new_patch xtradeb/fix-ppc64el-lto.patch
 
+if ubuntu_dist jammy mantic
+then
+	new_patch xtradeb/fix-static-assert.patch
+fi
+
+if ubuntu_dist noble
+then
+	new_patch xtradeb/fortify-level-3.patch
+fi
+
 if [ $thin_lto = yes ]
 then
 	# Needed for Clang 16 generally
 	new_patch xtradeb/lld-options.patch
-fi
-
-if ubuntu_dist jammy
-then
-	new_patch xtradeb/use-devtools-node-modules.patch
 fi
 
 ################################################################

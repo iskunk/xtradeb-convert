@@ -1,0 +1,17 @@
+Set the -D_FORTIFY_SOURCE=N level to N=3, to match the default on noble
+(see 'fortify-level' in /usr/share/perl5/Dpkg/Vendor/Ubuntu.pm).
+
+This prevents a gazillion "'_FORTIFY_SOURCE' macro redefined" warnings from
+cluttering up the build.
+
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -1975,7 +1975,7 @@ config("chromium_code") {
+       # Non-chromium code is not guaranteed to compile cleanly with
+       # _FORTIFY_SOURCE. Also, fortified build may fail when optimizations are
+       # disabled, so only do that for Release build.
+-      fortify_level = "2"
++      fortify_level = "3"
+ 
+       # ChromeOS's toolchain supports a high-quality _FORTIFY_SOURCE=3
+       # implementation with a few custom glibc patches. Use that if it's

@@ -1,0 +1,26 @@
+Fix errors of the following form, observed on jammy and mantic:
+
+  ../../chrome/browser/ui/views/bubble/bubble_contents_wrapper.h:153:9: error: static assertion expression is not an integral constant expression
+          views_metrics::IsValidWebUINameVariant("." + T::GetWebUIName()));
+          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/bits/unique_ptr.h:962:34: note: in instantiation of member function 'BubbleContentsWrapperT<ShoppingInsightsSidePanelUI>::BubbleContentsWrapperT' requested here
+      { return unique_ptr<_Tp>(new _Tp(std::forward<_Args>(__args)...)); }
+                                   ^
+  ../../chrome/browser/ui/commerce/commerce_ui_tab_helper.cc:458:16: note: in instantiation of function template specialization 'std::make_unique<BubbleContentsWrapperT<ShoppingInsightsSidePanelUI>, GURL, Profile *, int, bool, bool>' requested here
+            std::make_unique<BubbleContentsWrapperT<ShoppingInsightsSidePanelUI>>(
+                 ^
+  ../../chrome/browser/ui/views/bubble/bubble_contents_wrapper.h:153:48: note: non-literal type 'basic_string<char, char_traits<char>, allocator<char>>' cannot be used in a constant expression
+          views_metrics::IsValidWebUINameVariant("." + T::GetWebUIName()));
+                                                 ^
+
+--- a/chrome/browser/ui/views/bubble/bubble_contents_wrapper.h
++++ b/chrome/browser/ui/views/bubble/bubble_contents_wrapper.h
+@@ -149,8 +149,6 @@ class BubbleContentsWrapperT : public Bu
+                               esc_closes_ui,
+                               T::GetWebUIName()),
+         webui_url_(webui_url) {
+-    static_assert(
+-        views_metrics::IsValidWebUINameVariant("." + T::GetWebUIName()));
+   }
+ 
+   void ReloadWebContents() override {
