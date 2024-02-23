@@ -132,18 +132,16 @@ fi
 ## Patch series modifications
 ##
 
+if ubuntu_dist jammy mantic
+then
+	new_patch bookworm/bubble-contents.patch
+fi
+
 if ubuntu_dist jammy
 then
 	new_patch bookworm/constcountrycode.patch
-fi
-
-if ubuntu_dist jammy
-then
 	new_patch bookworm/generate-ninja.patch
-fi
 
-if ubuntu_dist jammy
-then
 	# Can't handle the Rust build
 	sed -i -r '/^ +rustc .+,$/d' $debian/control
 	perl -pi -e '/^defines\+=rustc_version=/ and $_.="defines+=enable_rust=false\n"' \
@@ -156,10 +154,7 @@ if ubuntu_dist jammy && \
    ! grep -Fqx bullseye/av1-vaapi.patch $debian/patches/series
 then
 	new_patch bullseye/av1-vaapi.patch
-	new_patch bullseye/devtools-ts-return.patch
 	new_patch bullseye/framesensorconst.patch
-	new_patch bullseye/node-trustedtypes.patch
-	new_patch bullseye/webui.patch
 fi
 
 if ubuntu_dist jammy
@@ -182,11 +177,6 @@ fi
 # https://github.com/ungoogled-software/ungoogled-chromium-debian/issues/334#issuecomment-1767888316
 # https://github.com/ungoogled-software/ungoogled-chromium-debian/issues/334#issuecomment-1769452191
 new_patch xtradeb/fix-ppc64el-lto.patch
-
-if ubuntu_dist jammy mantic
-then
-	new_patch xtradeb/fix-static-assert.patch
-fi
 
 if ubuntu_dist noble
 then

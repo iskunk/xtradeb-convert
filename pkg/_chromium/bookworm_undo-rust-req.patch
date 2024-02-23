@@ -27,8 +27,10 @@ Date:   Tue Nov 28 01:49:26 2023 +0000
     Commit-Queue: Łukasz Anforowicz <lukasza@chromium.org>
     Cr-Commit-Position: refs/heads/main@{#1229679}
 
---- a/build/config/rust.gni
-+++ b/build/config/rust.gni
+Index: chromium-122.0.6261.57/build/config/rust.gni
+===================================================================
+--- chromium-122.0.6261.57.orig/build/config/rust.gni
++++ chromium-122.0.6261.57/build/config/rust.gni
 @@ -103,6 +103,9 @@ declare_args() {
    # Support for chrome://crash-rust to check crash dump collection works.
    enable_rust_crash = enable_rust
@@ -39,8 +41,10 @@ Date:   Tue Nov 28 01:49:26 2023 +0000
    # Support for Rust mojo bindings.
    enable_rust_mojo = enable_rust && enable_all_rust_features
  
---- a/components/qr_code_generator/BUILD.gn
-+++ b/components/qr_code_generator/BUILD.gn
+Index: chromium-122.0.6261.57/components/qr_code_generator/BUILD.gn
+===================================================================
+--- chromium-122.0.6261.57.orig/components/qr_code_generator/BUILD.gn
++++ chromium-122.0.6261.57/components/qr_code_generator/BUILD.gn
 @@ -11,6 +11,11 @@ declare_args() {
    enable_qr_print = false
  }
@@ -109,8 +113,10 @@ Date:   Tue Nov 28 01:49:26 2023 +0000
      "//base",
      "//base/test:test_support",
      "//testing/gtest",
---- a/components/qr_code_generator/features.h
-+++ b/components/qr_code_generator/features.h
+Index: chromium-122.0.6261.57/components/qr_code_generator/features.h
+===================================================================
+--- chromium-122.0.6261.57.orig/components/qr_code_generator/features.h
++++ chromium-122.0.6261.57/components/qr_code_generator/features.h
 @@ -6,6 +6,7 @@
  #define COMPONENTS_QR_CODE_GENERATOR_FEATURES_H_
  
@@ -144,8 +150,10 @@ Date:   Tue Nov 28 01:49:26 2023 +0000
  }
  
  }  // namespace qr_code_generator
---- a/components/qr_code_generator/qr_code_generator.cc
-+++ b/components/qr_code_generator/qr_code_generator.cc
+Index: chromium-122.0.6261.57/components/qr_code_generator/qr_code_generator.cc
+===================================================================
+--- chromium-122.0.6261.57.orig/components/qr_code_generator/qr_code_generator.cc
++++ chromium-122.0.6261.57/components/qr_code_generator/qr_code_generator.cc
 @@ -11,12 +11,15 @@
  #include <vector>
  
@@ -191,8 +199,10 @@ Date:   Tue Nov 28 01:49:26 2023 +0000
    }
  
    if (in.size() > kMaxInputSize) {
---- a/components/qr_code_generator/qr_code_generator_unittest.cc
-+++ b/components/qr_code_generator/qr_code_generator_unittest.cc
+Index: chromium-122.0.6261.57/components/qr_code_generator/qr_code_generator_unittest.cc
+===================================================================
+--- chromium-122.0.6261.57.orig/components/qr_code_generator/qr_code_generator_unittest.cc
++++ chromium-122.0.6261.57/components/qr_code_generator/qr_code_generator_unittest.cc
 @@ -331,9 +331,12 @@ TEST_P(QRCodeGeneratorTest, InvalidMinVe
    ASSERT_FALSE(qr.Generate(huge_input, std::make_optional(-1)));
  }
