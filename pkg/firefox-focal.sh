@@ -52,7 +52,7 @@ cat >$debian/xtradeb.tmp <<'END'
 
 # Enable native Wayland support (https://launchpad.net/bugs/1916469)
 # only in Wayland sessions (https://launchpad.net/bugs/1923116)
-if [ "$XDG_SESSION_TYPE" = "wayland" ] ; then
+if [ "_$XDG_SESSION_TYPE" = "_wayland" ] ; then
     export MOZ_ENABLE_WAYLAND=1
 fi
 END
@@ -70,17 +70,19 @@ rm -f $debian/xtradeb.tmp
 # after changes to the former are complete.
 
 # * Bump up debhelper compat level to 10 (quells warnings)
-# * Allow building with clang-11 (for jammy) up to clang-14 (for noble)
+# * Allow building with clang-14 for noble
 perl -pi \
 	-e 's/\b(debhelper) \(>= 9\),/$1 (>= 10),/;' \
-	-e 's/\b((llvm|(?:lib)?clang)-10(-dev)?)\b/$1 | $2-11$3 | $2-12$3 | $2-13$3 | $2-14$3/' \
+	-e 'if(/^\s+((?:llvm|(?:lib)?clang)-\d+(?:-dev)?)\b/) {' \
+	-e '  $pkg=$1; $pkg=~s/\d+/14/; s/,$/ | $pkg,/;' \
+	-e '}' \
 	$debian/control.in
 
 # Also needed for debhelper
 echo 10 >$debian/compat
 
-# Also needed to use clang-[11,14]
-perl -pi -e 's/^(LLVM_VERSIONS) = (.+)$/$1 = $2 11 12 13 14/' $debian/build/rules.mk
+# Also needed to use clang-14
+perl -pi -e 's/^(LLVM_VERSIONS) = (.+)$/$1 = $2 14/' $debian/build/rules.mk
 
 # Depend on the regular nodejs package instead of nodejs-mozilla. (Note
 # that on jammy, a backported version of nodejs is needed)
