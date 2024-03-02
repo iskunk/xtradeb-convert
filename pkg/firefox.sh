@@ -213,6 +213,6 @@ in the Firefox source tree, to regenerate necessary files.
 END
 fi
 
-echo "Firefox package conversion for '$ubuntu_dist' complete."
+echo "Firefox package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
 
 # end firefox.sh

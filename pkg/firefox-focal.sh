@@ -12,7 +12,7 @@ ubuntu_dist="$2"
 base_dir=$(dirname $0)
 . $base_dir/_common/functions.sh
 
-initialize firefox
+initialize firefox --multi-dist
 
 # Need cdbs to regenerate the control file
 dpkg --status cdbs >/dev/null || exit
@@ -116,6 +116,6 @@ ln -s . $debian/debian || exit
 (unset MAKEFLAGS; cd $debian && set -x && debian/rules debian/control) || exit
 rm $debian/debian
 
-echo "Firefox package conversion for '$ubuntu_dist' complete."
+echo "Firefox package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
 
 # end firefox-focal.sh

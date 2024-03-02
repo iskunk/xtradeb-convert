@@ -193,6 +193,6 @@ fi
 
 finish
 
-echo "Chromium package conversion for '$ubuntu_dist' complete."
+echo "Chromium package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
 
 # end chromium.sh

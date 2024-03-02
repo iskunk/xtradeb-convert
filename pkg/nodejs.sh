@@ -81,6 +81,6 @@ esac
 
 finish
 
-echo "$pkg package conversion for '$ubuntu_dist' complete."
+echo "$pkg package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
 
 # end nodejs.sh

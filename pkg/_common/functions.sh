@@ -3,6 +3,24 @@
 initialize()
 {
 	package_name="$1"
+	shift
+
+	multi_dist=no
+
+	while [ -n "$1" ]
+	do
+		case "$1" in
+			--multi-dist) multi_dist=yes ;;
+			*) echo "$0: error: initialize(): unrecognized option \"$1\""; exit 1 ;;
+		esac
+		shift
+	done
+
+	if [ -z "$BASH_VERSION" ]
+	then
+		echo "$0: error: script must run under bash(1)"
+		exit 1
+	fi
 
 	set -eu
 
@@ -34,23 +52,25 @@ initialize()
 	then
 		ubuntu_dist=$(lsb_release -cs)
 	fi
+	test -n "$ubuntu_dist" || ubuntu_dist=jammy
+
 	case "$ubuntu_dist" in
-		jammy | mantic | noble) ;;
-		'') ubuntu_dist=jammy ;;
+		jammy)  ubuntu_ver=22.04 ;;
+		mantic) ubuntu_ver=23.10 ;;
+		noble)  ubuntu_ver=24.04 ;;
 		*) echo "$0: error: invalid Ubuntu distribution \"$ubuntu_dist\""; exit 1 ;;
 	esac
+
+	version_suffix="xtradeb1.${ubuntu_ver/./}."
 
 	# Verify that these packages are installed
 	dpkg --status dpkg-dev devscripts quilt >/dev/null || exit
 
-	if [ $ubuntu_dist = jammy ]
+	if [ $multi_dist = yes ]
 	then
-		# LTS release
-		version_suffix="xtradeb"
-		changelog_text='Rebuild for XtraDeb.'
+		changelog_text="XtraDeb conversion for Ubuntu $ubuntu_ver/$ubuntu_dist and later releases."
 	else
-		version_suffix="xtradeb1${ubuntu_dist}"
-		changelog_text="Rebuild for XtraDeb ${ubuntu_dist}."
+		changelog_text="XtraDeb conversion for Ubuntu $ubuntu_ver/$ubuntu_dist."
 	fi
 
 	cur_dist=$(dpkg-parsechangelog \
