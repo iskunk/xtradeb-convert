@@ -18,17 +18,17 @@ Fix constexpr breakage of the following forms, observed on jammy:
 --- a/chrome/browser/ui/webui/commerce/shopping_insights_side_panel_ui.h
 +++ b/chrome/browser/ui/webui/commerce/shopping_insights_side_panel_ui.h
 @@ -42,7 +42,7 @@ class ShoppingInsightsSidePanelUI
-       mojo::PendingReceiver<shopping_list::mojom::ShoppingListHandlerFactory>
-           receiver);
+       mojo::PendingReceiver<
+           shopping_service::mojom::ShoppingServiceHandlerFactory> receiver);
  
 -  static constexpr std::string GetWebUIName() {
 +  static std::string GetWebUIName() {
      return "ShoppingInsightsSidePanel";
    }
  
---- a/chrome/browser/ui/webui/compose/compose_ui.h
-+++ b/chrome/browser/ui/webui/compose/compose_ui.h
-@@ -41,7 +41,7 @@ class ComposeUI : public ui::MojoBubbleW
+--- a/chrome/browser/ui/webui/compose/compose_untrusted_ui.h
++++ b/chrome/browser/ui/webui/compose/compose_untrusted_ui.h
+@@ -58,7 +58,7 @@ class ComposeUntrustedUI
      triggering_web_contents_ = web_contents->GetWeakPtr();
    }
  
@@ -36,7 +36,7 @@ Fix constexpr breakage of the following forms, observed on jammy:
 +  static std::string GetWebUIName() { return "Compose"; }
  
   private:
-   void CreateComposeSessionPageHandler(
+   void CreateComposeSessionUntrustedPageHandler(
 --- a/chrome/browser/ui/webui/feed/feed_ui.h
 +++ b/chrome/browser/ui/webui/feed/feed_ui.h
 @@ -27,7 +27,7 @@ class FeedUI : public ui::UntrustedBubbl

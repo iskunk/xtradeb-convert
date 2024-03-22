@@ -140,14 +140,6 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch bookworm/constcountrycode.patch
-	new_patch bookworm/generate-ninja.patch
-
-	# Can't handle the Rust build
-	sed -i -r '/^ +rustc .+,$/d' $debian/control
-	perl -pi -e '/^defines\+=rustc_version=/ and $_.="defines+=enable_rust=false\n"' \
-		$debian/rules
-
-	new_patch bookworm/undo-rust-req.patch
 fi
 
 if ubuntu_dist jammy && \
@@ -163,7 +155,7 @@ then
 	new_patch xtradeb/absl-optional-libstdc++-11.patch
 fi
 
-if ubuntu_dist mantic noble
+if ubuntu_dist jammy mantic noble
 then
 	new_patch xtradeb/clang-match-rust-target.patch
 fi
@@ -171,6 +163,7 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/fix-constexpr.patch
+	new_patch xtradeb/fix-constexpr-2.patch
 fi
 
 # TEMPORARY: Remove once Timothy Pearson's patches incorporate this
@@ -187,6 +180,11 @@ if [ $thin_lto = yes ]
 then
 	# Needed for Clang 16 generally
 	new_patch xtradeb/lld-options.patch
+fi
+
+if ubuntu_dist jammy mantic noble
+then
+	new_patch xtradeb/warning-fixes.patch
 fi
 
 ################################################################

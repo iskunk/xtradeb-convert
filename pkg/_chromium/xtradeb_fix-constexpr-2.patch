@@ -1,0 +1,86 @@
+Fix more constexpr breakage on jammy:
+
+  components/history/core/browser/history_types.h:73:45: error: constexpr variable cannot have non-literal type 'const std::optional<std::string>' (aka 'const optional<basic_string<char>>')
+  inline constexpr std::optional<std::string> kNoAppIdFilter = absl::nullopt;
+                                              ^
+  optional:664:7: note: 'optional<std::basic_string<char>>' is not literal because it has base class '_Optional_base<basic_string<char, char_traits<char>, allocator<char>>>' of non-literal type
+      : private _Optional_base<_Tp>,
+        ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  services/network/shared_dictionary/simple_url_pattern_matcher.cc:31:34: error: constexpr variable cannot have non-literal type 'const liburlpattern::Options'
+  constexpr liburlpattern::Options kDefaultOptions = {.delimiter_list = "",
+                                   ^
+  third_party/liburlpattern/options.h:29:15: note: 'Options' is not literal because it has data member 'delimiter_list' of non-literal type 'std::string' (aka 'basic_string<char>')
+    std::string delimiter_list = "/#?";
+                ^
+  services/network/shared_dictionary/simple_url_pattern_matcher.cc:36:34: error: constexpr variable cannot have non-literal type 'const liburlpattern::Options'
+  constexpr liburlpattern::Options kHostnameOptions = {.delimiter_list = ".",
+                                   ^
+  third_party/liburlpattern/options.h:29:15: note: 'Options' is not literal because it has data member 'delimiter_list' of non-literal type 'std::string' (aka 'basic_string<char>')
+    std::string delimiter_list = "/#?";
+                ^
+  services/network/shared_dictionary/simple_url_pattern_matcher.cc:41:34: error: constexpr variable cannot have non-literal type 'const liburlpattern::Options'
+  constexpr liburlpattern::Options kPathnameOptions = {.delimiter_list = "/",
+                                   ^
+  third_party/liburlpattern/options.h:29:15: note: 'Options' is not literal because it has data member 'delimiter_list' of non-literal type 'std::string' (aka 'basic_string<char>')
+    std::string delimiter_list = "/#?";
+                ^
+
+  gen/components/autofill/core/browser/form_parsing/regex_patterns_inl.h:3161:58: error: constexpr function's 3rd parameter type 'LanguageCode' (aka 'StrongAlias<autofill::LanguageCodeTag, basic_string<char>>') is not a literal type
+                                              LanguageCode lang_code) {
+                                              ~~~~~~~~~~~~~^~~~~~~~~
+  base/types/strong_alias.h:144:18: note: 'StrongAlias<autofill::LanguageCodeTag, std::basic_string<char>>' is not literal because it has data member 'value_' of non-literal type 'std::basic_string<char>'
+    UnderlyingType value_;
+                   ^
+
+Note that regex_patterns_inl.h is a generated file, so we patch the Python
+script that generates it.
+
+We also add "[[clang::no_destroy]]" attributes to quash "declaration
+requires an exit-time destructor" warnings.
+
+--- a/components/autofill/core/browser/form_parsing/transpile_regex_patterns.py
++++ b/components/autofill/core/browser/form_parsing/transpile_regex_patterns.py
+@@ -54,7 +54,7 @@ def generate_matching_pattern_equals(nam
+   yield '// Checks if all the matching patterns for the given PatternSources'
+   yield '// and language are the same - meaning that computing predictions for'
+   yield '// both is unnecessary, since it will yield the same result.'
+-  yield 'constexpr bool AreMatchingPatternsEqualImpl(PatternSource a,'
++  yield 'bool AreMatchingPatternsEqualImpl(PatternSource a,'
+   yield '                                            PatternSource b,'
+   yield '                                            LanguageCode lang_code) {'
+   yield '  if (a == b) {'
+--- a/components/history/core/browser/history_types.h
++++ b/components/history/core/browser/history_types.h
+@@ -70,7 +70,7 @@ constexpr VisitedLinkID kInvalidVisitedL
+ typedef std::map<VisitID, VisitSource> VisitSourceMap;
+ 
+ // Constant used to represent that no app_id is used for matching.
+-inline constexpr std::optional<std::string> kNoAppIdFilter = absl::nullopt;
++[[clang::no_destroy]] inline std::optional<std::string> kNoAppIdFilter = absl::nullopt;
+ 
+ // VisitRow -------------------------------------------------------------------
+ 
+--- a/services/network/shared_dictionary/simple_url_pattern_matcher.cc
++++ b/services/network/shared_dictionary/simple_url_pattern_matcher.cc
+@@ -28,17 +28,17 @@ namespace network {
+ namespace {
+ 
+ // https://urlpattern.spec.whatwg.org/#default-options
+-constexpr liburlpattern::Options kDefaultOptions = {.delimiter_list = "",
++[[clang::no_destroy]] liburlpattern::Options kDefaultOptions = {.delimiter_list = "",
+                                                     .prefix_list = "",
+                                                     .sensitive = true,
+                                                     .strict = true};
+ // https://urlpattern.spec.whatwg.org/#hostname-options
+-constexpr liburlpattern::Options kHostnameOptions = {.delimiter_list = ".",
++[[clang::no_destroy]] liburlpattern::Options kHostnameOptions = {.delimiter_list = ".",
+                                                      .prefix_list = "",
+                                                      .sensitive = true,
+                                                      .strict = true};
+ // https://urlpattern.spec.whatwg.org/#pathname-options
+-constexpr liburlpattern::Options kPathnameOptions = {.delimiter_list = "/",
++[[clang::no_destroy]] liburlpattern::Options kPathnameOptions = {.delimiter_list = "/",
+                                                      .prefix_list = "/",
+                                                      .sensitive = true,
+                                                      .strict = true};
