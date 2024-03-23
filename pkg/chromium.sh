@@ -182,7 +182,7 @@ then
 	new_patch xtradeb/lld-options.patch
 fi
 
-if ubuntu_dist jammy mantic noble
+if ubuntu_dist jammy #mantic noble
 then
 	new_patch xtradeb/warning-fixes.patch
 fi
