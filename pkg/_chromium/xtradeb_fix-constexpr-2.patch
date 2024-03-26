@@ -57,7 +57,7 @@ requires an exit-time destructor" warnings.
  
  // Constant used to represent that no app_id is used for matching.
 -inline constexpr std::optional<std::string> kNoAppIdFilter = absl::nullopt;
-+[[clang::no_destroy]] inline std::optional<std::string> kNoAppIdFilter = absl::nullopt;
++[[clang::no_destroy]] inline const std::optional<std::string> kNoAppIdFilter = absl::nullopt;
  
  // VisitRow -------------------------------------------------------------------
  
@@ -68,19 +68,19 @@ requires an exit-time destructor" warnings.
  
  // https://urlpattern.spec.whatwg.org/#default-options
 -constexpr liburlpattern::Options kDefaultOptions = {.delimiter_list = "",
-+[[clang::no_destroy]] liburlpattern::Options kDefaultOptions = {.delimiter_list = "",
++[[clang::no_destroy]] const liburlpattern::Options kDefaultOptions = {.delimiter_list = "",
                                                      .prefix_list = "",
                                                      .sensitive = true,
                                                      .strict = true};
  // https://urlpattern.spec.whatwg.org/#hostname-options
 -constexpr liburlpattern::Options kHostnameOptions = {.delimiter_list = ".",
-+[[clang::no_destroy]] liburlpattern::Options kHostnameOptions = {.delimiter_list = ".",
++[[clang::no_destroy]] const liburlpattern::Options kHostnameOptions = {.delimiter_list = ".",
                                                       .prefix_list = "",
                                                       .sensitive = true,
                                                       .strict = true};
  // https://urlpattern.spec.whatwg.org/#pathname-options
 -constexpr liburlpattern::Options kPathnameOptions = {.delimiter_list = "/",
-+[[clang::no_destroy]] liburlpattern::Options kPathnameOptions = {.delimiter_list = "/",
++[[clang::no_destroy]] const liburlpattern::Options kPathnameOptions = {.delimiter_list = "/",
                                                       .prefix_list = "/",
                                                       .sensitive = true,
                                                       .strict = true};

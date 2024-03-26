@@ -80,6 +80,16 @@ else
 defines+=use_thin_lto=false concurrent_links=1
 endif
 END
+	if ubuntu_dist noble
+	then
+		cat >>$debian/xtradeb.tmp <<'END'
+ifeq (armhf,$(DEB_HOST_ARCH))
+# https://bugs.launchpad.net/bugs/2059059
+export DEB_CFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
+export DEB_CXXFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
+endif
+END
+	fi
 	(cd $debian && \
 		sed -i -r -e '/^defines\+=host_cpu=."arm."/{N;r xtradeb.tmp' -e '}' rules)
 	rm -f $debian/xtradeb.tmp
