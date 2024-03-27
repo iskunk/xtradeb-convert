@@ -176,11 +176,6 @@ then
 	new_patch xtradeb/fix-constexpr-2.patch
 fi
 
-# TEMPORARY: Remove once Timothy Pearson's patches incorporate this
-# https://github.com/ungoogled-software/ungoogled-chromium-debian/issues/334#issuecomment-1767888316
-# https://github.com/ungoogled-software/ungoogled-chromium-debian/issues/334#issuecomment-1769452191
-new_patch xtradeb/fix-ppc64el-lto.patch
-
 if ubuntu_dist noble
 then
 	new_patch xtradeb/fortify-level-3.patch
