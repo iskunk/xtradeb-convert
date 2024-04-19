@@ -1,7 +1,7 @@
 Fix more constexpr breakage on jammy:
 
   components/history/core/browser/history_types.h:73:45: error: constexpr variable cannot have non-literal type 'const std::optional<std::string>' (aka 'const optional<basic_string<char>>')
-  inline constexpr std::optional<std::string> kNoAppIdFilter = absl::nullopt;
+  inline constexpr std::optional<std::string> kNoAppIdFilter = std::nullopt;
                                               ^
   optional:664:7: note: 'optional<std::basic_string<char>>' is not literal because it has base class '_Optional_base<basic_string<char, char_traits<char>, allocator<char>>>' of non-literal type
       : private _Optional_base<_Tp>,
@@ -56,8 +56,8 @@ requires an exit-time destructor" warnings.
  typedef std::map<VisitID, VisitSource> VisitSourceMap;
  
  // Constant used to represent that no app_id is used for matching.
--inline constexpr std::optional<std::string> kNoAppIdFilter = absl::nullopt;
-+[[clang::no_destroy]] inline const std::optional<std::string> kNoAppIdFilter = absl::nullopt;
+-inline constexpr std::optional<std::string> kNoAppIdFilter = std::nullopt;
++[[clang::no_destroy]] inline const std::optional<std::string> kNoAppIdFilter = std::nullopt;
  
  // VisitRow -------------------------------------------------------------------
  
