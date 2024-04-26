@@ -161,8 +161,7 @@ fi
 
 if ubuntu_dist jammy
 then
-	disable_patch fixes/absl-optional.patch
-	new_patch xtradeb/absl-optional-libstdc++-11.patch
+	new_patch xtradeb/absl-optional-fix.patch
 fi
 
 if ubuntu_dist jammy mantic noble
