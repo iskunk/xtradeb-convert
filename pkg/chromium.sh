@@ -180,6 +180,11 @@ then
 	new_patch xtradeb/fortify-level-3.patch
 fi
 
+if ubuntu_dist jammy
+then
+	new_patch xtradeb/libdav1d-fields.patch
+fi
+
 if [ $thin_lto = yes ]
 then
 	# Needed for Clang 16 generally

@@ -1,0 +1,49 @@
+libdav1d 0.9.2 on jammy isn't new enough for Chromium's taste:
+
+  third_party/webrtc/modules/video_coding/codecs/av1/dav1d_decoder.cc:87:5: error: no member named 'n_threads' in 'Dav1dSettings'
+    s.n_threads = std::max(2, settings.number_of_cores());
+    ~ ^
+  third_party/webrtc/modules/video_coding/codecs/av1/dav1d_decoder.cc:88:5: error: no member named 'max_frame_delay' in 'Dav1dSettings'
+    s.max_frame_delay = 1;   // For low latency decoding.
+    ~ ^
+
+  media/filters/dav1d_video_decoder.cc:201:5: error: no member named 'n_threads' in 'Dav1dSettings'
+    s.n_threads = VideoDecoder::GetRecommendedThreadCount(frame_threads *
+    ~ ^
+  media/filters/dav1d_video_decoder.cc:207:7: error: no member named 'max_frame_delay' in 'Dav1dSettings'
+    s.max_frame_delay = 1;
+    ~ ^
+
+Fortunately, this is easy to work around.
+
+--- a/third_party/webrtc/modules/video_coding/codecs/av1/dav1d_decoder.cc
++++ b/third_party/webrtc/modules/video_coding/codecs/av1/dav1d_decoder.cc
+@@ -84,8 +84,10 @@ bool Dav1dDecoder::Configure(const Setti
+   Dav1dSettings s;
+   dav1d_default_settings(&s);
+ 
++#if 0	// XtraDeb fix
+   s.n_threads = std::max(2, settings.number_of_cores());
+   s.max_frame_delay = 1;   // For low latency decoding.
++#endif
+   s.all_layers = 0;        // Don't output a frame for every spatial layer.
+   // Limit max frame size to avoid OOM'ing fuzzers. crbug.com/325284120.
+   s.frame_size_limit = 16384 * 16384;
+--- a/media/filters/dav1d_video_decoder.cc
++++ b/media/filters/dav1d_video_decoder.cc
+@@ -195,6 +195,7 @@ void Dav1dVideoDecoder::Initialize(const
+   GetDecoderThreadCounts(config.coded_size().height(), &tile_threads,
+                          &frame_threads);
+ 
++#if 0	// XtraDeb fix
+   // While dav1d has switched to a thread pool, preserve the same thread counts
+   // we used when tile and frame threads were configured distinctly. It may be
+   // possible to lower this after some performance analysis of the new system.
+@@ -205,6 +206,7 @@ void Dav1dVideoDecoder::Initialize(const
+   // require at least two buffers before the first frame can be output.
+   if (low_delay || config.is_rtc())
+     s.max_frame_delay = 1;
++#endif	// XtraDeb fix
+ 
+   // Route dav1d internal logs through Chrome's DLOG system.
+   s.logger = {nullptr, &LogDav1dMessage};
