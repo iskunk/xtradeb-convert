@@ -182,6 +182,7 @@ fi
 
 if ubuntu_dist jammy
 then
+	new_patch xtradeb/includes.patch
 	new_patch xtradeb/libdav1d-fields.patch
 fi
 

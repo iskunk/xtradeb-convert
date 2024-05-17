@@ -55,26 +55,26 @@ Fix the following warnings:
  
 --- a/components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h
 +++ b/components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h
-@@ -41,6 +41,7 @@ inline constexpr char kRegularExpression
+@@ -45,6 +45,7 @@ inline constexpr char kRegularExpression
  
  
  // Section for singular decomposition(s).
 +[[clang::no_destroy]]
  inline constexpr Decomposition kDecompositionList[] = {
      Decomposition(kRegularExpression_1, true, true),
-     Decomposition(kRegularExpression_6, true, true),
-@@ -54,6 +55,7 @@ inline constexpr Decomposition kDecompos
+     Decomposition(kRegularExpression_2, true, true),
+@@ -62,6 +63,7 @@ inline constexpr Decomposition kDecompos
  };
  
  // Section for singular extract part(s).
 +[[clang::no_destroy]]
  inline constexpr ExtractPart kExtractPartList[]{
-     ExtractPart("", kRegularExpression_2),
-     ExtractPart("", kRegularExpression_3),
-@@ -69,24 +71,33 @@ inline constexpr ExtractPart kExtractPar
+     ExtractPart("", kRegularExpression_6),
+     ExtractPart("", kRegularExpression_7),
+@@ -77,24 +79,33 @@ inline constexpr ExtractPart kExtractPar
  
  // Section for decomposition cascades and their alternatives.
- inline constexpr AutofillParsingProcess const* kDecompositionCascade_0_Alternatives[]{ &kDecompositionList[3], &kDecompositionList[4]};
+ inline constexpr AutofillParsingProcess const* kDecompositionCascade_0_Alternatives[]{ &kDecompositionList[7], &kDecompositionList[8]};
 +[[clang::no_destroy]]
  inline constexpr DecompositionCascade kDecompositionCascade_0 = DecompositionCascade("", kDecompositionCascade_0_Alternatives);
  

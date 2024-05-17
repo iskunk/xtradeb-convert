@@ -7,6 +7,13 @@ Fix more constexpr breakage on jammy:
       : private _Optional_base<_Tp>,
         ^~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  components/omnibox/browser/on_device_tail_model_service.cc:33:23: error: constexpr variable cannot have non-literal type 'const std::string' (aka 'const basic_string<char>')
+  constexpr std::string kTestPrefix = "face";
+                        ^
+  /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/bits/basic_string.h:85:11: note: 'basic_string<char>' is not literal because it is not an aggregate and has no constexpr constructors other than copy or move constructors
+      class basic_string
+            ^
+
   services/network/shared_dictionary/simple_url_pattern_matcher.cc:31:34: error: constexpr variable cannot have non-literal type 'const liburlpattern::Options'
   constexpr liburlpattern::Options kDefaultOptions = {.delimiter_list = "",
                                    ^
@@ -60,6 +67,17 @@ requires an exit-time destructor" warnings.
 +[[clang::no_destroy]] inline const std::optional<std::string> kNoAppIdFilter = std::nullopt;
  
  // VisitRow -------------------------------------------------------------------
+ 
+--- a/components/omnibox/browser/on_device_tail_model_service.cc
++++ b/components/omnibox/browser/on_device_tail_model_service.cc
+@@ -30,7 +30,7 @@ namespace {
+ // The maximum idle time before the model executor is unloaded from memory.
+ constexpr base::TimeDelta kMaxExecutorIdleSeconds = base::Seconds(60);
+ // Constants for TFlite model validation.
+-constexpr std::string kTestPrefix = "face";
++[[clang::no_destroy]] const std::string kTestPrefix = "face";
+ constexpr std::string_view kModelValidationSwitchName =
+     "omnibox-on-device-tail-model-validation";
  
 --- a/services/network/shared_dictionary/simple_url_pattern_matcher.cc
 +++ b/services/network/shared_dictionary/simple_url_pattern_matcher.cc

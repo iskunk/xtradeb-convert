@@ -26,15 +26,26 @@ Fix constexpr breakage of the following form, observed on jammy:
    void CreateComposeSessionUntrustedPageHandler(
 --- a/chrome/browser/ui/webui/lens/lens_untrusted_ui.h
 +++ b/chrome/browser/ui/webui/lens/lens_untrusted_ui.h
-@@ -29,7 +29,7 @@ class LensUntrustedUI : public ui::Untru
-   void BindInterface(
-       mojo::PendingReceiver<lens::mojom::LensPageHandlerFactory> receiver);
+@@ -47,7 +47,7 @@ class LensUntrustedUI : public Untrusted
+       mojo::PendingReceiver<color_change_listener::mojom::PageHandler>
+           receiver);
  
 -  static constexpr std::string GetWebUIName() { return "LensUntrusted"; }
 +  static const std::string GetWebUIName() { return "LensUntrusted"; }
  
   private:
    // lens::mojom::LensPageHandlerFactory:
+--- a/chrome/browser/ui/webui/lens/search_bubble_ui.h
++++ b/chrome/browser/ui/webui/lens/search_bubble_ui.h
+@@ -26,7 +26,7 @@ class SearchBubbleUI : public TopChromeW
+       mojo::PendingReceiver<lens::mojom::SearchBubblePageHandlerFactory>
+           receiver);
+ 
+-  static constexpr std::string GetWebUIName() { return "LensSearchBubble"; }
++  static const std::string GetWebUIName() { return "LensSearchBubble"; }
+ 
+  private:
+   // lens::mojom::SearchBubblePageHandlerFactory
 --- a/chrome/browser/ui/webui/side_panel/bookmarks/bookmarks_side_panel_ui.h
 +++ b/chrome/browser/ui/webui/side_panel/bookmarks/bookmarks_side_panel_ui.h
 @@ -63,7 +63,7 @@ class BookmarksSidePanelUI
@@ -103,7 +114,7 @@ Fix constexpr breakage of the following form, observed on jammy:
  
 --- a/chrome/browser/ui/webui/side_panel/reading_list/reading_list_ui.h
 +++ b/chrome/browser/ui/webui/side_panel/reading_list/reading_list_ui.h
-@@ -47,7 +47,7 @@ class ReadingListUI : public ui::MojoBub
+@@ -47,7 +47,7 @@ class ReadingListUI : public TopChromeWe
  
    void SetActiveTabURL(const GURL& url);
  
@@ -125,7 +136,7 @@ Fix constexpr breakage of the following form, observed on jammy:
    // user_notes::mojom::UserNotesPageHandlerFactory
 --- a/chrome/browser/ui/webui/tab_search/tab_search_ui.h
 +++ b/chrome/browser/ui/webui/tab_search/tab_search_ui.h
-@@ -46,7 +46,7 @@ class TabSearchUI : public ui::MojoBubbl
+@@ -46,7 +46,7 @@ class TabSearchUI : public TopChromeWebU
      return page_handler_.get();
    }
  
