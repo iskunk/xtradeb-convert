@@ -5,12 +5,13 @@ FROM $DISTRO_RELEASE
 ARG QEMU_BINFMT=dummy
 ADD $QEMU_BINFMT /usr/libexec/qemu-binfmt/
 
-ARG APT_MIRROR=cloudfront.debian.net
+ARG APT_MIRROR=mirrors.wikimedia.org
 RUN perl -pi \
-    -e 's!archive.ubuntu.com/ubuntu!<APT>/ubuntu!;' \
-    -e 's!security.ubuntu.com/ubuntu!<APT>/ubuntu-security!;' \
-    -e 's!ports.ubuntu.com/ubuntu-ports!<APT>/ubuntu-ports!;' \
-    -e 's!deb.debian.org!<APT>!;' \
+    -e 's,deb.debian.org/(debian)(?!-sec),<APT>/$1,;' \
+    -e 's!deb.debian.org/(debian-security)!<APT>/$1! if 0;' \
+    -e 's!archive.ubuntu.com/(ubuntu)!<APT>/$1!;' \
+    -e 's!security.ubuntu.com/(ubuntu)!<APT>/$1-security! if 0;' \
+    -e 's!ports.ubuntu.com/(ubuntu-ports)!<APT>/$1!;' \
     -e "s!<APT>!$APT_MIRROR!" \
     /etc/apt/sources.list \
     /etc/apt/sources.list.d/*.sources
@@ -31,6 +32,7 @@ RUN apt-get update && apt-get -y install whiptail \
     procps \
     psmisc \
     quilt \
+    rsync \
     time \
     tzdata \
     wget

@@ -10,9 +10,12 @@ TOP      := $(shell cd .. && pwd)
 CTX      := $(firstword $(SCRATCH) $(XDG_RUNTIME_DIR))/tmp.context
 
 SRC        = /home/xtradeb/src
-VOL_MOUNTS = -v $(TOP):/external/xtradeb:ro -v $(SRC):/external/src:ro
+VOL_MOUNTS = \
+	-v $(TOP):/external/xtradeb:ro \
+	-v $(SRC):/external/src:ro \
+	--tmpfs=/external/tmp:exec
 
-APT_MIRROR = cloudfront.debian.net
+APT_MIRROR =
 QEMU_PATH  = /usr/bin
 
 ifeq "$(filter debian ubuntu, $(DISTRO))" ""
@@ -53,7 +56,7 @@ endif
 
 CCACHE_DIR := $(firstword $(wildcard $(SCRATCH)/xtradeb/ccache$(_arch_tag) /dept/ter/speech/$(USER)/xtradeb/ccache$(_arch_tag)))
 ifneq "$(CCACHE_DIR)" ""
-VOL_MOUNTS += -v $(CCACHE_DIR):/external/ccache --tmpfs=/external/tmp
+VOL_MOUNTS += -v $(CCACHE_DIR):/external/ccache
 endif
 
 # Don't use "docker attach", as the container will be stopped when the
@@ -87,7 +90,7 @@ endif
 	docker build $(platform_opt) \
 		--build-arg QEMU_BINFMT=$(QEMU_BINFMT) \
 		--build-arg DISTRO_RELEASE=$(DISTRO):$(RELEASE) \
-		--build-arg APT_MIRROR=$(APT_MIRROR) \
+		$(if $(APT_MIRROR),--build-arg APT_MIRROR=$(APT_MIRROR)) \
 		--tag $(IMAGE) \
 		$(CTX)
 	rm -rf $(CTX)
