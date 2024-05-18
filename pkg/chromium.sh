@@ -99,6 +99,13 @@ END
 	cp -fp $base_dir/_chromium/keepalive-wrapper.py $debian/scripts/
 fi
 
+perl -pi \
+	-e '/ninja .+ chrome/ and $_= <<END . $_;' \
+	-e '	# XtraDeb workaround for https://crbug.com/40943790' \
+	-e '	ninja -j\$(njobs) -C out/Release ui/webui/resources/cr_components/history_clusters:build_ts' \
+	-e 'END' \
+	$debian/rules
+
 ################################################################
 ##
 ## Modifications to allow building on Ubuntu jammy and later
