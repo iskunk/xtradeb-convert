@@ -4,11 +4,6 @@ Fixes to #include statements, needed on jammy:
   #include <expected>
            ^~~~~~~~~~
 
-  chrome/browser/ui/tabs/tab_strip_model.h:139:7: error: no template named 'variant' in namespace 'std'; did you mean 'absl::variant'?
-        std::variant<std::vector<std::unique_ptr<tabs::TabModel>>,
-        ^~~~~~~~~~~~
-        absl::variant
-
 --- a/chrome/browser/devtools/protocol/pwa_handler.cc
 +++ b/chrome/browser/devtools/protocol/pwa_handler.cc
 @@ -4,8 +4,6 @@
@@ -20,13 +15,3 @@ Fixes to #include statements, needed on jammy:
  #include "base/check.h"
  #include "base/functional/bind.h"
  #include "base/numerics/clamped_math.h"
---- a/chrome/browser/ui/tabs/tab_strip_model.h
-+++ b/chrome/browser/ui/tabs/tab_strip_model.h
-@@ -12,6 +12,7 @@
- #include <memory>
- #include <optional>
- #include <string>
-+#include <variant>
- #include <vector>
- 
- #include "base/containers/span.h"
