@@ -159,6 +159,13 @@ then
 	new_patch bookworm/constcountrycode.patch
 fi
 
+if ubuntu_dist jammy mantic noble
+then
+	# Don't require a bleeding-edge version of LibXML2
+	perl -pi -e '/^\s+libxml2-dev\b/ and s/ \(.+\),/,/' $debian/control
+	new_patch bookworm/libxml-parseerr.patch
+fi
+
 if ubuntu_dist jammy && \
    ! grep -Fqx bullseye/av1-vaapi.patch $debian/patches/series
 then
