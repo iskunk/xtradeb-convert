@@ -106,6 +106,12 @@ perl -pi \
 	-e 'END' \
 	$debian/rules
 
+if ubuntu_dist jammy mantic
+then
+	# The libgtk-3-0t64 package is not available until noble
+	sed -i -r 's/\b(libgtk-3-0)t64\b/\1/' $debian/control
+fi
+
 ################################################################
 ##
 ## Modifications to allow building on Ubuntu jammy and later
