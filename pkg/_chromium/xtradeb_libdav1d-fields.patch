@@ -45,5 +45,5 @@ Fortunately, this is easy to work around.
      s.max_frame_delay = 1;
 +#endif	// XtraDeb fix
  
-   // Route dav1d internal logs through Chrome's DLOG system.
-   s.logger = {nullptr, &LogDav1dMessage};
+   // Only output the highest spatial layer.
+   s.all_layers = 0;

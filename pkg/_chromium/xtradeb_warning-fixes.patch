@@ -55,7 +55,7 @@ Fix the following warnings:
  
 --- a/components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h
 +++ b/components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h
-@@ -45,6 +45,7 @@ inline constexpr char kRegularExpression
+@@ -49,6 +49,7 @@ inline constexpr char kRegularExpression
  
  
  // Section for singular decomposition(s).
@@ -63,7 +63,7 @@ Fix the following warnings:
  inline constexpr Decomposition kDecompositionList[] = {
      Decomposition(kRegularExpression_1, true, true),
      Decomposition(kRegularExpression_2, true, true),
-@@ -62,6 +63,7 @@ inline constexpr Decomposition kDecompos
+@@ -70,6 +71,7 @@ inline constexpr Decomposition kDecompos
  };
  
  // Section for singular extract part(s).
@@ -71,7 +71,7 @@ Fix the following warnings:
  inline constexpr ExtractPart kExtractPartList[]{
      ExtractPart("", kRegularExpression_6),
      ExtractPart("", kRegularExpression_7),
-@@ -77,24 +79,33 @@ inline constexpr ExtractPart kExtractPar
+@@ -85,24 +87,33 @@ inline constexpr ExtractPart kExtractPar
  
  // Section for decomposition cascades and their alternatives.
  inline constexpr AutofillParsingProcess const* kDecompositionCascade_0_Alternatives[]{ &kDecompositionList[7], &kDecompositionList[8]};

@@ -6,12 +6,11 @@ Fixes to #include statements, needed on jammy:
 
 --- a/chrome/browser/devtools/protocol/pwa_handler.cc
 +++ b/chrome/browser/devtools/protocol/pwa_handler.cc
-@@ -4,8 +4,6 @@
+@@ -4,7 +4,6 @@
  
  #include "chrome/browser/devtools/protocol/pwa_handler.h"
  
 -#include <expected>
--
+ #include <sstream>
+ 
  #include "base/check.h"
- #include "base/functional/bind.h"
- #include "base/numerics/clamped_math.h"
