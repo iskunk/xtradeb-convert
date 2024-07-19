@@ -29,7 +29,7 @@ endif
 endif
 
 ifeq "$(DISTRO)" "ubuntu"
-ifeq "$(filter jammy kinetic lunar mantic noble, $(RELEASE))" ""
+ifeq "$(filter jammy kinetic lunar mantic noble oracular, $(RELEASE))" ""
 $(error invalid Ubuntu release "$(RELEASE)")
 endif
 endif
@@ -91,6 +91,7 @@ endif
 		--build-arg QEMU_BINFMT=$(QEMU_BINFMT) \
 		--build-arg DISTRO_RELEASE=$(DISTRO):$(RELEASE) \
 		$(if $(APT_MIRROR),--build-arg APT_MIRROR=$(APT_MIRROR)) \
+		--progress plain \
 		--tag $(IMAGE) \
 		$(CTX)
 	rm -rf $(CTX)

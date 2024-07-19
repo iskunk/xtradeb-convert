@@ -1,11 +1,11 @@
 Fix the following warnings:
 
-  ../../components/autofill/core/browser/data_model/autofill_i18n_api.h:19:26: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
-  const inline std::string kLegacyHierarchyCountryCodeString{"XX"};
-                           ^
-  ../../components/autofill/core/browser/data_model/autofill_i18n_api.h:20:26: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
-  const AddressCountryCode kLegacyHierarchyCountryCode =
-                           ^
+  ../../components/autofill/core/browser/data_model/autofill_i18n_api.h:19:30: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  constexpr inline std::string kLegacyHierarchyCountryCodeString{"XX"};
+                               ^
+  ../../components/autofill/core/browser/data_model/autofill_i18n_api.h:20:30: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  constexpr AddressCountryCode kLegacyHierarchyCountryCode =
+                               ^
 
   ../../components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:44:32: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
   inline constexpr Decomposition kDecompositionList[] = {
@@ -48,9 +48,9 @@ Fix the following warnings:
  // stored `kAutofillModelRules`. As a workaround for GCC we declare the
  // std::string constexpr first.
 +[[clang::no_destroy]]
- const inline std::string kLegacyHierarchyCountryCodeString{"XX"};
+ constexpr inline std::string kLegacyHierarchyCountryCodeString{"XX"};
 +[[clang::no_destroy]]
- const AddressCountryCode kLegacyHierarchyCountryCode =
+ constexpr AddressCountryCode kLegacyHierarchyCountryCode =
      AddressCountryCode(kLegacyHierarchyCountryCodeString);
  
 --- a/components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h

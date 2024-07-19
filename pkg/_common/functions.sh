@@ -55,9 +55,9 @@ initialize()
 	test -n "$ubuntu_dist" || ubuntu_dist=jammy
 
 	case "$ubuntu_dist" in
-		jammy)  ubuntu_ver=22.04 ;;
-		mantic) ubuntu_ver=23.10 ;;
-		noble)  ubuntu_ver=24.04 ;;
+		jammy)    ubuntu_ver=22.04 ;;
+		noble)    ubuntu_ver=24.04 ;;
+		oracular) ubuntu_ver=24.10 ;;
 		*) echo "$0: error: invalid Ubuntu distribution \"$ubuntu_dist\""; exit 1 ;;
 	esac
 

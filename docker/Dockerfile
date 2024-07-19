@@ -53,6 +53,8 @@ RUN test -f /etc/ccache.conf && exit 1; \
      echo 'compiler_check = %compiler% -v'; \
      echo 'inode_cache = false'; \
      echo 'max_size = 20G'; \
+     echo '# Workaround for https://github.com/ninja-build/ninja/issues/1330'; \
+     echo 'path = /usr/bin'; \
      echo 'sloppiness = include_file_ctime, include_file_mtime, locale, time_macros'; \
      echo 'temporary_dir = /external/tmp') > /etc/ccache.conf
 

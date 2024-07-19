@@ -106,12 +106,6 @@ perl -pi \
 	-e 'END' \
 	$debian/rules
 
-if ubuntu_dist jammy mantic
-then
-	# The libgtk-3-0t64 package is not available until noble
-	sed -i -r 's/\b(libgtk-3-0)t64\b/\1/' $debian/control
-fi
-
 ################################################################
 ##
 ## Modifications to allow building on Ubuntu jammy and later
@@ -120,6 +114,9 @@ fi
 
 if ubuntu_dist jammy
 then
+	# The libgtk-3-0t64 package is not available until noble
+	sed -i -r 's/\b(libgtk-3-0)t64\b/\1/' $debian/control
+
 	# Jammy's older GN chokes on syntax in build/nocompile.gni
 	cat >$debian/xtradeb.tmp <<'END'
 # XtraDeb
@@ -155,17 +152,13 @@ fi
 ## Patch series modifications
 ##
 
-if ubuntu_dist jammy mantic
-then
-	new_patch bookworm/bubble-contents.patch
-fi
-
 if ubuntu_dist jammy
 then
+	new_patch bookworm/bubble-contents.patch
 	new_patch bookworm/constcountrycode.patch
 fi
 
-if ubuntu_dist jammy mantic noble
+if ubuntu_dist jammy noble oracular
 then
 	# Don't require a bleeding-edge version of LibXML2
 	perl -pi -e '/^\s+libxml2-dev\b/ and s/ \(.+\),/,/' $debian/control
@@ -184,7 +177,7 @@ then
 	new_patch xtradeb/absl-optional-fix.patch
 fi
 
-if ubuntu_dist jammy mantic noble
+if ubuntu_dist jammy noble oracular
 then
 	new_patch xtradeb/clang-match-rust-target.patch
 fi
@@ -195,7 +188,7 @@ then
 	new_patch xtradeb/fix-constexpr-2.patch
 fi
 
-if ubuntu_dist noble
+if ubuntu_dist noble oracular
 then
 	new_patch xtradeb/fortify-level-3.patch
 fi
@@ -212,9 +205,14 @@ then
 	new_patch xtradeb/lld-options.patch
 fi
 
-if ubuntu_dist jammy #mantic noble
+new_patch xtradeb/warning-fixes.patch
+if ubuntu_dist jammy
 then
-	new_patch xtradeb/warning-fixes.patch
+	# Tweak the patch slightly to avoid conflicting with the
+	# previously-applied bookworm/constcountrycode.patch
+	#
+	perl -pi -e '/kLegacyHierarchyCountryCode/ and s/constexpr/const/' \
+		$debian/patches/xtradeb/warning-fixes.patch
 fi
 
 ################################################################

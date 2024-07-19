@@ -27,6 +27,8 @@ then
 	exit 1
 fi
 
+is_esr=$(grep -qx 'Source: firefox-esr' $debian/control && echo yes || echo no)
+
 # https://wiki.mozilla.org/Distribution_INI_File
 
 if [ -f $debian/distribution.ini ]
@@ -72,47 +74,94 @@ END
 ##
 ################################################################
 
+rm -f $debian/rules.add
+
+if ! ubuntu_dist jammy && [ $is_esr = yes ]
+then
+	# Use Clang/LLVM 17 specifically
+	# (the ESR build fails mysteriously in a Rust component with 18)
+	sed -i -r \
+		-e 's/^(\s+clang),/\1-17,/' \
+		-e 's/^(\s+libclang)-dev,/\1-17-dev,/' \
+		-e 's/^(\s+libclang-rt)-(dev-wasm32),/\1-17-\2,/' \
+		-e 's/^(\s+libc\+\+)-(dev-wasm32),/\1-17-\2,/' \
+		-e 's/^(\s+lld),/\1-17,/' \
+		-e 's/^(\s+llvm)-dev,/\1-17-dev,/' \
+		$debian/control.in
+
+	cat >>$debian/rules.add <<'END'
+
+export CC  = clang-17
+export CXX = clang++-17
+END
+fi
+
+if grep -Fq 'rustc (>= 1.76),' $debian/control
+then
+	# Ubuntu provides cargo and rustc 1.76 as "cargo-1.76" and "rustc-1.76"
+	sed -i -r 's/^(\s+(cargo|rustc)) \(>= (1\.76)\),/\1-\3,/' \
+		$debian/control.in
+
+	cat >>$debian/rules.add <<'END'
+
+export CARGO ?= cargo-1.76
+export RUSTC ?= rustc-1.76
+END
+else
+	cat >>$debian/rules.add <<'END'
+
+export CARGO ?= cargo
+END
+fi
+
 # DIST needs to be set properly
-perl -pi -e 's/^DIST = unknown/DIST = \$(DEB_DISTRIBUTION)/' \
+sed -i 's/^DIST = unknown/DIST = $(DEB_DISTRIBUTION)/' \
 	$debian/upstream.mk
 
-# Hook in our vendored copy of cbindgen
-perl -pi \
-	-e '/^RUSTFLAGS =/ and $_ .= <<END;' \
-	-e '' \
-	-e '# XtraDeb' \
-	-e 'CBINDGEN = \$(CURDIR)/cbindgen/target/release/cbindgen' \
-	-e 'END' \
-	\
-	-e '/^EXPORTS :=/ and s/$/  CBINDGEN/;' \
-	-e 'm!^stamps/configure-\$\(PRODUCT\)::! and s/$/  \$(CBINDGEN)/;' \
-	\
-	-e 'm!rm -rf debian/objdir! and $_ .= <<END;' \
-	-e '' \
-	-e '	# XtraDeb' \
-	-e '	rm -rf cbindgen/.cargo/.package-cache cbindgen/target' \
-	-e 'END' \
-	$debian/rules
+if ubuntu_dist jammy
+then
+	# Hook in our vendored copy of cbindgen, as the distro-provided
+	# package version in jammy is too old
+	perl -pi \
+		-e '/^RUSTFLAGS =/ and $_ .= <<END;' \
+		-e '' \
+		-e '# XtraDeb' \
+		-e 'CBINDGEN = \$(CURDIR)/cbindgen/target/release/cbindgen' \
+		-e 'END' \
+		\
+		-e '/^EXPORTS :=/ and $_ .= "EXPORTS += CBINDGEN\n";' \
+		-e 'm!^stamps/configure-\$\(PRODUCT\)::! and s/$/  \$(CBINDGEN)/;' \
+		\
+		-e 'm!rm -rf debian/objdir! and $_ .= <<END;' \
+		-e '' \
+		-e '	# XtraDeb' \
+		-e '	rm -rf cbindgen/.cargo/.package-cache cbindgen/target' \
+		-e 'END' \
+		$debian/rules
 
-cat >>$debian/rules <<'END'
-
-# XtraDeb additions
+	cat >>$debian/rules.add <<'END'
 
 # Build our vendored copy of cbindgen
 $(CBINDGEN): cbindgen/Cargo.toml
-	cd cbindgen && RUST_BACKTRACE=full cargo build --release
+	cd cbindgen && RUST_BACKTRACE=full $(CARGO) build --release
 END
+
+	sed -i -r '/^\s+cbindgen .+,$/s/^/%%xtradeb%%/' $debian/control.in
+fi
 
 # Extend distribution-release-specific conditionals with Ubuntu names
 # (note: line continuations are not supported by the preprocessor)
 
-perl -pi -e '/^\%if DIST == bullseye/ and s/$/  || DIST == jammy/' \
+# --without-wasm-sandboxed-libraries
+sed -i '/^%if DIST == bullseye/s/$/  || DIST == jammy/' \
 	$debian/browser.mozconfig.in
 
-perl -pi -e '/^\%if DIST != bullseye/ and s/$/  \&\& DIST != jammy/' \
+# WebAssembly library dependencies
+sed -i '/^%if DIST != bullseye/s/$/  \&\& DIST != jammy/' \
 	$debian/control.in
 
-perl -pi -e 's/(filter buster bullseye bookworm),/$1  jammy mantic,/' \
+# SYSTEM_LIBS += nss
+sed -i -r 's/(filter buster bullseye bookworm),/\1  jammy noble,/' \
 	$debian/rules
 
 ## This conditional doesn't handle USE_SYSTEM_NSS=0 properly
@@ -120,27 +169,22 @@ perl -pi -e 's/(filter buster bullseye bookworm),/$1  jammy mantic,/' \
 #	$debian/browser.install.in \
 #	$debian/browser.lintian-overrides.in
 
-if ubuntu_dist mantic
+if [ -f $debian/rules.add ]
 then
-	# Fix for https://bugs.launchpad.net/bugs/2033450
-	perl -pi \
-		-e '/^(\s+)libc\+\+-dev-wasm32,/ and $_ = <<END . $_;' \
-		-e '%% XtraDeb: install this so Clang can find WASI libc++ headers' \
-		-e '${1}  libc++-dev,' \
-		-e 'END' \
-		$debian/control.in
-fi
+	(echo
+	 echo '# XtraDeb additions'
+	 cat $debian/rules.add
+	) >>$debian/rules
 
-# cbindgen is included as an orig source tarball, as the distro-packaged
-# versions are too old
-perl -pi -e '/^\s+cbindgen .+,$/ and s/^/%%xtradeb%%/' $debian/control.in
+	rm $debian/rules.add
+fi
 
 ##
 ## Patch series modifications
 ##
 
-# Fix for https://bugs.launchpad.net/bugs/2033572
-if ubuntu_dist mantic
+# https://bugs.launchpad.net/bugs/2033572
+if ubuntu_dist noble oracular
 then
 	new_patch xtradeb/fix-libc++-wasm-link-error.patch
 fi
@@ -150,6 +194,9 @@ fi
 ## More information here: https://bugs.debian.org/1050890
 ##
 
+# Find the right file to modify with e.g.
+#   find build-browser -name \*.mk -exec grep -l RUST_LIBRARY_FEATURES {} +
+# (Note: "export DEBIAN_RUST_LTO = -Clto=off" does not do the trick)
 perl -pi \
 	-e '/^# Use thinLTO on armhf/ and $_ = <<END . $_;' \
 	-e '	# XtraDeb: workaround for LTO breakage in webrender build' \
@@ -168,20 +215,33 @@ new_patch xtradeb/fix-param-lto-partitions.patch
 #   dwz: debian/firefox/usr/lib/firefox/libmozavcodec.so: Unknown DWARF DW_OP_0
 #   dwz: debian/firefox/usr/lib/firefox/libmozavutil.so: Unknown DWARF DW_OP_183
 #
-perl -pi -e '/dh_dwz -X libxul/ and s/$/ \\\n\t\t-X libmozav  # XtraDeb: needed to avoid LTO build breakage/' \
+sed -i '/dh_dwz -X libxul/s/$/ \\\n\t\t-X libmozav  # XtraDeb: needed to avoid LTO build breakage/' \
 	$debian/rules
+
+if ubuntu_dist jammy
+then
+	true	# jammy uses _FORTIFY_SOURCE=2
+elif [ $is_esr = yes ]
+then
+	new_patch xtradeb/fortify-source-3-esr.patch
+else
+	new_patch xtradeb/fortify-source-3.patch
+fi
 
 ################################################################
 
 finish
 
-# Add a "1:" epoch prefix to the version, so that the firefox snap package
-# isn't outright considered newer
-perl -pi \
-	-e 'if (/^firefox / && $. == 1) {' \
-	-e '  s/\((.+)\)/(1:$1)/;' \
-	-e '}' \
-	$debian/changelog
+if [ $is_esr = no ]
+then
+	# Add a "1:" epoch prefix to the version, so that the firefox snap
+	# package isn't outright considered newer
+	perl -pi \
+		-e 'if (/^firefox / && $. == 1) {' \
+		-e '  s/\((.+)\)/(1:$1)/;' \
+		-e '}' \
+		$debian/changelog
+fi
 
 files_to_regen=
 for file in \
