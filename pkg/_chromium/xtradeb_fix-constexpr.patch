@@ -103,7 +103,7 @@ Fix constexpr breakage of the following form, observed on jammy:
    // side_panel::mojom::PerformancePageHandlerFactory:
 --- a/chrome/browser/ui/webui/side_panel/read_anything/read_anything_untrusted_ui.h
 +++ b/chrome/browser/ui/webui/side_panel/read_anything/read_anything_untrusted_ui.h
-@@ -55,7 +55,7 @@ class ReadAnythingUntrustedUI
+@@ -54,7 +54,7 @@ class ReadAnythingUntrustedUI
        mojo::PendingReceiver<read_anything::mojom::UntrustedPageHandlerFactory>
            receiver);
  
@@ -123,17 +123,6 @@ Fix constexpr breakage of the following form, observed on jammy:
  
   private:
    // reading_list::mojom::PageHandlerFactory:
---- a/chrome/browser/ui/webui/side_panel/user_notes/user_notes_side_panel_ui.h
-+++ b/chrome/browser/ui/webui/side_panel/user_notes/user_notes_side_panel_ui.h
-@@ -35,7 +35,7 @@ class UserNotesSidePanelUI
- 
-   void set_browser(Browser* browser) { browser_ = browser; }
- 
--  static constexpr std::string GetWebUIName() { return "UserNotesSidePanel"; }
-+  static const std::string GetWebUIName() { return "UserNotesSidePanel"; }
- 
-  private:
-   // user_notes::mojom::UserNotesPageHandlerFactory
 --- a/chrome/browser/ui/webui/tab_search/tab_search_ui.h
 +++ b/chrome/browser/ui/webui/tab_search/tab_search_ui.h
 @@ -58,7 +58,7 @@ class TabSearchUI : public TopChromeWebU
@@ -143,5 +132,5 @@ Fix constexpr breakage of the following form, observed on jammy:
 -  static constexpr std::string GetWebUIName() { return "TabSearch"; }
 +  static const std::string GetWebUIName() { return "TabSearch"; }
  
-  private:
-   // tab_search::mojom::PageHandlerFactory
+   void set_page_handler_creation_callback_for_testing(
+       base::OnceClosure callback) {

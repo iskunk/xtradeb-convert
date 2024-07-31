@@ -1,45 +1,49 @@
 Fix the following warnings:
 
-  ../../components/autofill/core/browser/data_model/autofill_i18n_api.h:19:30: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
-  constexpr inline std::string kLegacyHierarchyCountryCodeString{"XX"};
-                               ^
-  ../../components/autofill/core/browser/data_model/autofill_i18n_api.h:20:30: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
-  constexpr AddressCountryCode kLegacyHierarchyCountryCode =
-                               ^
+  components/autofill/core/browser/data_model/autofill_i18n_api.h:19:30: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  const inline std::string kLegacyHierarchyCountryCodeString{"XX"};
+                           ^
+  components/autofill/core/browser/data_model/autofill_i18n_api.h:20:30: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  const AddressCountryCode kLegacyHierarchyCountryCode =
+                           ^
 
-  ../../components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:44:32: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:44:32: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
   inline constexpr Decomposition kDecompositionList[] = {
                                  ^
-  ../../components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:57:30: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:57:30: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
   inline constexpr ExtractPart kExtractPartList[]{
                                ^
-  ../../components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:72:39: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:72:39: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
   inline constexpr DecompositionCascade kDecompositionCascade_0 = DecompositionCascade("", kDecompositionCascade_0_Alternatives);
                                         ^
-  ../../components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:76:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:76:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
   inline constexpr ExtractParts kExtractParts_0 = ExtractParts("", kExtractParts_0_Pieces);
                                 ^
-  ../../components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:78:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:78:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
   inline constexpr ExtractParts kExtractParts_1 = ExtractParts("", kExtractParts_1_Pieces);
                                 ^
-  ../../components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:80:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:80:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
   inline constexpr ExtractParts kExtractParts_2 = ExtractParts("", kExtractParts_2_Pieces);
                                 ^
-  ../../components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:82:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:82:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
   inline constexpr ExtractParts kExtractParts_3 = ExtractParts("", kExtractParts_3_Pieces);
                                 ^
-  ../../components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:84:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:84:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
   inline constexpr ExtractParts kExtractParts_4 = ExtractParts("", kExtractParts_4_Pieces);
                                 ^
-  ../../components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:86:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:86:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
   inline constexpr ExtractParts kExtractParts_5 = ExtractParts("", kExtractParts_5_Pieces);
                                 ^
-  ../../components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:88:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:88:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
   inline constexpr ExtractParts kExtractParts_6 = ExtractParts("", kExtractParts_6_Pieces);
                                 ^
-  ../../components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:90:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h:90:31: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
   inline constexpr ExtractParts kExtractParts_7 = ExtractParts("", kExtractParts_7_Pieces);
                                 ^
+
+  components/history/core/browser/history_types.h:73:45: warning: declaration requires an exit-time destructor [-Wexit-time-destructors]
+  inline constexpr std::optional<std::string> kNoAppIdFilter = std::nullopt;
+                                              ^
 
 --- a/components/autofill/core/browser/data_model/autofill_i18n_api.h
 +++ b/components/autofill/core/browser/data_model/autofill_i18n_api.h
@@ -48,9 +52,9 @@ Fix the following warnings:
  // stored `kAutofillModelRules`. As a workaround for GCC we declare the
  // std::string constexpr first.
 +[[clang::no_destroy]]
- constexpr inline std::string kLegacyHierarchyCountryCodeString{"XX"};
+ const inline std::string kLegacyHierarchyCountryCodeString{"XX"};
 +[[clang::no_destroy]]
- constexpr AddressCountryCode kLegacyHierarchyCountryCode =
+ const AddressCountryCode kLegacyHierarchyCountryCode =
      AddressCountryCode(kLegacyHierarchyCountryCodeString);
  
 --- a/components/autofill/core/browser/data_model/autofill_i18n_parsing_expressions.h
@@ -105,3 +109,13 @@ Fix the following warnings:
  inline constexpr ExtractParts kExtractParts_7 = ExtractParts("", kExtractParts_7_Pieces);
  }  // namespace
  
+--- a/components/history/core/browser/history_types.h
++++ b/components/history/core/browser/history_types.h
+@@ -70,6 +70,7 @@ constexpr VisitedLinkID kInvalidVisitedL
+ typedef std::map<VisitID, VisitSource> VisitSourceMap;
+ 
+ // Constant used to represent that no app_id is used for matching.
++[[clang::no_destroy]]
+ inline constexpr std::optional<std::string> kNoAppIdFilter = std::nullopt;
+ 
+ // VisitRow -------------------------------------------------------------------

@@ -7,8 +7,11 @@ set -ex
 $wget -O bookworm_bubble-contents.patch \
 	https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/bookworm/bubble-contents.patch
 
-$wget -O bookworm_constcountrycode.patch \
-	https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/bookworm/constcountrycode.patch
+$wget -O bookworm_gn-absl.patch \
+	https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/bookworm/gn-absl.patch
+
+$wget -O bookworm_gn-funcs.patch \
+	https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/bookworm/gn-funcs.patch
 
 $wget -O bullseye_framesensorconst.patch \
 	https://salsa.debian.org/chromium-team/chromium/-/raw/bullseye/debian/patches/bullseye/framesensorconst.patch

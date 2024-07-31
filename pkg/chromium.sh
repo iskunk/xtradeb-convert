@@ -112,6 +112,15 @@ perl -pi \
 ##
 ################################################################
 
+# rustc-web is only available in Debian (old)stable
+sed -i -r 's/\b(rustc)-web,/\1,/' $debian/control
+
+# Don't do the bindgen hack, it's not needed
+sed -i -r \
+	-e '/^defines\+=rust_bindgen_root=/s!\$\(CURDIR\)/debian/bindgen/root!!' \
+	-e '/^override_dh_auto_configure:/s/ set_up_bindgen\b//' \
+	$debian/rules
+
 if ubuntu_dist jammy
 then
 	# The libgtk-3-0t64 package is not available until noble
@@ -125,6 +134,14 @@ defines+=enable_nocompile_tests=false
 END
 	(cd $debian && sed -i '/^# enabled features/e cat xtradeb.tmp' rules)
 	rm -f $debian/xtradeb.tmp
+
+	# Jammy does not have a sufficiently new libspa-0.2-dev to compile
+	# Chromium's PipeWire support. Typical compile error:
+	#
+	#   third_party/webrtc/modules/video_capture/linux/video_capture_pipewire.cc:329:19: error: invalid application of 'sizeof' to an incomplete type 'struct spa_meta_videotransform'
+	#        SPA_POD_Int(sizeof(struct spa_meta_videotransform)))));
+	#                    ^     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	sed -i '/\brtc_use_pipewire=true\b/d' $debian/rules
 
 	# Fix V4L breakage on arm64/armhf due to older kernel headers:
 	#
@@ -155,7 +172,12 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch bookworm/bubble-contents.patch
-	new_patch bookworm/constcountrycode.patch
+fi
+
+if ubuntu_dist jammy noble
+then
+	new_patch bookworm/gn-absl.patch
+	new_patch bookworm/gn-funcs.patch
 fi
 
 if ubuntu_dist jammy noble oracular
@@ -165,16 +187,10 @@ then
 	new_patch bookworm/libxml-parseerr.patch
 fi
 
-if ubuntu_dist jammy && \
-   ! grep -Fqx bullseye/av1-vaapi.patch $debian/patches/series
-then
-	new_patch bullseye/av1-vaapi.patch
-	new_patch bullseye/framesensorconst.patch
-fi
-
 if ubuntu_dist jammy
 then
-	new_patch xtradeb/absl-optional-fix.patch
+	new_patch bullseye/framesensorconst.patch
+	new_patch xtradeb/av1-vaapi.patch
 fi
 
 if ubuntu_dist jammy noble oracular
@@ -185,7 +201,6 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/fix-constexpr.patch
-	new_patch xtradeb/fix-constexpr-2.patch
 fi
 
 if ubuntu_dist noble oracular
@@ -195,7 +210,6 @@ fi
 
 if ubuntu_dist jammy
 then
-	new_patch xtradeb/includes.patch
 	new_patch xtradeb/libdav1d-fields.patch
 fi
 
@@ -206,14 +220,6 @@ then
 fi
 
 new_patch xtradeb/warning-fixes.patch
-if ubuntu_dist jammy
-then
-	# Tweak the patch slightly to avoid conflicting with the
-	# previously-applied bookworm/constcountrycode.patch
-	#
-	perl -pi -e '/kLegacyHierarchyCountryCode/ and s/constexpr/const/' \
-		$debian/patches/xtradeb/warning-fixes.patch
-fi
 
 ################################################################
 
