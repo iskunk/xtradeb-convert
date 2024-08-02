@@ -180,7 +180,7 @@ then
 	new_patch bookworm/gn-funcs.patch
 fi
 
-if ubuntu_dist jammy noble oracular
+if ubuntu_dist jammy noble
 then
 	# Don't require a bleeding-edge version of LibXML2
 	perl -pi -e '/^\s+libxml2-dev\b/ and s/ \(.+\),/,/' $debian/control
