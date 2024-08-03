@@ -1,0 +1,25 @@
+The highway.h header is not present in the chromium orig source tarball,
+leading to the following build error on ARM:
+
+  third_party/blink/renderer/core/html/parser/html_document_parser_fastpath.cc:49:10: fatal error: 'third_party/highway/src/hwy/highway.h' file not found
+  #include "third_party/highway/src/hwy/highway.h"
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+--- a/third_party/blink/renderer/core/BUILD.gn
++++ b/third_party/blink/renderer/core/BUILD.gn
+@@ -102,15 +102,6 @@ declare_args() {
+ 
+   # Use vectorization for fast path HTML parser.
+   enable_vectorized_html_scanning = false
+-
+-  # Since with currently use -msse3 (not -mssse3), there is no pshufb
+-  # instruction, so the generated code on x86 is less optimal and we enable
+-  # vectorization only for NEON.
+-  if (current_cpu == "arm" || current_cpu == "arm64") {
+-    if (arm_use_neon) {
+-      enable_vectorized_html_scanning = true
+-    }
+-  }
+ }
+ 
+ # Config for code that builds as part of core.

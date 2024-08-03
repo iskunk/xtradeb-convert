@@ -126,6 +126,12 @@ then
 	# The libgtk-3-0t64 package is not available until noble
 	sed -i -r 's/\b(libgtk-3-0)t64\b/\1/' $debian/control
 
+	# Statically link the libc++-16 libraries, as they are not normally
+	# available in jammy (note: -static-libstdc++ does apply to libc++,
+	# the option is just inappropriately named)
+	sed -i -r '/^export LDFLAGS=/s!-Wl,-rpath,(\S+)!-static-libstdc++ -L\1 -l:libc++abi.a -l:libunwind.a!' \
+		$debian/rules
+
 	# Jammy's older GN chokes on syntax in build/nocompile.gni
 	cat >$debian/xtradeb.tmp <<'END'
 # XtraDeb
@@ -192,6 +198,8 @@ then
 	new_patch bullseye/framesensorconst.patch
 	new_patch xtradeb/av1-vaapi.patch
 fi
+
+new_patch xtradeb/blink-highway-arm.patch
 
 if ubuntu_dist jammy noble oracular
 then
