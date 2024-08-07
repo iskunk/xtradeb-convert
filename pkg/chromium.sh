@@ -41,63 +41,29 @@ END
 
 rm -f $debian/xtradeb.tmp
 
-# Avoid setting an empty value here
-sed -i '/^export CLANG_MVERS *=/s/\bDebian\b/Ubuntu/' $debian/rules
-
-# /etc/debian_version is not meaningful on an Ubuntu system
-# (Note that lsb_release(1) sometimes prints "No LSB modules are available")
-sed -i '/@BUILD_DIST@/s!\bcat /etc/debian_version\b!lsb_release -rs 2>/dev/null!' $debian/rules
-
-# Also update the launcher script in the same way
-# (note: script could be named "ungoogled-chromium")
-sed -i \
-	-e '/^DIST=/s!\bcat /etc/debian_version\b!lsb_release -rs 2>/dev/null!' \
-	-e '/^export CHROME_VERSION_EXTRA=/s/\bDebian\b/Ubuntu/g' \
-	$debian/scripts/*chromium
-
-# Enable thin LTO for better performance
-# https://bugs.debian.org/1033305
-# (Conditionally exclude armhf, which cannot muster the necessary RAM)
-thin_lto=yes
-if [ $thin_lto = yes ]
-then
-	# Note: use_thin_lto=true requires concurrent_links to be unset
-	sed -i \
-		-e '/\buse_thin_lto=false\b/d' \
-		-e '/\bconcurrent_links=1\b/d' \
-		$debian/rules
-
-	# TODO: check if i386 needs to be excluded too
-	cat >$debian/xtradeb.tmp <<'END'
-# XtraDeb: use ThinLTO everywhere except for armhf (insufficient RAM)
-ifeq ($(filter armhf,$(DEB_HOST_ARCH)),)
-defines+=use_thin_lto=true
+cat >$debian/xtradeb.tmp <<'END'
 ifneq ($(filter arm64,$(DEB_HOST_ARCH)),)
 # final link takes >150m, don't let Launchpad kill the build prematurely
 keepalive=debian/scripts/keepalive-wrapper.py 7200
 endif
-else
-defines+=use_thin_lto=false concurrent_links=1
-endif
 END
-	if ubuntu_dist noble
-	then
-		cat >>$debian/xtradeb.tmp <<'END'
+if ubuntu_dist noble
+then
+	cat >>$debian/xtradeb.tmp <<'END'
 ifeq (armhf,$(DEB_HOST_ARCH))
 # https://bugs.launchpad.net/bugs/2059059
 export DEB_CFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
 export DEB_CXXFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
 endif
 END
-	fi
-	(cd $debian && \
-		sed -i -r -e '/^defines\+=host_cpu=."arm."/{N;r xtradeb.tmp' -e '}' rules)
-	rm -f $debian/xtradeb.tmp
-	perl -pi -e 's/(ninja .* chrome )/\$(keepalive) $1/' $debian/rules
-
-	# Borrow the keepalive wrapper from the Ubuntu 20.04 Firefox build
-	cp -fp $base_dir/_chromium/keepalive-wrapper.py $debian/scripts/
 fi
+(cd $debian && \
+	sed -i -r -e '/^defines\+=host_cpu=."arm."/{N;r xtradeb.tmp' -e '}' rules)
+rm -f $debian/xtradeb.tmp
+perl -pi -e 's/(ninja .* chrome )/\$(keepalive) $1/' $debian/rules
+
+# Borrow the keepalive wrapper from the Ubuntu 20.04 Firefox build
+cp -fp $base_dir/_chromium/keepalive-wrapper.py $debian/scripts/
 
 perl -pi \
 	-e '/ninja .+ chrome/ and $_= <<END . $_;' \
@@ -131,15 +97,6 @@ then
 	# the option is just inappropriately named)
 	sed -i -r '/^export LDFLAGS=/s!-Wl,-rpath,(\S+)!-static-libstdc++ -L\1 -l:libc++abi.a -l:libunwind.a!' \
 		$debian/rules
-
-	# Jammy's older GN chokes on syntax in build/nocompile.gni
-	cat >$debian/xtradeb.tmp <<'END'
-# XtraDeb
-defines+=enable_nocompile_tests=false
-
-END
-	(cd $debian && sed -i '/^# enabled features/e cat xtradeb.tmp' rules)
-	rm -f $debian/xtradeb.tmp
 
 	# Jammy does not have a sufficiently new libspa-0.2-dev to compile
 	# Chromium's PipeWire support. Typical compile error:
@@ -199,13 +156,6 @@ then
 	new_patch xtradeb/av1-vaapi.patch
 fi
 
-new_patch xtradeb/blink-highway-arm.patch
-
-if ubuntu_dist jammy noble oracular
-then
-	new_patch xtradeb/clang-match-rust-target.patch
-fi
-
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/fix-constexpr.patch
@@ -219,12 +169,6 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/libdav1d-fields.patch
-fi
-
-if [ $thin_lto = yes ]
-then
-	# Needed for Clang 16 generally
-	new_patch xtradeb/lld-options.patch
 fi
 
 new_patch xtradeb/warning-fixes.patch
