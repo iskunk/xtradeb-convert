@@ -42,18 +42,18 @@ END
 rm -f $debian/xtradeb.tmp
 
 cat >$debian/xtradeb.tmp <<'END'
-ifneq ($(filter arm64,$(DEB_HOST_ARCH)),)
+ifneq ($(filter arm64,$(DEB_BUILD_ARCH)),)
 # final link takes >150m, don't let Launchpad kill the build prematurely
 keepalive=debian/scripts/keepalive-wrapper.py 7200
 endif
 END
-if ubuntu_dist noble
+if ubuntu_dist noble oracular
 then
 	cat >>$debian/xtradeb.tmp <<'END'
-ifeq (armhf,$(DEB_HOST_ARCH))
-# https://bugs.launchpad.net/bugs/2059059
-export DEB_CFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
-export DEB_CXXFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
+ifneq ($(filter armhf arm64,$(DEB_HOST_ARCH)),)
+# clang-16 gives us "argument unused during compilation" warnings for these
+export   DEB_CFLAGS_MAINT_STRIP+=-fstack-clash-protection -fno-stack-clash-protection
+export DEB_CXXFLAGS_MAINT_STRIP+=-fstack-clash-protection -fno-stack-clash-protection
 endif
 END
 fi
@@ -71,6 +71,15 @@ perl -pi \
 	-e '	ninja -j\$(njobs) -C out/Release ui/webui/resources/cr_components/history_clusters:build_ts' \
 	-e 'END' \
 	$debian/rules
+
+if ubuntu_dist oracular
+then
+	# There is no longer a plain "rustc" package
+	perl -pi -e 's/^(\s+rustc) \(.+\),/$1-1.76,/' \
+		$debian/control
+	perl -pi -e 's!^(rust_sysroot)=.*!$1=/usr/lib/rust-1.76/!' \
+		$debian/rules
+fi
 
 ################################################################
 ##
@@ -141,10 +150,8 @@ if ubuntu_dist jammy noble
 then
 	new_patch bookworm/gn-absl.patch
 	new_patch bookworm/gn-funcs.patch
-fi
+	new_patch bookworm/highway-blink.patch
 
-if ubuntu_dist jammy noble
-then
 	# Don't require a bleeding-edge version of LibXML2
 	perl -pi -e '/^\s+libxml2-dev\b/ and s/ \(.+\),/,/' $debian/control
 	new_patch bookworm/libxml-parseerr.patch

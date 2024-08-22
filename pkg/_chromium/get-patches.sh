@@ -13,6 +13,9 @@ $wget -O bookworm_gn-absl.patch \
 $wget -O bookworm_gn-funcs.patch \
 	https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/bookworm/gn-funcs.patch
 
+$wget -O bookworm_highway-blink.patch \
+	https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/bookworm/highway-blink.patch
+
 $wget -O bullseye_framesensorconst.patch \
 	https://salsa.debian.org/chromium-team/chromium/-/raw/bullseye/debian/patches/bullseye/framesensorconst.patch
 
