@@ -1,0 +1,13 @@
+Disable ICF on armhf to work around a bug in lld-16 that leads to a
+segfault, only on jammy, when linking libc++ et al. statically.
+
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -206,6 +206,7 @@ declare_args() {
+   # Set to true to use icf, Identical Code Folding.
+   use_icf = (is_posix || is_fuchsia) && !is_debug && !using_sanitizer &&
+             !use_clang_coverage && current_os != "zos" &&
++            current_cpu != "arm" &&
+             !(is_android && use_order_profiling) && use_lld
+ }
+ 

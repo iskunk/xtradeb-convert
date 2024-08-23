@@ -1,5 +1,5 @@
 Original patch: https://salsa.debian.org/chromium-team/chromium/-/blob/db85ca9a/debian/patches/bullseye/av1-vaapi.patch
-Updated by XtraDeb for Chromium 127.0.6533.88
+Updated by XtraDeb for Chromium 128.0.6613.84
 
 author: Andres Salomon <dilinger@debian.org>
 
@@ -28,9 +28,9 @@ that was added with chromium 114.
  #include "media/gpu/macros.h"
 -#include "media/gpu/vaapi/av1_vaapi_video_encoder_delegate.h"
  #include "media/gpu/vaapi/h264_vaapi_video_encoder_delegate.h"
- #include "media/gpu/vaapi/va_surface.h"
  #include "media/gpu/vaapi/vaapi_common.h"
-@@ -235,7 +234,7 @@ bool VaapiVideoEncodeAccelerator::Initia
+ #include "media/gpu/vaapi/vaapi_utils.h"
+@@ -232,7 +231,7 @@ bool VaapiVideoEncodeAccelerator::Initia
  
    const VideoCodec codec = VideoCodecProfileToVideoCodec(config.output_profile);
    if (codec != VideoCodec::kH264 && codec != VideoCodec::kVP8 &&
@@ -39,7 +39,7 @@ that was added with chromium 114.
      MEDIA_LOG(ERROR, media_log.get())
          << "Unsupported profile: " << GetProfileName(config.output_profile);
      return false;
-@@ -323,7 +322,6 @@ void VaapiVideoEncodeAccelerator::Initia
+@@ -320,7 +319,6 @@ void VaapiVideoEncodeAccelerator::Initia
          break;
        case VideoCodec::kVP8:
        case VideoCodec::kVP9:
@@ -47,7 +47,7 @@ that was added with chromium 114.
          mode = VaapiWrapper::kEncodeConstantQuantizationParameter;
          break;
        default:
-@@ -388,12 +386,6 @@ void VaapiVideoEncodeAccelerator::Initia
+@@ -385,12 +383,6 @@ void VaapiVideoEncodeAccelerator::Initia
              vaapi_wrapper_, error_cb);
        }
        break;
@@ -60,14 +60,14 @@ that was added with chromium 114.
      default:
        NOTREACHED_IN_MIGRATION()
            << "Unsupported codec type " << GetCodecName(output_codec_);
-@@ -902,11 +894,6 @@ VaapiVideoEncodeAccelerator::CreateEncod
-       picture =
-           new VaapiVP9Picture(reconstructed_surface->ReleaseAsVASurface());
+@@ -899,11 +891,6 @@ VaapiVideoEncodeAccelerator::CreateEncod
+       picture = new VaapiVP9Picture(
+           reconstructed_surface->ReleaseAsVASurfaceHandle());
        break;
 -    case VideoCodec::kAV1:
--      picture =
--          new VaapiAV1Picture(/*display_va_surface=*/nullptr,
--                              reconstructed_surface->ReleaseAsVASurface());
+-      picture = new VaapiAV1Picture(
+-          /*display_va_surface=*/nullptr,
+-          reconstructed_surface->ReleaseAsVASurfaceHandle());
 -      break;
      default:
        return nullptr;

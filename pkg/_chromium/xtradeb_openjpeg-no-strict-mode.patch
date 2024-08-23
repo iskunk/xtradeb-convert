@@ -1,0 +1,16 @@
+OpenJPEG 2.4 does not have the opj_decoder_set_strict_mode() function.
+
+--- a/third_party/pdfium/core/fxcodec/jpx/cjpx_decoder.cpp
++++ b/third_party/pdfium/core/fxcodec/jpx/cjpx_decoder.cpp
+@@ -473,11 +473,6 @@ bool CJPX_Decoder::Init(pdfium::span<con
+     return false;
+   }
+ 
+-  // For https://crbug.com/42270564
+-  if (!strict_mode) {
+-    CHECK(opj_decoder_set_strict_mode(m_Codec.get(), false));
+-  }
+-
+   opj_image_t* pTempImage = nullptr;
+   if (!opj_read_header(m_Stream.get(), m_Codec.get(), &pTempImage)) {
+     return false;

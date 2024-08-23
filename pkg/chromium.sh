@@ -175,7 +175,9 @@ fi
 
 if ubuntu_dist jammy
 then
+	new_patch xtradeb/icf-arm.patch
 	new_patch xtradeb/libdav1d-fields.patch
+	new_patch xtradeb/openjpeg-no-strict-mode.patch
 fi
 
 new_patch xtradeb/warning-fixes.patch
