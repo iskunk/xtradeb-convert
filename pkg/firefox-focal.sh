@@ -95,10 +95,7 @@ perl -pi -e '/\bNODEJS=/ and s/^/#xtradeb#/' \
 ## Patch series modifications
 ##
 
-if ubuntu_dist jammy
-then
-	new_patch xtradeb/disable-nomerge.patch
-fi
+# (none at present)
 
 ################################################################
 
