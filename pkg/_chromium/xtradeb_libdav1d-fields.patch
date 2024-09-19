@@ -54,7 +54,7 @@ Fortunately, these are easy to work around.
    s.frame_size_limit = 16384 * 16384;
 --- a/media/filters/dav1d_video_decoder.cc
 +++ b/media/filters/dav1d_video_decoder.cc
-@@ -195,6 +195,7 @@ void Dav1dVideoDecoder::Initialize(const
+@@ -200,6 +200,7 @@ void Dav1dVideoDecoder::Initialize(const
    GetDecoderThreadCounts(config.coded_size().height(), &tile_threads,
                           &frame_threads);
  
@@ -62,7 +62,7 @@ Fortunately, these are easy to work around.
    // While dav1d has switched to a thread pool, preserve the same thread counts
    // we used when tile and frame threads were configured distinctly. It may be
    // possible to lower this after some performance analysis of the new system.
-@@ -205,6 +206,7 @@ void Dav1dVideoDecoder::Initialize(const
+@@ -210,6 +211,7 @@ void Dav1dVideoDecoder::Initialize(const
    // require at least two buffers before the first frame can be output.
    if (low_delay || config.is_rtc())
      s.max_frame_delay = 1;
@@ -72,18 +72,18 @@ Fortunately, these are easy to work around.
    s.all_layers = 0;
 --- a/third_party/crabbyavif/src/src/codecs/dav1d.rs
 +++ b/third_party/crabbyavif/src/src/codecs/dav1d.rs
-@@ -37,8 +37,10 @@ impl Decoder for Dav1d {
+@@ -52,8 +52,10 @@ impl Decoder for Dav1d {
          let mut settings_uninit: MaybeUninit<Dav1dSettings> = MaybeUninit::uninit();
          unsafe { dav1d_default_settings(settings_uninit.as_mut_ptr()) };
          let mut settings = unsafe { settings_uninit.assume_init() };
 +/* XtraDeb fix
          settings.max_frame_delay = 1;
-         settings.n_threads = 8;
+         settings.n_threads = i32::try_from(config.max_threads).unwrap_or(1);
 +*/
-         // settings.frame_size_limit = xx;
-         settings.operating_point = operating_point as i32;
-         settings.all_layers = if all_layers { 1 } else { 0 };
-@@ -70,7 +72,7 @@ impl Decoder for Dav1d {
+         settings.operating_point = config.operating_point as i32;
+         settings.all_layers = if config.all_layers { 1 } else { 0 };
+ 
+@@ -84,7 +86,7 @@ impl Decoder for Dav1d {
              let res = dav1d_data_wrap(
                  (&mut data) as *mut _,
                  av1_payload.as_ptr(),

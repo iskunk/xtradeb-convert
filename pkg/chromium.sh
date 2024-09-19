@@ -77,7 +77,7 @@ then
 	# There is no longer a plain "rustc" package
 	perl -pi -e 's/^(\s+rustc) \(.+\),/$1-1.76,/' \
 		$debian/control
-	perl -pi -e 's!^(rust_sysroot)=.*!$1=/usr/lib/rust-1.76/!' \
+	perl -pi -e 's!^(rust_sysroot)=.*!$1=/usr/lib/rust-1.76!' \
 		$debian/rules
 fi
 

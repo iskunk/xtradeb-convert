@@ -37,8 +37,8 @@ Fix constexpr breakage of the following form, observed on jammy:
    // lens::mojom::LensPageHandlerFactory:
 --- a/chrome/browser/ui/lens/search_bubble_ui.h
 +++ b/chrome/browser/ui/lens/search_bubble_ui.h
-@@ -25,7 +25,7 @@ class SearchBubbleUI : public TopChromeW
-       mojo::PendingReceiver<lens::mojom::SearchBubblePageHandlerFactory>
+@@ -42,7 +42,7 @@ class SearchBubbleUI : public TopChromeW
+       mojo::PendingReceiver<color_change_listener::mojom::PageHandler>
            receiver);
  
 -  static constexpr std::string GetWebUIName() { return "LensSearchBubble"; }
@@ -48,7 +48,7 @@ Fix constexpr breakage of the following form, observed on jammy:
    // lens::mojom::SearchBubblePageHandlerFactory
 --- a/chrome/browser/ui/webui/side_panel/bookmarks/bookmarks_side_panel_ui.h
 +++ b/chrome/browser/ui/webui/side_panel/bookmarks/bookmarks_side_panel_ui.h
-@@ -76,7 +76,7 @@ class BookmarksSidePanelUI
+@@ -78,7 +78,7 @@ class BookmarksSidePanelUI
    commerce::ShoppingListContextMenuController*
    GetShoppingListContextMenuController();
  
@@ -81,9 +81,9 @@ Fix constexpr breakage of the following form, observed on jammy:
    // side_panel::mojom::CustomizeChromePageHandlerFactory
 --- a/chrome/browser/ui/webui/side_panel/history_clusters/history_clusters_side_panel_ui.h
 +++ b/chrome/browser/ui/webui/side_panel/history_clusters/history_clusters_side_panel_ui.h
-@@ -88,7 +88,7 @@ class HistoryClustersSidePanelUI : publi
-   void DidFinishNavigation(
+@@ -91,7 +91,7 @@ class HistoryClustersSidePanelUI : publi
        content::NavigationHandle* navigation_handle) override;
+   void OnVisibilityChanged(content::Visibility visibility) override;
  
 -  static constexpr std::string GetWebUIName() {
 +  static const std::string GetWebUIName() {
@@ -114,7 +114,7 @@ Fix constexpr breakage of the following form, observed on jammy:
    // reading_list::mojom::PageHandlerFactory:
 --- a/chrome/browser/ui/webui/tab_search/tab_search_ui.h
 +++ b/chrome/browser/ui/webui/tab_search/tab_search_ui.h
-@@ -60,7 +60,7 @@ class TabSearchUI : public TopChromeWebU
+@@ -62,7 +62,7 @@ class TabSearchUI : public TopChromeWebU
      return page_handler_.get();
    }
  
