@@ -1,6 +1,50 @@
 Disable ICF on armhf to work around a bug in lld-16 that leads to a
 segfault, only on jammy, when linking libc++ et al. statically.
 
+For the record, here is the relevant backtrace, produced from a debug
+build of llvm-toolchain-16 version 16.0.6-23ubuntu4 performing an
+amd64->armhf cross build:
+
+(gdb) bt
+#0  __pthread_kill_implementation (no_tid=0, signo=6, threadid=140113981421888)
+    at ./nptl/pthread_kill.c:44
+#1  __pthread_kill_internal (signo=6, threadid=140113981421888)
+    at ./nptl/pthread_kill.c:78
+#2  __GI___pthread_kill (threadid=140113981421888, signo=signo@entry=6)
+    at ./nptl/pthread_kill.c:89
+#3  0x00007f6ed638b476 in __GI_raise (sig=sig@entry=6)
+    at ../sysdeps/posix/raise.c:26
+#4  0x00007f6ed63717f3 in __GI_abort () at ./stdlib/abort.c:79
+#5  0x00007f6ed637171b in __assert_fail_base (
+    fmt=0x7f6ed6526130 "%s%s%s:%u: %s%sAssertion `%s' failed.\n%n",
+    assertion=0x559cfc58b7cb "Index < Length && \"Invalid index!\"",
+    file=0x559cfc58b7ee "llvm/include/llvm/ADT/ArrayRef.h", line=255,
+    function=<optimized out>) at ./assert/assert.c:92
+#6  0x00007f6ed6382e96 in __GI___assert_fail (
+    assertion=0x559cfc58b7cb "Index < Length && \"Invalid index!\"",
+    file=0x559cfc58b7ee "llvm/include/llvm/ADT/ArrayRef.h", line=255,
+    function=0x559cfc5bdf61 "const T &llvm::ArrayRef<lld::elf::Symbol *>::operator[](size_t) const [T = lld::elf::Symbol *]") at ./assert/assert.c:101
+#7  0x0000559cfc078579 in llvm::ArrayRef<lld::elf::Symbol*>::operator[] (
+    this=0x7ffca29824d0, Index=50) at llvm/include/llvm/ADT/ArrayRef.h:255
+#8  0x0000559cfc037fde in findKeepUniqueSections<llvm::object::ELFType<(llvm::support::endianness)1, false> > (args=...)
+    at build-llvm/tools/clang/stage2-bins/lld/ELF/Driver.cpp:2103
+#9  0x0000559cfc034382 in lld::elf::LinkerDriver::link (
+    this=0x559cfc90d9b0 <lld::elf::ctx>, args=...)
+    at build-llvm/tools/clang/stage2-bins/lld/ELF/Driver.cpp:2847
+#10 0x0000559cfc028fe7 in lld::elf::LinkerDriver::linkerMain (
+    this=0x559cfc90d9b0 <lld::elf::ctx>, argsArr=...)
+    at build-llvm/tools/clang/stage2-bins/lld/ELF/Driver.cpp:621
+#11 0x0000559cfc028825 in lld::elf::link (args=..., stdoutOS=...,
+    stderrOS=..., exitEarly=true, disableOutput=false)
+    at build-llvm/tools/clang/stage2-bins/lld/ELF/Driver.cpp:145
+#12 0x0000559cfbe76e6b in lldMain (argc=112, argv=0x7ffca2983f68,
+    stdoutOS=..., stderrOS=..., exitEarly=true)
+    at build-llvm/tools/clang/stage2-bins/lld/tools/lld/lld.cpp:168
+#13 0x0000559cfbe76b35 in lld_main (argc=112, argv=0x7ffca2983f68)
+    at build-llvm/tools/clang/stage2-bins/lld/tools/lld/lld.cpp:230
+#14 0x0000559cfbe816d2 in main (argc=112, argv=0x7ffca2983f68)
+    at build-llvm/tools/clang/stage2-bins/build-llvm/tools/clang/stage2-bins/tools/lld/tools/lld/lld-driver.cpp:11
+
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
 @@ -206,6 +206,7 @@ declare_args() {

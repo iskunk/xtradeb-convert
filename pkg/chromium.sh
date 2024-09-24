@@ -180,8 +180,6 @@ then
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
 fi
 
-new_patch xtradeb/re2-missing-deps.patch
-
 new_patch xtradeb/warning-fixes.patch
 
 ################################################################

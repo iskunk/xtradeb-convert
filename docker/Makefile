@@ -71,6 +71,7 @@ run: $(build_stamp)
 		docker container run -it --rm $(platform_opt) \
 			--name=$(CONTAINER) \
 			--hostname=$(CONTAINER) \
+			--pids-limit -1 \
 			--cap-add=SYS_PTRACE \
 			$(VOL_MOUNTS) \
 			$(IMAGE); \
@@ -78,7 +79,7 @@ run: $(build_stamp)
 
 build: $(build_stamp)
 
-$(build_stamp): Dockerfile Makefile
+$(build_stamp): Dockerfile
 	rm -rf $(CTX)
 	mkdir $(CTX)
 ifdef QEMU_INTERP

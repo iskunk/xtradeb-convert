@@ -15,6 +15,12 @@ case "$arch" in
 	;;
 esac
 
+if [ "_$QEMU_BINFMT" = _dummy ]
+then
+	echo 'Not applicable as no emulation is active'
+	exit 0
+fi
+
 run_cmd()
 {
 	(set -x; "$@") || exit
@@ -66,6 +72,9 @@ Architectures: amd64
 Suites: $suite-security
 Components: main universe
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
+END
+
+	test "_$suite" != _jammy || cat >> $x << END
 
 Types: deb
 URIs: https://ppa.launchpadcontent.net/xtradeb/deps/ubuntu
@@ -170,13 +179,15 @@ run_cmd apt-get -y install nodejs:amd64
 
 N=16
 
+t64=$(test "_$suite" = _jammy || echo t64)
+
 llvm_pkgs=$(echo \
 	clang-$N \
 	clang-format-$N \
 	libclang-common-$N-dev:all \
-	libclang-cpp$N \
+	libclang-cpp$N$t64 \
 	$(test $N -lt 16 && echo libclang-$N-dev || echo libclang-rt-$N-dev) \
-	libclang1-$N \
+	libclang1-$N$t64 \
 	lld-$N \
 	llvm-$N-linker-tools \
 )
