@@ -1,0 +1,14 @@
+Link against libsbsms statically on jammy, as Audacity requires a version
+newer than what is available in the release.
+
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -1038,7 +1038,7 @@ set( LIBRARIES
+       ${CMAKE_REQUIRED_LIBRARIES}
+       ZLIB::ZLIB
+       $<$<BOOL:${USE_NYQUIST}>:libnyquist>
+-      $<$<BOOL:${USE_SBSMS}>:libsbsms>
++      $<$<BOOL:${USE_SBSMS}>:libsbsms.a>
+       $<$<BOOL:${USE_SOUNDTOUCH}>:soundtouch>
+       $<$<BOOL:${USE_VAMP}>:libvamp>
+       $<$<PLATFORM_ID:Linux,FreeBSD,OpenBSD,NetBSD,CYGWIN>:PkgConfig::GLIB>
