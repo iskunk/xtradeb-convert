@@ -1,0 +1,26 @@
+Fix the following error during configuration:
+
+ 0:19.04 Reticulating splines...
+ 0:19.84 Traceback (most recent call last):
+ 0:19.84   File "/external/tmp/thunderbird/thunderbird-128.2.3esr/python/mozbuild/mozbuild/frontend/sandbox.py", line 209, in exec_function
+ 0:19.84     func(*args, **kwargs)
+ 0:19.84   File "/external/tmp/thunderbird/thunderbird-128.2.3esr/python/mozbuild/mozbuild/frontend/sandbox.py", line 184, in execute
+ 0:19.84     exec(code, self)
+ 0:19.84   File "/external/tmp/thunderbird/thunderbird-128.2.3esr/gfx/skia/moz.build", line 374, in <module>
+ 0:19.84     if CONFIG['CC_TYPE'] == 'gcc' and CONFIG['CPU_ARCH'] == 'ppc64':
+ 0:19.84                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 0:19.84   File "/external/tmp/thunderbird/thunderbird-128.2.3esr/python/mozbuild/mozbuild/configure/constants.py", line 15, in __eq__
+ 0:19.84     raise RuntimeError(self.msg)
+ 0:19.84 RuntimeError: CPU_ARCH is obsolete. Use TARGET_CPU instead.
+
+--- a/gfx/skia/moz.build
++++ b/gfx/skia/moz.build
+@@ -371,7 +371,7 @@ UNIFIED_SOURCES += [
+ ]
+ 
+ # Work around https://gcc.gnu.org/bugzilla/show_bug.cgi?id=110606
+-if CONFIG['CC_TYPE'] == 'gcc' and CONFIG['CPU_ARCH'] == 'ppc64':
++if CONFIG['CC_TYPE'] == 'gcc' and CONFIG['TARGET_ARCH'] == 'ppc64':
+     SOURCES += ['skia/src/sksl/SkSLInliner.cpp']
+ else:
+     UNIFIED_SOURCES += ['skia/src/sksl/SkSLInliner.cpp']

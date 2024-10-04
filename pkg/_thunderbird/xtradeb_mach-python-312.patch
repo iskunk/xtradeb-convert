@@ -1,0 +1,18 @@
+Avoid this error from mach, due to the use of Python 3.12.x:
+
+  Exception: According to "pip check", the current Python environment has
+  package-compatibility issues.
+
+--- a/python/mach/mach/site.py
++++ b/python/mach/mach/site.py
+@@ -1222,10 +1222,6 @@ def _assert_pip_check(pthfile_lines, vir
+         if check_result.returncode:
+             subprocess.check_call(pip + ["list", "-v"], stdout=sys.stderr)
+             print(check_result.stdout, file=sys.stderr)
+-            raise Exception(
+-                'According to "pip check", the current Python '
+-                "environment has package-compatibility issues."
+-            )
+ 
+         os.environ[
+             f"MACH_SYSTEM_ASSERTED_COMPATIBLE_WITH_{virtualenv_name.upper()}_SITE"
