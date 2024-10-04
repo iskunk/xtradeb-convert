@@ -6,6 +6,7 @@
 # https://packages.debian.org/source/sid/chromium#pdownload
 #
 
+# chromium/debian/ directory location and (optional) Ubuntu release
 debian="$1"
 ubuntu_dist="$2"
 
@@ -75,9 +76,9 @@ perl -pi \
 if ubuntu_dist oracular
 then
 	# There is no longer a plain "rustc" package
-	perl -pi -e 's/^(\s+rustc) \(.+\),/$1-1.76,/' \
+	perl -pi -e 's/^(\s+rustc) \(.+\),/$1-1.74,/' \
 		$debian/control
-	perl -pi -e 's!^(rust_sysroot)=.*!$1=/usr/lib/rust-1.76!' \
+	perl -pi -e 's!^(rust_sysroot)=.*!$1=/usr/lib/rust-1.74!' \
 		$debian/rules
 fi
 
@@ -153,8 +154,12 @@ then
 	new_patch bookworm/highway-blink.patch
 
 	# Don't require a bleeding-edge version of LibXML2
-	perl -pi -e '/^\s+libxml2-dev\b/ and s/ \(.+\),/,/' $debian/control
-	new_patch bookworm/libxml-parseerr.patch
+	# (note that Debian's package of 2.12 is now actually 2.9)
+	perl -pi -e '/^\s+libxml2-dev\b/ and s/\(.+\),/(<< 2.10),/' \
+		$debian/control
+else
+	# The LibXML2 2.12 package in oracular is (still) the real deal
+	disable_patch bookworm/libxml-parseerr.patch
 fi
 
 if ubuntu_dist jammy
@@ -178,6 +183,11 @@ then
 	new_patch xtradeb/icf-arm.patch
 	new_patch xtradeb/libdav1d-fields.patch
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
+fi
+
+if ubuntu_dist oracular
+then
+	new_patch xtradeb/rust-174-compat.patch
 fi
 
 new_patch xtradeb/warning-fixes.patch

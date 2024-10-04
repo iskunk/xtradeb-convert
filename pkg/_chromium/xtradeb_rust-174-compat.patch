@@ -1,0 +1,23 @@
+Work around errors like the following when building Chromium with Rust 1.74:
+
+  error[E0562]: `impl Trait` only allowed in function and inherent method return types, not in trait method return types
+    --> ../../third_party/rust/chromium_crates_io/vendor/read-fonts-0.20.0/src/collections/int_set/mod.rs:69:28
+     |
+  69 |     fn ordered_values() -> impl DoubleEndedIterator<Item = u32>;
+     |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: see issue #91611 <https://github.com/rust-lang/rust/issues/91611> for more information
+     = help: add `#![feature(return_position_impl_trait_in_trait)]` to the crate attributes to enable
+
+(Thanks for the tip, rustc!)
+
+--- a/third_party/rust/chromium_crates_io/vendor/read-fonts-0.20.0/src/lib.rs
++++ b/third_party/rust/chromium_crates_io/vendor/read-fonts-0.20.0/src/lib.rs
+@@ -59,6 +59,7 @@
+ #![forbid(unsafe_code)]
+ #![deny(rustdoc::broken_intra_doc_links)]
+ #![cfg_attr(not(feature = "std"), no_std)]
++#![feature(return_position_impl_trait_in_trait)]
+ 
+ #[cfg(any(feature = "std", test))]
+ #[macro_use]
