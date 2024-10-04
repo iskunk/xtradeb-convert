@@ -66,6 +66,8 @@ initialize()
 	# Verify that these packages are installed
 	dpkg --status dpkg-dev devscripts quilt >/dev/null || exit
 
+	deb_version=$(dpkg-parsechangelog --file $debian/changelog --show-field Version)
+
 	if [ $multi_dist = yes ]
 	then
 		changelog_text="XtraDeb conversion for Ubuntu $ubuntu_ver/$ubuntu_dist and later releases."
@@ -93,12 +95,10 @@ initialize()
 	control=control
 	test ! -f $debian/control.in || control=control.in
 
+	# We are now the maintainer
 	perl -pi \
+		-e '/^XSBC-Original-Maintainer:/i and $_="";' \
 		-e 's/^(Maintainer): (.+)$/$1: $ENV{DEBFULLNAME} <$ENV{DEBEMAIL}>\nXSBC-Original-Maintainer: $2/;' \
-		$debian/$control
-
-	# In case there are now multiple XSBC-Original-Maintainer: fields
-	perl -pi -e '/^XSBC-Original-Maintainer:/ && !/\b(debian\.(net|org))\b/ and $_=""' \
 		$debian/$control
 
 	# Remove Uploaders: field (mind the multiple lines)
@@ -125,10 +125,23 @@ ubuntu_dist()
 
 new_patch()
 {
+	local inline=no
+	if [ "_$1" = _--inline ]
+	then
+		inline=yes
+		shift
+	fi
+
 	local patch_path=$1
 	local patch_file=$(echo $patch_path | tr / _)
 
-	if [ ! -f $debian/patches/series ]
+	if [ ! -d $debian/patches ]
+	then
+		echo 'note: creating new patch series'
+		mkdir $debian/patches
+		: > $debian/patches/series
+	##
+	elif [ ! -f $debian/patches/series ]
 	then
 		echo "$0: error: package lacks a patch series to amend"
 		exit 1
@@ -151,7 +164,12 @@ new_patch()
 	else
 		echo " * $patch_path  (new)"
 		mkdir -p $(dirname $debian/patches/$patch_path)
-		cp -p $base_dir/_$package_name/$patch_file $debian/patches/$patch_path || exit
+		if [ $inline = yes ]
+		then
+			sed 's/^=$/ /' > $debian/patches/$patch_path || exit
+		else
+			cp -p $base_dir/_$package_name/$patch_file $debian/patches/$patch_path || exit
+		fi
 	fi
 
 	echo $patch_path >> $patch_series_tmp
@@ -224,6 +242,9 @@ finish()
 		--urgency $urgency \
 		--changelog $debian/changelog \
 		"$changelog_text"
+
+	# Drop Debian stable release from the version string, if present
+	sed -i '1s/~deb[0-9][0-9]u/u/' $debian/changelog
 
 	if [ $patch_series_changed = yes -a -f $debian/../.pc/applied-patches ]
 	then
