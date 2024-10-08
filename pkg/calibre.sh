@@ -15,17 +15,10 @@ base_dir=$(dirname $0)
 
 initialize calibre
 
-if ! grep -Fqx 'Source: calibre' $debian/control 2>/dev/null
-then
-	echo "$0: error: $debian: not a calibre source package debian/ subdirectory"
-	exit 1
-fi
+grep -Fqx 'Source: calibre' $debian/control 2>/dev/null \
+|| error "$debian: not a calibre source package debian/ subdirectory"
 
-if ! ubuntu_dist noble
-then
-	echo "$0: error: this script targets only Ubuntu noble"
-	exit 1
-fi
+ubuntu_dist noble || not_applicable 'this script only targets noble'
 
 ################################################################
 ##

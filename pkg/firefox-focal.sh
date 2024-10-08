@@ -15,18 +15,14 @@ base_dir=$(dirname $0)
 initialize firefox --multi-dist
 
 # Need cdbs to regenerate the control file
-dpkg --status cdbs >/dev/null || exit
+dpkg --status cdbs >/dev/null \
+|| error '"cdbs" package is required to regenerate files'
 
-if ! grep -Fqx 'Source: firefox' $debian/control 2>/dev/null
-then
-	echo "$0: error: $debian: not a firefox source package debian/ subdirectory"
-	exit 1
-fi
-if ! head -n 1 $debian/changelog 2>/dev/null | grep -q '.-0ubuntu0\.20\.04\.'
-then
-	echo "$0: error $debian: not an Ubuntu 20.04 (focal) firefox source package debian/ subdirectory"
-	exit 1
-fi
+grep -Fqx 'Source: firefox' $debian/control 2>/dev/null \
+|| error "$debian: not a firefox source package debian/ subdirectory"
+
+head -n 1 $debian/changelog 2>/dev/null | grep -q '.-0ubuntu0\.20\.04\.' \
+|| error "$debian: not an Ubuntu 20.04 (focal) firefox source package debian/ subdirectory"
 
 ################################################################
 
@@ -112,7 +108,8 @@ perl -pi \
 
 # Regenerate control file
 ln -s . $debian/debian || exit
-(unset MAKEFLAGS; cd $debian && set -x && debian/rules debian/control) || exit
+(unset MAKEFLAGS; cd $debian && set -x && debian/rules debian/control) \
+|| error 'failed to regenerate debianization files'
 rm $debian/debian
 
 echo "Firefox package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."

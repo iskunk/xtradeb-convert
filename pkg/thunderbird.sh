@@ -16,17 +16,11 @@ base_dir=$(dirname $0)
 
 initialize thunderbird
 
-if ! grep -Fqx 'Source: thunderbird' $debian/control 2>/dev/null
-then
-	echo "$0: error: $debian: not a thunderbird source package debian/ subdirectory"
-	exit 1
-fi
+grep -Fqx 'Source: thunderbird' $debian/control 2>/dev/null \
+|| error "$debian: not a thunderbird source package debian/ subdirectory"
 
-if ubuntu_dist jammy
-then
-	echo "$0: error: Ubuntu $ubuntu_ver/$ubuntu_dist already has an official thunderbird package"
-	exit 1
-fi
+! ubuntu_dist jammy \
+|| not_applicable 'release already has an official thunderbird package'
 
 stable=no
 case "$deb_version" in

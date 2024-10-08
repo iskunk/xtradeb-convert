@@ -15,11 +15,8 @@ base_dir=$(dirname $0)
 
 initialize chromium
 
-if ! grep -Eq '^Source: (ungoogled-)?chromium$' $debian/control 2>/dev/null
-then
-	echo "$0: error: $debian: not an (ungoogled-)chromium source package debian/ subdirectory"
-	exit 1
-fi
+grep -Eq '^Source: (ungoogled-)?chromium$' $debian/control 2>/dev/null \
+|| error "$debian: not an (ungoogled-)chromium source package debian/ subdirectory"
 
 ################################################################
 

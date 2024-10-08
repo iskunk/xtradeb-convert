@@ -16,26 +16,18 @@ base_dir=$(dirname $0)
 
 initialize firefox
 
-if ! grep -Eq '^Source: firefox(-esr)?$' $debian/control 2>/dev/null
-then
-	echo "$0: error: $debian: not a firefox(-esr) source package debian/ subdirectory"
-	exit 1
-fi
-if [ ! -f $debian/browser.README.Debian.in ]
-then
-	echo "$0: error: $debian: not a Debian firefox source package debian/ subdirectory"
-	exit 1
-fi
+grep -Eq '^Source: firefox(-esr)?$' $debian/control 2>/dev/null \
+|| error "$debian: not a firefox(-esr) source package debian/ subdirectory"
+
+test -f $debian/browser.README.Debian.in \
+|| error "$debian: not a Debian firefox source package debian/ subdirectory"
 
 is_esr=$(grep -qx 'Source: firefox-esr' $debian/control && echo yes || echo no)
 
 # https://wiki.mozilla.org/Distribution_INI_File
 
-if [ -f $debian/distribution.ini ]
-then
-	echo "$0: error: package already has distribution.ini file"
-	exit 1
-fi
+test ! -f $debian/distribution.ini \
+|| error 'package already has distribution.ini file'
 
 cat >$debian/distribution.ini <<END
 # XtraDeb addition
@@ -256,7 +248,8 @@ done
 if [ -f $debian/../browser/config/mozconfig -a "_$(basename $debian)" = _debian ]
 then
 	# Regenerate files
-	(unset MAKEFLAGS; cd $debian/.. && set -x && debian/rules $files_to_regen TESTDIR=) || exit
+	(unset MAKEFLAGS; cd $debian/.. && set -x && debian/rules $files_to_regen TESTDIR=) \
+	|| error 'failed to regenerate debianization files'
 	rm -r  $debian/.mozbuild
 	rm -rf $debian/objdir	# firefox-esr has this, but not firefox
 	echo

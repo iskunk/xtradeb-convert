@@ -1,5 +1,31 @@
 # functions.sh
 
+warning()
+{
+	local message="$1"
+	echo "warning: $message"
+}
+
+error()
+{
+	local message="$1"
+	echo "$0: error: $message"
+	exit 1
+}
+
+not_applicable()
+{
+	local message="$1"
+	test -n "$message" || message='package can be built without modifications'
+	if [ -z "$ubuntu_ver" ]
+	then
+		echo "$0: not applicable: $message"
+	else
+		echo "$0: not applicable to Ubuntu $ubuntu_ver/$ubuntu_dist: $message"
+	fi
+	exit 2
+}
+
 initialize()
 {
 	package_name="$1"
@@ -11,16 +37,13 @@ initialize()
 	do
 		case "$1" in
 			--multi-dist) multi_dist=yes ;;
-			*) echo "$0: error: initialize(): unrecognized option \"$1\""; exit 1 ;;
+			*) error "initialize(): unrecognized option \"$1\"" ;;
 		esac
 		shift
 	done
 
-	if [ -z "$BASH_VERSION" ]
-	then
-		echo "$0: error: script must run under bash(1)"
-		exit 1
-	fi
+	test -n "$BASH_VERSION" \
+	|| error 'initialize(): script must run under bash(1)'
 
 	set -eu
 
@@ -44,8 +67,7 @@ initialize()
 	     ! -f $debian/control -o \
 	     ! -f $debian/rules ]
 	then
-		echo "$0: error: $debian: not a source package debian/ subdirectory"
-		exit 1
+		error "$debian: not a source package debian/ subdirectory"
 	fi
 
 	if [ -z "$ubuntu_dist" -a $(lsb_release -is) = Ubuntu ]
@@ -58,7 +80,7 @@ initialize()
 		jammy)    ubuntu_ver=22.04 ;;
 		noble)    ubuntu_ver=24.04 ;;
 		oracular) ubuntu_ver=24.10 ;;
-		*) echo "$0: error: invalid Ubuntu distribution \"$ubuntu_dist\""; exit 1 ;;
+		*) error "invalid Ubuntu distribution \"$ubuntu_dist\"" ;;
 	esac
 
 	version_suffix="xtradeb1.${ubuntu_ver/./}."
@@ -90,19 +112,6 @@ initialize()
 			--changelog $debian/changelog
 		exit
 	fi
-
-	# Firefox packages use a generated control file
-	control=control
-	test ! -f $debian/control.in || control=control.in
-
-	# We are now the maintainer
-	perl -pi \
-		-e '/^XSBC-Original-Maintainer:/i and $_="";' \
-		-e 's/^(Maintainer): (.+)$/$1: $ENV{DEBFULLNAME} <$ENV{DEBEMAIL}>\nXSBC-Original-Maintainer: $2/;' \
-		$debian/$control
-
-	# Remove Uploaders: field (mind the multiple lines)
-	perl -0777 -pi -e 's/^Uploaders:.*(\n .+)*\n//m' $debian/$control
 
 	patch_series_changed=no
 	patch_series_tmp=$debian/patches/xtradeb-series.tmp
@@ -143,15 +152,13 @@ new_patch()
 	##
 	elif [ ! -f $debian/patches/series ]
 	then
-		echo "$0: error: package lacks a patch series to amend"
-		exit 1
+		error 'new_patch(): package lacks a patch series to amend'
 	fi
 
 	if [ -f $patch_series_tmp ] && \
 	   grep -Fqx $patch_path $patch_series_tmp
 	then
-		echo "$0: error: patch \"$patch_path\" already added"
-		exit 1
+		error "new_patch(): patch \"$patch_path\" already added"
 	##
 	elif grep -Fqx $patch_path $debian/patches/series
 	then
@@ -183,8 +190,7 @@ disable_patch()
 
 	if [ ! -f $debian/patches/series ]
 	then
-		echo "$0: error: package lacks a patch series to amend"
-		exit 1
+		error 'disable_patch(): package lacks a patch series to amend'
 	fi
 
 	if grep -Fqx $patch_path $debian/patches/series
@@ -200,7 +206,7 @@ disable_patch()
 	##
 	elif grep -Fqx "#xtradeb#$patch_path" $debian/patches/series
 	then
-		echo "$0: error: patch \"$patch_path\" already disabled"
+		error "disable_patch(): patch \"$patch_path\" already disabled"
 	else
 		echo " * $patch_path  (not present)"
 	fi
@@ -208,6 +214,19 @@ disable_patch()
 
 finish()
 {
+	# Firefox packages use a generated control file
+	control=control
+	test ! -f $debian/control.in || control=control.in
+
+	# We are now the maintainer
+	perl -pi \
+		-e '/^XSBC-Original-Maintainer:/i and $_="";' \
+		-e 's/^(Maintainer): (.+)$/$1: $ENV{DEBFULLNAME} <$ENV{DEBEMAIL}>\nXSBC-Original-Maintainer: $2/;' \
+		$debian/$control
+
+	# Remove Uploaders: field (mind the multiple lines)
+	perl -0777 -pi -e 's/^Uploaders:.*(\n .+)*\n//m' $debian/$control
+
 	if [ -f $patch_series_tmp ]
 	then
 		(echo; echo '# XtraDeb'; cat $patch_series_tmp) >>$debian/patches/series
@@ -220,11 +239,8 @@ finish()
 		# Check that all referenced patches are present
 		for patch in $(grep -v '^#' $debian/patches/series | grep .)
 		do
-			if [ ! -f $debian/patches/$patch ]
-			then
-				echo "error: $patch: missing patch file"
-				exit 1
-			fi
+			test -f $debian/patches/$patch \
+			|| error "finish(): $patch: missing patch file"
 		done
 	fi
 

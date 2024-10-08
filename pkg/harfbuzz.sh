@@ -20,19 +20,10 @@ base_dir=$(dirname $0)
 
 initialize harfbuzz
 
-if ! ubuntu_dist jammy
-then
-	echo "$0: error: this script is needed only for jammy"
-	exit 1
-fi
+grep -Fqx 'Source: harfbuzz' $debian/control 2>/dev/null \
+|| error "$debian: not a harfbuzz source package debian/ subdirectory"
 
-pkg=$(dpkg-parsechangelog -l $debian/changelog -S Source)
-
-if [ "_$pkg" != _harfbuzz ]
-then
-	echo "$0: error: $debian: not a harfbuzz source package debian/ subdirectory"
-	exit 1
-fi
+ubuntu_dist jammy || not_applicable 'this script is needed only for jammy'
 
 changelog_text+=" NOTE: This package has been modified to provide static libraries only, and support for GObject introspection and chafa rendering have been disabled. It is intended solely for use as a build dependency."
 

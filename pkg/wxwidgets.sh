@@ -15,17 +15,10 @@ base_dir=$(dirname $0)
 
 initialize wxwidgets
 
-if ! grep -Fqx 'Source: wxwidgets3.2' $debian/control 2>/dev/null
-then
-	echo "$0: error: $debian: not a wxwidgets source package debian/ subdirectory"
-	exit 1
-fi
+grep -Fqx 'Source: wxwidgets3.2' $debian/control 2>/dev/null \
+|| error "$debian: not a wxwidgets source package debian/ subdirectory"
 
-if ! ubuntu_dist jammy
-then
-	echo "$0: error: this script targets only Ubuntu jammy"
-	exit 1
-fi
+ubuntu_dist jammy || not_applicable
 
 ################################################################
 ##

@@ -15,17 +15,10 @@ base_dir=$(dirname $0)
 
 initialize audacity
 
-if ! grep -Fqx 'Source: audacity' $debian/control 2>/dev/null
-then
-	echo "$0: error: $debian: not an audacity source package debian/ subdirectory"
-	exit 1
-fi
+grep -Fqx 'Source: audacity' $debian/control 2>/dev/null \
+|| error "$debian: not an audacity source package debian/ subdirectory"
 
-if ! ubuntu_dist jammy
-then
-	echo "$0: error: this script targets only Ubuntu jammy"
-	exit 1
-fi
+ubuntu_dist jammy || not_applicable
 
 ################################################################
 ##

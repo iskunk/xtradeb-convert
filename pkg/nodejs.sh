@@ -22,11 +22,7 @@ base_dir=$(dirname $0)
 
 initialize nodejs
 
-if ! ubuntu_dist jammy
-then
-	echo "$0: error: this script is needed only for jammy"
-	exit 1
-fi
+ubuntu_dist jammy || not_applicable 'this script is needed only for jammy'
 
 pkg=$(dpkg-parsechangelog -l $debian/changelog -S Source)
 
@@ -72,8 +68,7 @@ case "$pkg" in
 	;;
 
 	*)
-	echo "$0: error: $pkg: not a supported package"
-	exit 1
+	error "$pkg: not a supported package"
 	;;
 esac
 
