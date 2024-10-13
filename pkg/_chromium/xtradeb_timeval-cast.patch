@@ -1,0 +1,21 @@
+Fix this compile error, seen in the armhf build:
+
+  media/gpu/v4l2/legacy/v4l2_video_decoder_backend_stateful.cc:446:20: error: non-constant-expression cannot be narrowed from type '__suseconds64_t' (aka 'long long') to 'long' in initializer list [-Wc++11-narrowing]
+    446 |         .tv_nsec = timeval.tv_usec * 1000,
+        |                    ^~~~~~~~~~~~~~~~~~~~~~
+  media/gpu/v4l2/legacy/v4l2_video_decoder_backend_stateful.cc:446:20: note: insert an explicit cast to silence this issue
+    446 |         .tv_nsec = timeval.tv_usec * 1000,
+        |                    ^~~~~~~~~~~~~~~~~~~~~~
+        |                    static_cast<long>(    )
+
+--- a/media/gpu/v4l2/legacy/v4l2_video_decoder_backend_stateful.cc
++++ b/media/gpu/v4l2/legacy/v4l2_video_decoder_backend_stateful.cc
+@@ -443,7 +443,7 @@ void V4L2StatefulVideoDecoderBackend::On
+     const struct timeval timeval = buffer->GetTimeStamp();
+     const struct timespec timespec = {
+         .tv_sec = timeval.tv_sec,
+-        .tv_nsec = timeval.tv_usec * 1000,
++        .tv_nsec = static_cast<long>(timeval.tv_usec * 1000),
+     };
+ 
+     const int64_t flat_timespec =

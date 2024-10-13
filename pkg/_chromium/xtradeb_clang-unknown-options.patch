@@ -1,0 +1,20 @@
+Fix the following warnings due to the use of unknown options:
+
+  warning: unknown warning option '-Wno-missing-template-arg-list-after-template-kw'; did you mean '-Wno-gnu-string-literal-operator-template'? [-Wunknown-warning-option]
+  warning: unknown warning option '-Wno-dangling-assignment-gsl'; did you mean '-Wno-dangling-gsl'? [-Wunknown-warning-option]
+
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -1969,12 +1969,6 @@ config("default_warnings") {
+           # TODO(crbug.com/41486292): Fix and re-enable.
+           "-Wno-c++11-narrowing-const-reference",
+         ]
+-
+-        # TODO(crbug.com/344680447): Fix and re-enable.
+-        cflags_cc += [ "-Wno-missing-template-arg-list-after-template-kw" ]
+-
+-        # TODO(crbug.com/356172342): Fix and re-enable.
+-        cflags_cc += [ "-Wno-dangling-assignment-gsl" ]
+       }
+     }
+ 
