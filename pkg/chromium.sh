@@ -155,6 +155,7 @@ fi
 
 if ubuntu_dist jammy noble
 then
+	new_patch bookworm/cacheline.patch
 	new_patch bookworm/gn-absl.patch
 	new_patch bookworm/gn-funcs.patch
 	new_patch bookworm/highway-blink.patch

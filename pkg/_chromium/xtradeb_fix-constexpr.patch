@@ -24,17 +24,6 @@ Fix constexpr breakage of the following form, observed on jammy:
  
   private:
    void CreateComposeSessionUntrustedPageHandler(
---- a/chrome/browser/ui/lens/lens_untrusted_ui.h
-+++ b/chrome/browser/ui/lens/lens_untrusted_ui.h
-@@ -47,7 +47,7 @@ class LensUntrustedUI : public Untrusted
-       mojo::PendingReceiver<color_change_listener::mojom::PageHandler>
-           receiver);
- 
--  static constexpr std::string GetWebUIName() { return "LensUntrusted"; }
-+  static const std::string GetWebUIName() { return "LensUntrusted"; }
- 
-  private:
-   // lens::mojom::LensPageHandlerFactory:
 --- a/chrome/browser/ui/lens/search_bubble_ui.h
 +++ b/chrome/browser/ui/lens/search_bubble_ui.h
 @@ -42,7 +42,7 @@ class SearchBubbleUI : public TopChromeW
@@ -81,7 +70,7 @@ Fix constexpr breakage of the following form, observed on jammy:
    // side_panel::mojom::CustomizeChromePageHandlerFactory
 --- a/chrome/browser/ui/webui/side_panel/history_clusters/history_clusters_side_panel_ui.h
 +++ b/chrome/browser/ui/webui/side_panel/history_clusters/history_clusters_side_panel_ui.h
-@@ -91,7 +91,7 @@ class HistoryClustersSidePanelUI : publi
+@@ -96,7 +96,7 @@ class HistoryClustersSidePanelUI : publi
        content::NavigationHandle* navigation_handle) override;
    void OnVisibilityChanged(content::Visibility visibility) override;
  
