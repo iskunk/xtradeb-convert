@@ -88,23 +88,23 @@ export CXX = clang++-17
 END
 fi
 
-if grep -Fq 'rustc (>= 1.76),' $debian/control
-then
-	# Ubuntu provides cargo and rustc 1.76 as "cargo-1.76" and "rustc-1.76"
-	sed -i -r 's/^(\s+(cargo|rustc)) \(>= (1\.76)\),/\1-\3,/' \
-		$debian/control.in
+# Ubuntu provides version-in-name cargo/rustc packages
+sed -i -r 's/^(\s+(cargo|rustc)) \(>= (@RUST_VERSION@)\),/\1-\3,/' \
+	$debian/control.in
 
-	cat >>$debian/rules.add <<'END'
+case "$ubuntu_dist" in
+	oracular) rust_version=1.80 ;;
+	*) rust_version=1.76 ;;
+esac
 
-export CARGO ?= cargo-1.76
-export RUSTC ?= rustc-1.76
+sed -i -r 's/^(%define RUST_VERSION) .*/\1 '"$rust_version/" \
+	$debian/control.in
+
+cat >>$debian/rules.add <<END
+
+export CARGO ?= cargo-$rust_version
+export RUSTC ?= rustc-$rust_version
 END
-else
-	cat >>$debian/rules.add <<'END'
-
-export CARGO ?= cargo
-END
-fi
 
 # DIST needs to be set properly
 sed -i 's/^DIST = unknown/DIST = $(DEB_DISTRIBUTION)/' \
@@ -153,7 +153,7 @@ sed -i '/^%if DIST != bullseye/s/$/  \&\& DIST != jammy/' \
 	$debian/control.in
 
 # SYSTEM_LIBS += nss
-sed -i -r 's/(filter buster bullseye bookworm),/\1  jammy noble,/' \
+sed -i -r 's/(filter bullseye bookworm),/\1  jammy noble oracular,/' \
 	$debian/rules
 
 ## This conditional doesn't handle USE_SYSTEM_NSS=0 properly

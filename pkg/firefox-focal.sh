@@ -65,20 +65,11 @@ rm -f $debian/xtradeb.tmp
 # Note: Modify "control.in", not "control". The latter will be regenerated
 # after changes to the former are complete.
 
-# * Bump up debhelper compat level to 10 (quells warnings)
-# * Allow building with clang-14 for noble
-perl -pi \
-	-e 's/\b(debhelper) \(>= 9\),/$1 (>= 10),/;' \
-	-e 'if(/^\s+((?:llvm|(?:lib)?clang)-\d+(?:-dev)?)\b/) {' \
-	-e '  $pkg=$1; $pkg=~s/\d+/14/; s/,$/ | $pkg,/;' \
-	-e '}' \
-	$debian/control.in
+# Bump up debhelper compat level to 10 (quells warnings)
+sed -i -r '/^\s+debhelper \(>= 9\),/s/9/10/' $debian/control.in
 
 # Also needed for debhelper
 echo 10 >$debian/compat
-
-# Also needed to use clang-14
-perl -pi -e 's/^(LLVM_VERSIONS) = (.+)$/$1 = $2 14/' $debian/build/rules.mk
 
 # Depend on the regular nodejs package instead of nodejs-mozilla. (Note
 # that on jammy, a backported version of nodejs is needed)
