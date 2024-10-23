@@ -142,6 +142,17 @@ then
 		-e '/^defines\+=host_cpu=."arm64."/ and s/use_v4l2_codec=true (use_vaapi)=false/$1=true/;' \
 		-e '/^defines\+=host_cpu=."arm."/ and s/\s*use_v4l2_codec=true//' \
 		$debian/rules
+
+	# Why this only affects jammy is unclear, but the linker adds a
+	# spurious run-time dependency on libtest_trace_processor.so to the
+	# chromium-shell binary. This is a test-related library that is not
+	# packaged.
+	perl -pi \
+		-e '/# XtraDeb workaround/ and $_= <<END . $_;' \
+		-e '	# Avoid chromium-shell -> libtest_trace_processor.so dependency' \
+		-e '	sed -i \x{27}/^  solibs =/s! \\./libtest_trace_processor\\.so!!\x{27} out/Release/obj/content/shell/content_shell.ninja' \
+		-e 'END' \
+		$debian/rules
 fi
 
 ##
