@@ -208,8 +208,6 @@ then
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
 fi
 
-new_patch xtradeb/timeval-cast.patch
-
 new_patch xtradeb/warning-fixes.patch
 
 ################################################################
