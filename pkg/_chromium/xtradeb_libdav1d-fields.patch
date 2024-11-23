@@ -62,10 +62,10 @@ Fortunately, these are easy to work around.
    // While dav1d has switched to a thread pool, preserve the same thread counts
    // we used when tile and frame threads were configured distinctly. It may be
    // possible to lower this after some performance analysis of the new system.
-@@ -210,6 +211,7 @@ void Dav1dVideoDecoder::Initialize(const
-   // require at least two buffers before the first frame can be output.
-   if (low_delay || config.is_rtc())
+@@ -211,6 +212,7 @@ void Dav1dVideoDecoder::Initialize(const
+   if (low_delay) {
      s.max_frame_delay = 1;
+   }
 +#endif	// XtraDeb fix
  
    // Only output the highest spatial layer.

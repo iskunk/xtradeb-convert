@@ -70,15 +70,6 @@ perl -pi \
 	-e 'END' \
 	$debian/rules
 
-if ubuntu_dist oracular
-then
-	# There is no longer a plain "rustc" package
-	perl -pi -e 's/^(\s+rustc) \(.+\),/$1-1.80,/' \
-		$debian/control
-	perl -pi -e 's!^(rust_sysroot)=.*!$1=/usr/lib/rust-1.80!' \
-		$debian/rules
-fi
-
 ################################################################
 ##
 ## Modifications to allow building on Ubuntu jammy and later
@@ -86,7 +77,17 @@ fi
 ################################################################
 
 # rustc-web is only available in Debian (old)stable
-sed -i -r 's/\b(rustc)-web,/\1,/' $debian/control
+sed -i -r '/^\s+rustc-web \(.+\),/s/-web//' $debian/control
+
+# Ubuntu provides "rustc-N.NN" packages
+case "$ubuntu_dist" in
+	oracular) rust_version=1.80 ;;
+	*) rust_version=1.78 ;;
+esac
+sed -i -r 's/^(\s+rustc) \(.+\),$/\1-'"$rust_version"',/' \
+	$debian/control
+sed -i -r 's!^(rust_sysroot)=.*!\1=/usr/lib/rust-'"$rust_version"'!' \
+	$debian/rules
 
 # Don't do the bindgen hack, it's not needed
 sed -i -r \
