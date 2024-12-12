@@ -10,6 +10,9 @@ $wget -O bookworm_bubble-contents.patch \
 $wget -O bookworm_cacheline.patch \
 	https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/bookworm/cacheline.patch
 
+$wget -O bookworm_constexpr-bookworm.patch \
+	https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/bookworm/constexpr.patch
+
 $wget -O bookworm_gn-absl.patch \
 	https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/bookworm/gn-absl.patch
 
@@ -19,7 +22,7 @@ $wget -O bookworm_gn-funcs.patch \
 $wget -O bookworm_highway-blink.patch \
 	https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/bookworm/highway-blink.patch
 
-$wget -O bullseye_framesensorconst.patch \
-	https://salsa.debian.org/chromium-team/chromium/-/raw/bullseye/debian/patches/bullseye/framesensorconst.patch
+$wget -O fixes_absl-optional-bookworm.patch \
+	https://salsa.debian.org/chromium-team/chromium/-/raw/bookworm/debian/patches/fixes/absl-optional.patch
 
 $wget https://bazaar.launchpad.net/~mozillateam/firefox/firefox.focal/download/head:/debian/build/keepalive-wrapper.py

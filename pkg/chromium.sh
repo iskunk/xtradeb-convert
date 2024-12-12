@@ -76,6 +76,10 @@ perl -pi \
 ##
 ################################################################
 
+# Are we using libc++ (Clang) instead of libstdc++ (GNU)?
+use_libcxx=$(grep -q '^\s*libc++-[0-9]*-dev,' $debian/control \
+	&& echo true || echo false)
+
 # rustc-web is only available in Debian (old)stable
 sed -i -r '/^\s+rustc-web \(.+\),/s/-web//' $debian/control
 
@@ -109,9 +113,16 @@ then
 	# The libgtk-3-0t64 package is not available until noble
 	sed -i -r 's/\b(libgtk-3-0)t64\b/\1/' $debian/control
 
+	# If we are using libstdc++, then use version 12, because 11 has
+	# issues with std::string not being constexpr
+	$use_libcxx || \
+	perl -pi -e '/^(\s+)libclang-\S+-dev,/ and $_.="${1}libstdc++-12-dev,\n"' \
+		$debian/control
+
 	# Statically link the libc++-18 libraries, as they are not normally
 	# available in jammy (note: -static-libstdc++ does apply to libc++,
 	# the option is just inappropriately named)
+	! $use_libcxx || \
 	sed -i -r '/^export LDFLAGS=/s!$! -static-libstdc++ -L/usr/lib/llvm-$(CLANG_MVERS)/lib -l:libc++abi.a -l:libunwind.a!' \
 		$debian/rules
 
@@ -168,6 +179,7 @@ fi
 if ubuntu_dist jammy noble
 then
 	new_patch bookworm/cacheline.patch
+	! ubuntu_dist jammy || new_patch bookworm/constexpr-bookworm.patch
 	new_patch bookworm/gn-absl.patch
 	new_patch bookworm/gn-funcs.patch
 	new_patch bookworm/highway-blink.patch
@@ -181,20 +193,12 @@ else
 	disable_patch bookworm/libxml-parseerr.patch
 fi
 
-if ubuntu_dist jammy
-then
-	new_patch bullseye/framesensorconst.patch
-	new_patch xtradeb/av1-vaapi.patch
-fi
-
 if ubuntu_dist jammy noble
 then
+	disable_patch fixes/absl-optional.patch
+	new_patch fixes/absl-optional-bookworm.patch
+	! ubuntu_dist jammy || new_patch xtradeb/av1-vaapi.patch
 	new_patch xtradeb/clang-unknown-options.patch
-fi
-
-if ubuntu_dist jammy
-then
-	new_patch xtradeb/fix-constexpr.patch
 fi
 
 if ubuntu_dist noble oracular
