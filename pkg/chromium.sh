@@ -45,7 +45,7 @@ ifneq ($(filter arm64,$(DEB_BUILD_ARCH)),)
 keepalive=debian/scripts/keepalive-wrapper.py 7200
 endif
 END
-if ubuntu_dist noble oracular
+if false # ubuntu_dist noble oracular
 then
 	cat >>$debian/xtradeb.tmp <<'END'
 ifneq ($(filter armhf arm64,$(DEB_HOST_ARCH)),)
@@ -183,15 +183,19 @@ then
 	new_patch bookworm/gn-absl.patch
 	new_patch bookworm/gn-funcs.patch
 	new_patch bookworm/highway-blink.patch
+	new_patch bookworm/less-void.patch
 
 	# Don't require a bleeding-edge version of LibXML2
 	# (note that Debian's package of 2.12 is now actually 2.9)
 	perl -pi -e '/^\s+libxml2-dev\b/ and s/\(.+\),/(<< 2.10),/' \
 		$debian/control
-else
+elif ubuntu_dist oracular
+then
 	# The LibXML2 2.12 package in oracular is (still) the real deal
 	disable_patch bookworm/libxml-parseerr.patch
 fi
+
+new_patch bookworm/rust-visibility.patch
 
 if ubuntu_dist jammy noble
 then
@@ -213,7 +217,12 @@ then
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
 fi
 
-new_patch xtradeb/warning-fixes.patch
+if ubuntu_dist jammy noble
+then
+	new_patch xtradeb/pdfium-alias-template.patch
+fi
+
+#new_patch xtradeb/warning-fixes.patch
 
 ################################################################
 

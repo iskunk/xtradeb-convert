@@ -39,7 +39,7 @@ that was added with chromium 114.
      MEDIA_LOG(ERROR, media_log.get())
          << "Unsupported profile: " << GetProfileName(config.output_profile);
      return false;
-@@ -320,7 +319,6 @@ void VaapiVideoEncodeAccelerator::Initia
+@@ -324,7 +323,6 @@ void VaapiVideoEncodeAccelerator::Initia
          break;
        case VideoCodec::kVP8:
        case VideoCodec::kVP9:
@@ -47,7 +47,7 @@ that was added with chromium 114.
          mode = VaapiWrapper::kEncodeConstantQuantizationParameter;
          break;
        default:
-@@ -385,12 +383,6 @@ void VaapiVideoEncodeAccelerator::Initia
+@@ -389,12 +387,6 @@ void VaapiVideoEncodeAccelerator::Initia
              vaapi_wrapper_, error_cb);
        }
        break;
@@ -58,9 +58,9 @@ that was added with chromium 114.
 -      }
 -      break;
      default:
-       NOTREACHED_IN_MIGRATION()
-           << "Unsupported codec type " << GetCodecName(output_codec_);
-@@ -899,11 +891,6 @@ VaapiVideoEncodeAccelerator::CreateEncod
+       NOTREACHED() << "Unsupported codec type " << GetCodecName(output_codec_);
+   }
+@@ -901,11 +893,6 @@ VaapiVideoEncodeAccelerator::CreateEncod
        picture = new VaapiVP9Picture(
            reconstructed_surface->ReleaseAsVASurfaceHandle());
        break;

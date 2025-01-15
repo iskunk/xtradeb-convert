@@ -5,7 +5,22 @@ Fix the following warnings due to the use of unknown options:
 
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -1968,12 +1968,6 @@ config("default_warnings") {
+@@ -615,14 +615,6 @@ config("compiler") {
+     } else {
+       cflags += [ "-ffp-contract=off" ]
+     }
+-
+-    # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF
+-    # (excluding toolchains that use an older version of LLVM).
+-    # TODO(crbug.com/376278218): This causes segfault on Linux ARM builds.
+-    if (is_linux && !llvm_android_mainline && current_cpu != "arm" &&
+-        default_toolchain != "//build/toolchain/cros:target") {
+-      cflags += [ "-Wa,--crel,--allow-experimental-crel" ]
+-    }
+   }
+ 
+   # C11/C++11 compiler flags setup.
+@@ -1992,12 +1984,6 @@ config("default_warnings") {
            "-Wno-c++11-narrowing-const-reference",
          ]
  
@@ -16,5 +31,5 @@ Fix the following warnings due to the use of unknown options:
 -        cflags_cc += [ "-Wno-dangling-assignment-gsl" ]
 -
          if (llvm_force_head_revision) {
-           # TODO(crbug.com/373130005): Fix and re-enable.
-           cflags_cc += [ "-Wno-deprecated-literal-operator" ]
+           # TODO(crbug.com/376641662): Fix and re-enable.
+           cflags += [ "-Wno-nontrivial-memaccess" ]
