@@ -28,16 +28,19 @@ ubuntu_dist noble || not_applicable
 ##
 ################################################################
 
-perl -pi -e 's/python3-pyzstd,/python3-zstd,/' $debian/control
-
 ##
 ## Patch series modifications
 ##
 
-# Patch name is awkward but that's what Debian went with
-new_patch 0098-Some-color-scheme-functions-are-not-available-in-Qt-.patch
+if ubuntu_dist noble
+then
+	# Patch name is awkward but that's what Debian went with
+	new_patch 0098-Some-color-scheme-functions-are-not-available-in-Qt-.patch
 
-new_patch 0099-rewrite-test_zstd.patch
+	# python3-pyzstd is not available before oracular
+	sed -i 's/python3-pyzstd,/python3-zstd,/' $debian/control
+	new_patch 0099-rewrite-test_zstd.patch
+fi
 
 ################################################################
 

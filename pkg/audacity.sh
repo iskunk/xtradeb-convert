@@ -26,15 +26,21 @@ ubuntu_dist jammy || not_applicable
 ##
 ################################################################
 
-# Bump down dependency version slightly
-perl -pi -e '/\blibmp3lame-dev \(>= .+\),/ and s/3.100-5/3.100-3/;' \
-	$debian/control
+if ubuntu_dist jammy
+then
+	# Bump down dependency version slightly
+	perl -pi -e '/\blibmp3lame-dev \(>= .+\),/ and s/3.100-5/3.100-3/;' \
+		$debian/control
+fi
 
 ##
 ## Patch series modifications
 ##
 
-new_patch xtradeb/libsbsms-static.patch
+if ubuntu_dist jammy
+then
+	new_patch xtradeb/libsbsms-static.patch
+fi
 
 ################################################################
 

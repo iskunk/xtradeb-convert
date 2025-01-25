@@ -45,13 +45,13 @@ ifneq ($(filter arm64,$(DEB_BUILD_ARCH)),)
 keepalive=debian/scripts/keepalive-wrapper.py 7200
 endif
 END
-if false # ubuntu_dist noble oracular
+if ubuntu_dist noble oracular
 then
 	cat >>$debian/xtradeb.tmp <<'END'
-ifneq ($(filter armhf arm64,$(DEB_HOST_ARCH)),)
-# clang-16 gives us "argument unused during compilation" warnings for these
-export   DEB_CFLAGS_MAINT_STRIP+=-fstack-clash-protection -fno-stack-clash-protection
-export DEB_CXXFLAGS_MAINT_STRIP+=-fstack-clash-protection -fno-stack-clash-protection
+ifneq ($(filter armhf,$(DEB_HOST_ARCH)),)
+# clang gives us "argument unused during compilation" warnings for these
+export   DEB_CFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
+export DEB_CXXFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
 endif
 END
 fi
