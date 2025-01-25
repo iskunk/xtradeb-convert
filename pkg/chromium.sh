@@ -85,8 +85,8 @@ sed -i -r '/^\s+rustc-web \(.+\),/s/-web//' $debian/control
 
 # Ubuntu provides "rustc-N.NN" packages
 case "$ubuntu_dist" in
-	oracular) rust_version=1.80 ;;
-	*) rust_version=1.78 ;;
+	jammy | noble) rust_version=1.78 ;;
+	*) rust_version=1.80 ;;
 esac
 sed -i -r 's/^(\s+rustc) \(.+\),$/\1-'"$rust_version"',/' \
 	$debian/control
@@ -205,7 +205,7 @@ then
 	new_patch xtradeb/clang-unknown-options.patch
 fi
 
-if ubuntu_dist noble oracular
+if ! ubuntu_dist jammy
 then
 	new_patch xtradeb/fortify-level-3.patch
 fi

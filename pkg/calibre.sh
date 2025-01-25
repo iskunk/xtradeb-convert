@@ -18,7 +18,9 @@ initialize calibre
 grep -Fqx 'Source: calibre' $debian/control 2>/dev/null \
 || error "$debian: not a calibre source package debian/ subdirectory"
 
-ubuntu_dist noble || not_applicable 'this script only targets noble'
+! ubuntu_dist jammy || not_supported
+
+ubuntu_dist noble || not_applicable
 
 ################################################################
 ##

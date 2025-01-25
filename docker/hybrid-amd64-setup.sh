@@ -177,7 +177,7 @@ run_cmd apt-get -y install nodejs:amd64
 
 # LLVM (need both native + amd64 packages for this one)
 
-N=16
+N=18
 
 t64=$(test "_$suite" = _jammy || echo t64)
 

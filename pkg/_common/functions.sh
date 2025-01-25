@@ -26,6 +26,19 @@ not_applicable()
 	exit 2
 }
 
+not_supported()
+{
+	local message="$1"
+	test -n "$message" || message='package cannot be built for this release'
+	if [ -z "$ubuntu_ver" ]
+	then
+		echo "$0: not supported: $message"
+	else
+		echo "$0: not supported on Ubuntu $ubuntu_ver/$ubuntu_dist: $message"
+	fi
+	exit 3
+}
+
 initialize()
 {
 	package_name="$1"
@@ -80,6 +93,7 @@ initialize()
 		jammy)    ubuntu_ver=22.04 ;;
 		noble)    ubuntu_ver=24.04 ;;
 		oracular) ubuntu_ver=24.10 ;;
+		plucky)   ubuntu_ver=25.04 ;;
 		*) error "invalid Ubuntu distribution \"$ubuntu_dist\"" ;;
 	esac
 
