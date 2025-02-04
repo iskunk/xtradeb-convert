@@ -5,7 +5,7 @@ Fix the following warnings due to the use of unknown options:
 
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -615,14 +615,6 @@ config("compiler") {
+@@ -625,14 +625,6 @@ config("compiler") {
      } else {
        cflags += [ "-ffp-contract=off" ]
      }
@@ -20,7 +20,7 @@ Fix the following warnings due to the use of unknown options:
    }
  
    # C11/C++11 compiler flags setup.
-@@ -1992,12 +1984,6 @@ config("default_warnings") {
+@@ -1988,12 +1980,6 @@ config("default_warnings") {
            "-Wno-c++11-narrowing-const-reference",
          ]
  
@@ -30,6 +30,6 @@ Fix the following warnings due to the use of unknown options:
 -        # TODO(crbug.com/356172342): Fix and re-enable.
 -        cflags_cc += [ "-Wno-dangling-assignment-gsl" ]
 -
-         if (llvm_force_head_revision) {
-           # TODO(crbug.com/376641662): Fix and re-enable.
-           cflags += [ "-Wno-nontrivial-memaccess" ]
+         # TODO(crbug.com/376641662): Fix and re-enable.
+       }
+     }

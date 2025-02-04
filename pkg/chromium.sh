@@ -219,10 +219,8 @@ fi
 
 if ubuntu_dist jammy noble
 then
-	new_patch xtradeb/pdfium-alias-template.patch
+	new_patch xtradeb/template-args.patch
 fi
-
-#new_patch xtradeb/warning-fixes.patch
 
 ################################################################
 

@@ -90,3 +90,14 @@ author: Andres Salomon <dilinger@debian.org>
  // Estimated token count of the preamble text in prompt.
  static constexpr size_t kPreambleTokenBufferSize = 100u;
  // Estimated token count of overhead text per passage.
+--- a/chrome/browser/ui/views/tabs/recent_activity_bubble_dialog_view.cc
++++ b/chrome/browser/ui/views/tabs/recent_activity_bubble_dialog_view.cc
+@@ -48,7 +48,7 @@ using collaboration::messaging::Messagin
+ namespace {
+
+ // Unicode value for a bullet point.
+-constexpr std::u16string kBulletPoint = u"\u2022";
++const std::u16string kBulletPoint = u"\u2022";
+
+ // Gets the string for the activity line to describe an event.
+ std::u16string GetActivityText(ActivityLogItem item) {

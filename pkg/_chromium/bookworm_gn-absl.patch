@@ -54,7 +54,15 @@ libs.
      ":string_view",
 --- a/third_party/abseil-cpp/absl/types/BUILD.gn
 +++ b/third_party/abseil-cpp/absl/types/BUILD.gn
-@@ -65,6 +65,7 @@ absl_test("span_test") {
+@@ -38,6 +38,7 @@ absl_source_set("bad_any_cast_impl") {
+ absl_source_set("span") {
+   public = [ "span.h" ]
+   sources = [ "internal/span.h" ]
++  visibility = [ "*" ]
+   deps = [
+     "//third_party/abseil-cpp/absl/algorithm",
+     "//third_party/abseil-cpp/absl/base:config",
+@@ -66,6 +67,7 @@ absl_test("span_test") {
  absl_source_set("optional") {
    sources = [ "internal/optional.h" ]
    public = [ "optional.h" ]
@@ -62,7 +70,7 @@ libs.
    deps = [
      ":bad_optional_access",
      "//third_party/abseil-cpp/absl/base:base_internal",
-@@ -98,6 +99,7 @@ absl_source_set("bad_variant_access") {
+@@ -99,6 +101,7 @@ absl_source_set("bad_variant_access") {
  absl_source_set("variant") {
    sources = [ "internal/variant.h" ]
    public = [ "variant.h" ]
@@ -132,6 +140,14 @@ libs.
    deps = [
      ":inlined_vector_internal",
      "//third_party/abseil-cpp/absl/algorithm",
+@@ -96,6 +97,7 @@ absl_source_set("test_instance_tracker")
+ 
+ absl_source_set("flat_hash_map") {
+   public = [ "flat_hash_map.h" ]
++  visibility = [ "*" ]
+   deps = [
+     ":container_memory",
+     ":hash_container_defaults",
 --- a/third_party/abseil-cpp/absl/numeric/BUILD.gn
 +++ b/third_party/abseil-cpp/absl/numeric/BUILD.gn
 @@ -9,6 +9,7 @@ absl_source_set("bits") {
@@ -160,6 +176,14 @@ libs.
    deps = [
      "//third_party/abseil-cpp/absl/base:base_internal",
      "//third_party/abseil-cpp/absl/container:compressed_tuple",
+@@ -65,6 +67,7 @@ absl_test("function_ref_test") {
+ 
+ absl_source_set("overload") {
+   public = [ "overload.h" ]
++  visibility = [ "*" ]
+   deps = [
+     "//third_party/abseil-cpp/absl/base:config",
+     "//third_party/abseil-cpp/absl/meta:type_traits",
 --- a/third_party/abseil-cpp/absl/memory/BUILD.gn
 +++ b/third_party/abseil-cpp/absl/memory/BUILD.gn
 @@ -6,6 +6,7 @@ import("//third_party/abseil-cpp/absl.gn
@@ -206,13 +230,3 @@ libs.
    deps = [
      ":commandlineflag",
      ":commandlineflag_internal",
---- a/third_party/abseil-cpp/absl/types/BUILD.gn
-+++ b/third_party/abseil-cpp/absl/types/BUILD.gn
-@@ -38,6 +38,7 @@ absl_source_set("bad_any_cast_impl") {
- absl_source_set("span") {
-   public = [ "span.h" ]
-   sources = [ "internal/span.h" ]
-+  visibility = [ "*" ]
-   deps = [
-     "//third_party/abseil-cpp/absl/algorithm",
-     "//third_party/abseil-cpp/absl/base:config",

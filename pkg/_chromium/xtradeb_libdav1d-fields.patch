@@ -46,7 +46,7 @@ Fortunately, these are easy to work around.
    dav1d_default_settings(&s);
  
 +#if 0	// XtraDeb fix
-   s.n_threads = std::max(2, settings.number_of_cores());
+   s.n_threads = std::clamp(settings.number_of_cores(), 1, DAV1D_MAX_THREADS);
    s.max_frame_delay = 1;   // For low latency decoding.
 +#endif
    s.all_layers = 0;        // Don't output a frame for every spatial layer.
@@ -82,8 +82,8 @@ Fortunately, these are easy to work around.
 +*/
          settings.operating_point = config.operating_point as i32;
          settings.all_layers = if config.all_layers { 1 } else { 0 };
- 
-@@ -84,7 +86,7 @@ impl Decoder for Dav1d {
+         // Set a maximum frame size limit to avoid OOM'ing fuzzers. In 32-bit builds, if
+@@ -93,7 +95,7 @@ impl Decoder for Dav1d {
              let res = dav1d_data_wrap(
                  (&mut data) as *mut _,
                  av1_payload.as_ptr(),

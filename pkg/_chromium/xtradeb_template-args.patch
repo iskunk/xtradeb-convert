@@ -1,0 +1,43 @@
+Fix the following compile errors, observed with clang-18 on jammy and
+noble, by adding missing template arguments:
+
+  FAILED: obj/chrome/browser/browser/compose_session.o
+  [...]
+  ../../chrome/browser/compose/compose_session.cc:546:64: error: alias template 'ModelExecutionSessionCallbackWithLogging' requires template arguments; argument deduction only allowed for class templates
+    546 |   optimization_guide::ModelExecutionSessionCallbackWithLogging callback =
+        |                                                                ^
+  ../../components/optimization_guide/core/model_quality/model_execution_logging_wrappers.h:84:1: note: template is declared here
+     84 | using ModelExecutionSessionCallbackWithLogging =
+        | ^
+
+  FAILED: obj/pdf/internal/pdfium_api_wrappers.o
+  [...]
+  ../../pdf/pdfium/pdfium_api_wrappers.cc:150:32: error: alias template 'PDFiumAPIStringBufferAdapter' requires template arguments; argument deduction only allowed for class templates
+    150 |   PDFiumAPIStringBufferAdapter adapter(&name, expected_size,
+        |                                ^
+  ../../pdf/pdfium/pdfium_api_string_buffer_adapter.h:173:1: note: template is declared here
+    173 | using PDFiumAPIStringBufferAdapter =
+        | ^
+
+--- a/chrome/browser/compose/compose_session.cc
++++ b/chrome/browser/compose/compose_session.cc
+@@ -543,7 +543,7 @@ void ComposeSession::RequestWithSession(
+   // execution in case request fails.
+   compose::LogComposeRequestReason(request_reason);
+ 
+-  optimization_guide::ModelExecutionSessionCallbackWithLogging callback =
++  optimization_guide::ModelExecutionSessionCallbackWithLogging<optimization_guide::proto::ComposeLoggingData> callback =
+       base::BindRepeating(&ComposeSession::ModelExecutionCallback,
+                           weak_ptr_factory_.GetWeakPtr(),
+                           std::move(request_timer), request_id_, request_reason,
+--- a/pdf/pdfium/pdfium_api_wrappers.cc
++++ b/pdf/pdfium/pdfium_api_wrappers.cc
+@@ -147,7 +147,7 @@ std::u16string GetPageObjectMarkName(FPD
+ 
+   // Number of characters, including the NUL.
+   const size_t expected_size = base::checked_cast<size_t>(buflen_bytes / 2);
+-  PDFiumAPIStringBufferAdapter adapter(&name, expected_size,
++  PDFiumAPIStringBufferAdapter<std::u16string> adapter(&name, expected_size,
+                                        /*check_expected_size=*/true);
+   unsigned long actual_buflen_bytes = 0;  // NOLINT(runtime/int)
+   bool result =
