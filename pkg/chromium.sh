@@ -84,10 +84,7 @@ use_libcxx=$(grep -q '^\s*libc++-[0-9]*-dev,' $debian/control \
 sed -i -r '/^\s+rustc-web \(.+\),/s/-web//' $debian/control
 
 # Ubuntu provides "rustc-N.NN" packages
-case "$ubuntu_dist" in
-	jammy | noble) rust_version=1.78 ;;
-	*) rust_version=1.80 ;;
-esac
+rust_version=1.80
 sed -i -r 's/^(\s+rustc) \(.+\),$/\1-'"$rust_version"',/' \
 	$debian/control
 sed -i -r 's!^(rust_sysroot)=.*!\1=/usr/lib/rust-'"$rust_version"'!' \
