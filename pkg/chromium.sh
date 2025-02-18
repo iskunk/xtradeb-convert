@@ -66,7 +66,9 @@ cp -fp $base_dir/_chromium/keepalive-wrapper.py $debian/scripts/
 perl -pi \
 	-e '/ninja .+ chrome/ and $_= <<END . $_;' \
 	-e '	# XtraDeb workaround for https://crbug.com/40943790' \
-	-e '	ninja -j\$(njobs) -C out/Release ui/webui/resources/cr_components/history_clusters:build_ts' \
+	-e '	# and https://issues.chromium.org/397258344' \
+	-e '	ninja -j\$(njobs) -C out/Release ui/webui/resources/cr_components/history_clusters:build_ts \\' \
+	-e '		obj/components/safe_browsing/content/common/proto/download_file_types_proto_gen.stamp' \
 	-e 'END' \
 	$debian/rules
 
