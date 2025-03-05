@@ -15,6 +15,9 @@ $wget -O bookworm_cacheline.patch \
 $wget -O bookworm_constexpr-bookworm.patch \
 	$bookworm_prefix/debian/patches/bookworm/constexpr.patch
 
+$wget -O bookworm_foreach.patch \
+	$bookworm_prefix/debian/patches/bookworm/foreach.patch
+
 $wget -O bookworm_gn-absl.patch \
 	$bookworm_prefix/debian/patches/bookworm/gn-absl.patch
 
@@ -26,6 +29,9 @@ $wget -O bookworm_highway-blink.patch \
 
 $wget -O bookworm_less-void.patch \
 	$bookworm_prefix/debian/patches/bookworm/less-void.patch
+
+$wget -O bookworm_modff.patch \
+	$bookworm_prefix/debian/patches/bookworm/modff.patch
 
 $wget -O bookworm_rust-visibility.patch \
 	$bookworm_prefix/debian/patches/bookworm/rust-visibility.patch

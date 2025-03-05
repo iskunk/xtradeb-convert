@@ -178,11 +178,21 @@ fi
 if ubuntu_dist jammy noble
 then
 	new_patch bookworm/cacheline.patch
-	! ubuntu_dist jammy || new_patch bookworm/constexpr-bookworm.patch
+fi
+if ubuntu_dist jammy
+then
+	new_patch bookworm/constexpr-bookworm.patch
+fi
+
+new_patch bookworm/foreach.patch
+
+if ubuntu_dist jammy noble
+then
 	new_patch bookworm/gn-absl.patch
 	new_patch bookworm/gn-funcs.patch
 	new_patch bookworm/highway-blink.patch
 	new_patch bookworm/less-void.patch
+	new_patch bookworm/modff.patch
 
 	# Don't require a bleeding-edge version of LibXML2
 	# (note that Debian's package of 2.12 is now actually 2.9)
