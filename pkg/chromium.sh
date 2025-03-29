@@ -177,10 +177,6 @@ if ubuntu_dist jammy noble
 then
 	new_patch bookworm/cacheline.patch
 fi
-if ubuntu_dist jammy
-then
-	new_patch bookworm/constexpr-bookworm.patch
-fi
 
 new_patch bookworm/foreach.patch
 
@@ -210,6 +206,16 @@ then
 	new_patch fixes/absl-optional-bookworm.patch
 	! ubuntu_dist jammy || new_patch xtradeb/av1-vaapi.patch
 	new_patch xtradeb/clang-unknown-options.patch
+fi
+
+if ubuntu_dist jammy
+then
+	new_patch xtradeb/constexpr.patch
+fi
+
+if ubuntu_dist jammy noble
+then
+	new_patch xtradeb/eslint.patch
 fi
 
 if ! ubuntu_dist jammy

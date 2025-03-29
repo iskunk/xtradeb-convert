@@ -12,9 +12,6 @@ $wget -O bookworm_bubble-contents.patch \
 $wget -O bookworm_cacheline.patch \
 	$bookworm_prefix/debian/patches/bookworm/cacheline.patch
 
-$wget -O bookworm_constexpr-bookworm.patch \
-	$bookworm_prefix/debian/patches/bookworm/constexpr.patch
-
 $wget -O bookworm_foreach.patch \
 	$bookworm_prefix/debian/patches/bookworm/foreach.patch
 
