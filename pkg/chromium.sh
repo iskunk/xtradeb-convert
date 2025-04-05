@@ -40,14 +40,14 @@ END
 rm -f $debian/xtradeb.tmp
 
 cat >$debian/xtradeb.tmp <<'END'
-ifneq ($(filter arm64,$(DEB_BUILD_ARCH)),)
+
 # final link takes >150m, don't let Launchpad kill the build prematurely
 keepalive=debian/scripts/keepalive-wrapper.py 7200
-endif
 END
 if ubuntu_dist noble oracular
 then
 	cat >>$debian/xtradeb.tmp <<'END'
+
 ifneq ($(filter armhf,$(DEB_HOST_ARCH)),)
 # clang gives us "argument unused during compilation" warnings for these
 export   DEB_CFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
