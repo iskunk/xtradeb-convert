@@ -85,6 +85,7 @@ sed -i -r '/^\s+rustc-web \(.+\),/s/-web//' $debian/control
 
 # Ubuntu provides "rustc-N.NN" packages
 rust_version=1.80
+! ubuntu_dist plucky || rust_version=1.84
 sed -i -r 's/^(\s+rustc) \(.+\),$/\1-'"$rust_version"',/' \
 	$debian/control
 sed -i -r 's!^(rust_sysroot)=.*!\1=/usr/lib/rust-'"$rust_version"'!' \
@@ -178,7 +179,10 @@ then
 	new_patch bookworm/cacheline.patch
 fi
 
-new_patch bookworm/foreach.patch
+if ubuntu_dist jammy noble oracular
+then
+	new_patch bookworm/foreach.patch
+fi
 
 if ubuntu_dist jammy noble
 then
@@ -198,7 +202,11 @@ then
 	disable_patch bookworm/libxml-parseerr.patch
 fi
 
-new_patch bookworm/rust-visibility.patch
+if ubuntu_dist jammy noble oracular
+then
+	# Needed for rustc <= 1.80
+	new_patch bookworm/rust-visibility.patch
+fi
 
 if ubuntu_dist jammy noble
 then
