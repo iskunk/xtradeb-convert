@@ -71,6 +71,13 @@ sed -i -r '/^\s+debhelper \(>= 9\),/s/9/10/' $debian/control.in
 # Also needed for debhelper
 echo 10 >$debian/compat
 
+# rustc-1.80 is not available in plucky, use 1.84
+if ubuntu_dist plucky
+then
+	sed -i -r 's/\b(cargo|rustc)-1.80,/\1-1.84,/' $debian/control.in
+	sed -i -r '/^RUSTC_VERSIONS =/s/1.80/1.84/' $debian/build/rules.mk
+fi
+
 # Depend on the regular nodejs package instead of nodejs-mozilla. (Note
 # that on jammy, a backported version of nodejs is needed)
 perl -pi -e 's/\b(nodejs)-mozilla\b/$1/;' \
