@@ -97,7 +97,7 @@ sed -i -r \
 	-e '/^override_dh_auto_configure:/s/ set_up_bindgen\b//' \
 	$debian/rules
 
-if ubuntu_dist jammy noble
+if ubuntu_dist jammy noble oracular
 then
 	# Build with clang-18 instead of -19
 	sed -i -r '/(clang|libc\+\+|lld)/s/19/18/' \
@@ -213,6 +213,10 @@ then
 	disable_patch fixes/absl-optional.patch
 	new_patch fixes/absl-optional-bookworm.patch
 	! ubuntu_dist jammy || new_patch xtradeb/av1-vaapi.patch
+fi
+
+if ubuntu_dist jammy noble oracular
+then
 	new_patch xtradeb/clang-unknown-options.patch
 fi
 
@@ -238,7 +242,7 @@ then
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
 fi
 
-if ubuntu_dist jammy noble
+if ubuntu_dist jammy noble oracular
 then
 	new_patch xtradeb/template-args.patch
 fi
