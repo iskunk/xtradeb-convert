@@ -22,7 +22,7 @@ grep -Eq '^Source: firefox(-esr)?$' $debian/control 2>/dev/null \
 test -f $debian/browser.README.Debian.in \
 || error "$debian: not a Debian firefox source package debian/ subdirectory"
 
-is_esr=$(grep -qx 'Source: firefox-esr' $debian/control && echo yes || echo no)
+is_esr=$(grep -qx 'Source: firefox-esr' $debian/control && echo true || echo false)
 
 # https://wiki.mozilla.org/Distribution_INI_File
 
@@ -35,7 +35,7 @@ cat >$debian/distribution.ini <<END
 [Global]
 id=xtradeb
 version=1.0
-about=Mozilla Firefox for Ubuntu
+about=Mozilla Firefox$($is_esr && echo ' ESR' || :) for Ubuntu
 
 [Preferences]
 app.distributor="xtradeb"
@@ -68,23 +68,42 @@ END
 
 rm -f $debian/rules.add
 
-if ! ubuntu_dist jammy && [ $is_esr = yes ]
+cat >>$debian/make.mk <<END
+
+# XtraDeb additions
+
+# Don't use the default LTO options, as they make for an expensive build
+export DEB_BUILD_MAINT_OPTIONS += optimize=-lto
+END
+
+cat >>$debian/browser.mozconfig.in <<END
+
+# XtraDeb additions
+ac_add_options --enable-lto=thin
+END
+
+if ubuntu_dist jammy
 then
-	# Use Clang/LLVM 17 specifically
-	# (the ESR build fails mysteriously in a Rust component with 18)
+	# Use Clang/LLVM 15 specifically (instead of jammy's default of 14)
+	# to avoid incompatibilities with Rust 1.80 or newer:
+	#
+	#   /usr/bin/ld: error: LLVM gold plugin has failed to create
+	#   LTO module: Opaque pointers are only supported in
+	#   -opaque-pointers mode (Producer: 'LLVM18.1.7-rust-1.80.1-stable'
+	#   Reader: 'LLVM 14.0.0')
 	sed -i -r \
-		-e 's/^(\s+clang),/\1-17,/' \
-		-e 's/^(\s+libclang)-dev,/\1-17-dev,/' \
-		-e 's/^(\s+libclang-rt)-(dev-wasm32),/\1-17-\2,/' \
-		-e 's/^(\s+libc\+\+)-(dev-wasm32),/\1-17-\2,/' \
-		-e 's/^(\s+lld),/\1-17,/' \
-		-e 's/^(\s+llvm)-dev,/\1-17-dev,/' \
+		-e 's/^(\s+clang),/\1-15,/' \
+		-e 's/^(\s+libclang)-dev,/\1-15-dev,/' \
+		-e 's/^(\s+libclang-rt)-(dev-wasm32),/\1-15-\2,/' \
+		-e 's/^(\s+libc\+\+)-(dev-wasm32),/\1-15-\2,/' \
+		-e 's/^(\s+lld),/\1-15,/' \
+		-e 's/^(\s+llvm)-dev,/\1-15-dev,/' \
 		$debian/control.in
 
 	cat >>$debian/rules.add <<'END'
 
-export CC  = clang-17
-export CXX = clang++-17
+export CC  = clang-15
+export CXX = clang++-15
 END
 fi
 
@@ -92,10 +111,11 @@ fi
 sed -i -r 's/^(\s+(cargo|rustc)) \(>= (@RUST_VERSION@)\),/\1-\3,/' \
 	$debian/control.in
 
-case "$ubuntu_dist" in
-	oracular) rust_version=1.80 ;;
-	*) rust_version=1.76 ;;
-esac
+rust_version=$( \
+	ubuntu_dist plucky && echo 1.84 || \
+	! $is_esr && echo 1.82 || \
+	echo 1.80 \
+)
 
 sed -i -r 's/^(%define RUST_VERSION) .*/\1 '"$rust_version/" \
 	$debian/control.in
@@ -153,7 +173,7 @@ sed -i '/^%if DIST != bullseye/s/$/  \&\& DIST != jammy/' \
 	$debian/control.in
 
 # SYSTEM_LIBS += nss
-sed -i -r 's/(filter bullseye bookworm),/\1  jammy noble oracular,/' \
+sed -i -r 's/(filter bullseye bookworm),/\1  jammy noble oracular plucky,/' \
 	$debian/rules
 
 ## This conditional doesn't handle USE_SYSTEM_NSS=0 properly
@@ -176,44 +196,17 @@ fi
 ##
 
 # https://bugs.launchpad.net/bugs/2033572
-if ubuntu_dist noble oracular
+if ubuntu_dist noble oracular plucky
 then
 	new_patch xtradeb/fix-libc++-wasm-link-error.patch
 fi
 
-#### Fixes for LTO-enabled build
-##
-## More information here: https://bugs.debian.org/1050890
-##
-
-# Find the right file to modify with e.g.
-#   find build-browser -name \*.mk -exec grep -l RUST_LIBRARY_FEATURES {} +
-# (Note: "export DEBIAN_RUST_LTO = -Clto=off" does not do the trick)
-perl -pi \
-	-e '/^# Use thinLTO on armhf/ and $_ = <<END . $_;' \
-	-e '	# XtraDeb: workaround for LTO breakage in webrender build' \
-	-e '	perl -pi -e \x{27}s/-flto(=\\w+)?//g; s/-ffat-lto-objects//g\x{27} \\' \
-	-e '		build-browser/toolkit/library/rust/backend.mk' \
-	-e '' \
-	-e 'END' \
-	$debian/rules
-
 new_patch xtradeb/fix-param-lto-partitions.patch
-
-# These errors occur in a LTO build for some reason:
-#
-#   dwz: debian/firefox/usr/lib/firefox/libmozavcodec.so: Unknown DWARF DW_OP_0
-#   dwz: debian/firefox/usr/lib/firefox/libmozavutil.so: Unknown DWARF DW_OP_183
-#   dwz: debian/firefox/usr/lib/firefox/libmozavcodec.so: Unknown DWARF DW_OP_0
-#   dwz: debian/firefox/usr/lib/firefox/libmozavutil.so: Unknown DWARF DW_OP_183
-#
-sed -i '/dh_dwz -X libxul/s/$/ \\\n\t\t-X libmozav  # XtraDeb: needed to avoid LTO build breakage/' \
-	$debian/rules
 
 if ubuntu_dist jammy
 then
 	true	# jammy uses _FORTIFY_SOURCE=2
-elif [ $is_esr = yes ]
+elif $is_esr
 then
 	new_patch xtradeb/fortify-source-3-esr.patch
 else
@@ -224,15 +217,11 @@ fi
 
 finish
 
-if [ $is_esr = no ]
+if ! $is_esr
 then
 	# Add a "1:" epoch prefix to the version, so that the firefox snap
 	# package isn't outright considered newer
-	perl -pi \
-		-e 'if (/^firefox / && $. == 1) {' \
-		-e '  s/\((.+)\)/(1:$1)/;' \
-		-e '}' \
-		$debian/changelog
+	sed -i -r '1{/^firefox /s/\((.+)\)/(1:\1)/}' $debian/changelog
 fi
 
 files_to_regen=
