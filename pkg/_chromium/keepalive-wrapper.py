@@ -48,7 +48,7 @@ def main():
   # Make sure that we have a process before continuing
   f.read(1)
 
-  target_timeout = 60
+  target_timeout = 900
 
   last_target_timeout = target_timeout
   timeout = target_timeout

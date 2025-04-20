@@ -1,0 +1,44 @@
+From ef1f8cdf9b000ca76ae1ef69d6e32a7cf7d1de28 Mon Sep 17 00:00:00 2001
+From: Fumitoshi Ukai <ukai@google.com>
+Date: Wed, 16 Apr 2025 07:42:53 -0700
+Subject: [PATCH] licenses: don't run "gn gen"
+
+"gn gen" is slow and requires lot of memory.
+"gn desc" just needs "build.ninja" file, but no need to be
+the same "build.ninja" produced by "gn gen"
+
+Bug: 402842499, 381456259
+Change-Id: I0fb2ab476ba06998c30f7a11f3b5c1ccb6330447
+Reviewed-on: https://chromium-review.googlesource.com/c/chromium/src/+/6459484
+Reviewed-by: Philipp Wollermann <philwo@google.com>
+Reviewed-by: Junji Watanabe <jwata@google.com>
+Reviewed-by: Andrew Grieve <agrieve@chromium.org>
+Commit-Queue: Andrew Grieve <agrieve@chromium.org>
+Auto-Submit: Fumitoshi Ukai <ukai@google.com>
+Cr-Commit-Position: refs/heads/main@{#1447718}
+---
+
+diff --git a/tools/licenses/licenses.py b/tools/licenses/licenses.py
+index 7b94800..b0807ee 100755
+--- a/tools/licenses/licenses.py
++++ b/tools/licenses/licenses.py
+@@ -892,14 +892,15 @@
+   # Generate gn project in temp directory and use it to find dependencies.
+   # Current gn directory cannot be used when we run this script in a gn action
+   # rule, because gn always evaluate *.gn/*.gni and causes side-effect
+-  # by `write_file`, `exec_script` or so, and "gn desc" requires "gn gen".
++  # by `write_file`, `exec_script` or so, and "gn desc" requires "build.ninja".
+   # If only "args.gn", it fails with "ERROR Not a build directory."
+   with tempfile.TemporaryDirectory(
+       dir=os.path.join(gn_out_dir, '..')) as tmp_dir:
+     shutil.copy(os.path.join(gn_out_dir, "args.gn"), tmp_dir)
+-    subprocess.check_output(
+-        [_GnBinary(), "gen",
+-         "--root=%s" % _REPOSITORY_ROOT, tmp_dir])
++    # "gn desc" requires "build.ninja", but ok with empty "build.ninja".
++    # "gn gen" is slow and requires too much memory.
++    with open(os.path.join(tmp_dir, "build.ninja"), "w") as w:
++      pass
+     gn_deps = subprocess.check_output([
+         _GnBinary(), "desc",
+         "--root=%s" % _REPOSITORY_ROOT, tmp_dir, gn_target, "deps",

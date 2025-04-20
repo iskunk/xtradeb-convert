@@ -212,7 +212,13 @@ if ubuntu_dist jammy noble
 then
 	disable_patch fixes/absl-optional.patch
 	new_patch fixes/absl-optional-bookworm.patch
-	! ubuntu_dist jammy || new_patch xtradeb/av1-vaapi.patch
+fi
+
+new_patch xtradeb/upstream-licenses-gn-gen.patch
+
+if ubuntu_dist jammy
+then
+	new_patch xtradeb/av1-vaapi.patch
 fi
 
 if ubuntu_dist jammy noble oracular
