@@ -113,7 +113,7 @@ sed -i -r 's/^(\s+(cargo|rustc)) \(>= (@RUST_VERSION@)\),/\1-\3,/' \
 
 rust_version=$( \
 	ubuntu_dist plucky && echo 1.84 || \
-	! $is_esr && echo 1.82 || \
+	(! $is_esr && echo 1.82) || \
 	echo 1.80 \
 )
 
