@@ -174,13 +174,9 @@ then
 	new_patch bookworm/bubble-contents.patch
 fi
 
-if ubuntu_dist jammy noble
-then
-	new_patch bookworm/cacheline.patch
-fi
-
 if ubuntu_dist jammy noble oracular
 then
+	new_patch bookworm/cacheline.patch
 	new_patch bookworm/foreach.patch
 fi
 

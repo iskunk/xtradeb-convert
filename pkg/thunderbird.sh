@@ -35,6 +35,8 @@ sed -i -r \
 	$debian/control
 
 # Use lld for a faster final link
+# (this and the "optimize=-lto" bit are submitted upstream at
+# https://salsa.debian.org/mozilla-team/thunderbird/-/merge_requests/10)
 perl -pi -e '/^(\s+)clang,$/ and $_.="${1}lld,\n"' $debian/control
 sed -i '/-Wl,--reduce-memory-overheads/s/^/#xtradeb#/' $debian/rules
 

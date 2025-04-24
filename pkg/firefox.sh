@@ -68,6 +68,9 @@ END
 
 rm -f $debian/rules.add
 
+# Submitted upstream at
+# https://salsa.debian.org/mozilla-team/firefox/-/merge_requests/12 (ESR)
+# https://salsa.debian.org/mozilla-team/firefox/-/merge_requests/13 (reg.)
 cat >>$debian/make.mk <<END
 
 # XtraDeb additions
