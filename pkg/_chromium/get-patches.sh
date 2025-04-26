@@ -12,6 +12,9 @@ $wget -O bookworm_bubble-contents.patch \
 $wget -O bookworm_cacheline.patch \
 	$bookworm_prefix/debian/patches/bookworm/cacheline.patch
 
+$wget -O bookworm_fmodf.patch \
+	$bookworm_prefix/debian/patches/bookworm/fmodf.patch
+
 $wget -O bookworm_foreach.patch \
 	$bookworm_prefix/debian/patches/bookworm/foreach.patch
 
@@ -29,6 +32,9 @@ $wget -O bookworm_less-void.patch \
 
 $wget -O bookworm_modff.patch \
 	$bookworm_prefix/debian/patches/bookworm/modff.patch
+
+$wget -O bookworm_rust-is-none-or.patch \
+	$bookworm_prefix/debian/patches/bookworm/rust-is-none-or.patch
 
 $wget -O bookworm_rust-visibility.patch \
 	$bookworm_prefix/debian/patches/bookworm/rust-visibility.patch

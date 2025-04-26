@@ -100,6 +100,7 @@ sed -i -r \
 if ubuntu_dist jammy noble oracular
 then
 	# Build with clang-18 instead of -19
+	# (relevant: https://bugs.launchpad.net/bugs/2097731)
 	sed -i -r '/(clang|libc\+\+|lld)/s/19/18/' \
 		$debian/control \
 		$debian/rules \
@@ -182,6 +183,7 @@ fi
 
 if ubuntu_dist jammy noble
 then
+	new_patch bookworm/fmodf.patch
 	new_patch bookworm/gn-absl.patch
 	new_patch bookworm/gn-funcs.patch
 	new_patch bookworm/highway-blink.patch
@@ -198,9 +200,9 @@ then
 	disable_patch bookworm/libxml-parseerr.patch
 fi
 
-if ubuntu_dist jammy noble oracular
+if dpkg --compare-versions $rust_version le 1.82
 then
-	# Needed for rustc <= 1.80
+	new_patch bookworm/rust-is-none-or.patch
 	new_patch bookworm/rust-visibility.patch
 fi
 
@@ -225,6 +227,11 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/constexpr.patch
+fi
+
+if ubuntu_dist jammy noble oracular plucky
+then
+	new_patch xtradeb/es-module-imports.patch
 fi
 
 if ubuntu_dist jammy noble

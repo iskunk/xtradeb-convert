@@ -5,28 +5,17 @@ Fix the following warnings due to the use of unknown options:
 
 --- a/build/config/compiler/BUILD.gn
 +++ b/build/config/compiler/BUILD.gn
-@@ -625,14 +625,6 @@ config("compiler") {
+@@ -614,13 +614,6 @@ config("compiler") {
      } else {
        cflags += [ "-ffp-contract=off" ]
      }
 -
 -    # Enable ELF CREL (see crbug.com/357878242) for all platforms that use ELF
 -    # (excluding toolchains that use an older version of LLVM).
--    # TODO(crbug.com/376278218): This causes segfault on Linux ARM builds.
--    if (is_linux && !llvm_android_mainline && current_cpu != "arm" &&
+-    if (is_linux && !llvm_android_mainline &&
 -        default_toolchain != "//build/toolchain/cros:target") {
 -      cflags += [ "-Wa,--crel,--allow-experimental-crel" ]
 -    }
    }
  
    # C11/C++11 compiler flags setup.
-@@ -1980,9 +1972,6 @@ config("default_warnings") {
-           # TODO(crbug.com/41486292): Fix and re-enable.
-           "-Wno-c++11-narrowing-const-reference",
-         ]
--
--        # TODO(crbug.com/344680447): Fix and re-enable.
--        cflags_cc += [ "-Wno-missing-template-arg-list-after-template-kw" ]
-       }
-     }
- 
