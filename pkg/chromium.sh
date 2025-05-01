@@ -178,6 +178,7 @@ fi
 if ubuntu_dist jammy noble oracular
 then
 	new_patch bookworm/cacheline.patch
+	! ubuntu_dist jammy || new_patch bookworm/dav1d-extern.patch
 	new_patch bookworm/foreach.patch
 fi
 
@@ -198,6 +199,11 @@ elif ubuntu_dist oracular
 then
 	# The LibXML2 2.12 package in oracular is (still) the real deal
 	disable_patch bookworm/libxml-parseerr.patch
+fi
+
+if ubuntu_dist jammy noble oracular plucky
+then
+	new_patch bookworm/node18-import.patch
 fi
 
 if dpkg --compare-versions $rust_version le 1.82
@@ -227,11 +233,6 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/constexpr.patch
-fi
-
-if ubuntu_dist jammy noble oracular plucky
-then
-	new_patch xtradeb/es-module-imports.patch
 fi
 
 if ubuntu_dist jammy noble
