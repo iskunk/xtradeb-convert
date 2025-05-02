@@ -44,7 +44,7 @@ cat >$debian/xtradeb.tmp <<'END'
 # final link takes >150m, don't let Launchpad kill the build prematurely
 keepalive=debian/scripts/keepalive-wrapper.py 7200
 END
-if ubuntu_dist noble oracular
+if ubuntu_dist noble oracular plucky
 then
 	cat >>$debian/xtradeb.tmp <<'END'
 
@@ -97,11 +97,23 @@ sed -i -r \
 	-e '/^override_dh_auto_configure:/s/ set_up_bindgen\b//' \
 	$debian/rules
 
-if ubuntu_dist jammy noble oracular
+llvm_version_orig=19
+llvm_version=$llvm_version_orig
+
+grep -Eq "^\\s+clang-$llvm_version_orig(:\\w+)?,\$" $debian/control \
+|| error "original control file does not use clang-$llvm_version_orig"
+
+case $ubuntu_dist in
+	jammy | noble) llvm_version=18 ;;
+	plucky) llvm_version=20 ;;
+
+	# Can't use 19 due to https://bugs.launchpad.net/bugs/2097731
+	oracular) llvm_version=18 ;;
+esac
+
+if [ $llvm_version != $llvm_version_orig ]
 then
-	# Build with clang-18 instead of -19
-	# (relevant: https://bugs.launchpad.net/bugs/2097731)
-	sed -i -r '/(clang|libc\+\+|lld)/s/19/18/' \
+	sed -i -r '/(clang|libc\+\+|lld)/'"s/-$llvm_version_orig/-$llvm_version/" \
 		$debian/control \
 		$debian/rules \
 		$debian/patches/debianization/clang-version.patch
@@ -225,7 +237,7 @@ then
 	new_patch xtradeb/av1-vaapi.patch
 fi
 
-if ubuntu_dist jammy noble oracular
+if [ $llvm_version -eq 18 ]
 then
 	new_patch xtradeb/clang-unknown-options.patch
 fi
@@ -252,7 +264,7 @@ then
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
 fi
 
-if ubuntu_dist jammy noble oracular
+if [ $llvm_version -eq 18 ]
 then
 	new_patch xtradeb/template-args.patch
 fi
