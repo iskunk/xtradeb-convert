@@ -39,24 +39,26 @@ END
 
 rm -f $debian/xtradeb.tmp
 
-cat >$debian/xtradeb.tmp <<'END'
-
-# final link takes >150m, don't let Launchpad kill the build prematurely
-keepalive=debian/scripts/keepalive-wrapper.py 7200
-END
 if ubuntu_dist noble oracular plucky
 then
-	cat >>$debian/xtradeb.tmp <<'END'
-
+	cat >$debian/xtradeb.tmp <<'END'
 ifneq ($(filter armhf,$(DEB_HOST_ARCH)),)
 # clang gives us "argument unused during compilation" warnings for these
 export   DEB_CFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
 export DEB_CXXFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
 endif
 END
+	(cd $debian && \
+		sed -i -r -e '/^export DEB_CXXFLAGS_MAINT_STRIP=-g/{r xtradeb.tmp' -e '}' rules)
 fi
+
+cat >$debian/xtradeb.tmp <<'END'
+
+# final link takes >150m, don't let Launchpad kill the build prematurely
+keepalive=debian/scripts/keepalive-wrapper.py 7200
+END
 (cd $debian && \
-	sed -i -r -e '/^defines\+=host_cpu=."arm."/{N;r xtradeb.tmp' -e '}' rules)
+	sed -i -r -e '/^defines\+=host_cpu=."ppc64."/{N;r xtradeb.tmp' -e '}' rules)
 rm -f $debian/xtradeb.tmp
 perl -pi -e 's/(ninja .* chrome )/\$(keepalive) $1/' $debian/rules
 
@@ -117,6 +119,17 @@ then
 		$debian/control \
 		$debian/rules \
 		$debian/patches/debianization/clang-version.patch
+fi
+
+if [ $llvm_version -ge 20 ]
+then
+	# Over 34K warnings from -Wnontrivial-memcall alone
+	x='-Wno-nontrivial-memcall'
+	! grep -q ".$x" $debian/rules \
+	|| error "d/rules already contains $x flag"
+
+	perl -pi -e '/^(\s+)-Wno-unknown-pragmas / and $_.="$1'"$x"' \\\n"' \
+		$debian/rules
 fi
 
 if ubuntu_dist jammy
