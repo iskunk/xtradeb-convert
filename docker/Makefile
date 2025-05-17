@@ -69,8 +69,10 @@ run: $(build_stamp)
 	else \
 		set -x; \
 		docker container run -it --rm $(platform_opt) \
+			--env=APT_MIRROR=$(APT_MIRROR) \
 			--name=$(CONTAINER) \
 			--hostname=$(CONTAINER) \
+			--network=host \
 			--pids-limit -1 \
 			--cap-add=SYS_PTRACE \
 			$(VOL_MOUNTS) \
@@ -92,6 +94,7 @@ endif
 		--build-arg QEMU_BINFMT=$(QEMU_BINFMT) \
 		--build-arg DISTRO_RELEASE=$(DISTRO):$(RELEASE) \
 		$(if $(APT_MIRROR),--build-arg APT_MIRROR=$(APT_MIRROR)) \
+		--network=host \
 		--progress plain \
 		--tag $(IMAGE) \
 		$(CTX)

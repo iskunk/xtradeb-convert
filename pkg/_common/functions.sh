@@ -130,6 +130,8 @@ initialize()
 	patch_series_changed=no
 	patch_series_tmp=$debian/patches/xtradeb-series.tmp
 	rm -f $patch_series_tmp
+
+	control_contact_edits=yes
 }
 
 ubuntu_dist()
@@ -233,13 +235,15 @@ finish()
 	test ! -f $debian/control.in || control=control.in
 
 	# We are now the maintainer
-	perl -pi \
+	test $control_contact_edits != yes \
+	|| perl -pi \
 		-e '/^XSBC-Original-Maintainer:/i and $_="";' \
 		-e 's/^(Maintainer): (.+)$/$1: $ENV{DEBFULLNAME} <$ENV{DEBEMAIL}>\nXSBC-Original-Maintainer: $2/;' \
 		$debian/$control
 
 	# Remove Uploaders: field (mind the multiple lines)
-	perl -0777 -pi -e 's/^Uploaders:.*(\n .+)*\n//m' $debian/$control
+	test $control_contact_edits != yes \
+	|| perl -0777 -pi -e 's/^Uploaders:.*(\n .+)*\n//m' $debian/$control
 
 	if [ -f $patch_series_tmp ]
 	then

@@ -18,6 +18,7 @@ RUN perl -pi \
 
 RUN apt-get update && apt-get -y install whiptail \
     && DEBIAN_FRONTEND=noninteractive apt-get -y install \
+    apt-utils \
     ccache \
     cdbs \
     debian-keyring \

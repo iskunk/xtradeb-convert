@@ -39,7 +39,22 @@ add_arch_suffix()
 
 comma_sep()
 {
-	echo "$@" | sed 's/ /, /g'
+	(for arg in "$@"; do printf "$arg, "; done; echo) | sed 's/, $//'
+}
+
+make_provides()
+{
+	local arch="$1"
+	shift
+
+	local pkg_arch
+	for pkg_arch in $(add_arch_suffix $arch "$@")
+	do
+		local version=$(apt-cache --no-all-versions show $pkg_arch \
+			| sed -n 's/^Version: //p')
+		printf '%s (= %s), ' "$pkg_arch" "$version"
+	done \
+	| sed 's/ (= ),/,/g; s/, $//'
 }
 
 if [ "_$(lsb_release -is)" = _Ubuntu ]
@@ -146,16 +161,61 @@ fi
 # Replace some essential packages
 
 essential_pkgs=$(echo \
+	apt \
+	apt-utils \
 	bash \
 	coreutils \
 	dash \
+	dpkg \
 	findutils \
 	gzip \
 	sed \
 	tar \
 )
 
-run_cmd apt-get -y --allow-remove-essential --no-install-recommends install \
+ctl_file=/tmp/hybrid-hack-essential.ctl
+cat > $ctl_file << END
+Package: hybrid-hack-essential
+Depends: $(comma_sep $(add_arch_suffix amd64 $essential_pkgs) )
+Provides: $(make_provides $arch $essential_pkgs)
+Architecture: $arch
+Multi-Arch: same
+Description: Hybrid $arch/amd64 system hack - essential packages
+ This metapackage smooths over package dependencies on the native builds
+ of a number of essential packages that have been replaced with their
+ amd64 counterparts.
+END
+(cd /tmp
+ echo ----; cat $ctl_file; echo ----
+ run_cmd equivs-build $ctl_file
+ run_cmd apt-get -y install ./hybrid-hack-essential_*.deb
+ rm hybrid-hack-essential*
+)
+
+# Hang onto the native dpkg binary, as there is no way to tell it the
+# primary system architecture like there is with APT
+run_cmd cp -p /usr/bin/dpkg /usr/bin/dpkg.$arch
+
+cat > /etc/apt/apt.conf.d/02hybrid-hack << END
+APT::Architecture "$arch";
+Dir::Bin::dpkg "/usr/bin/dpkg.$arch";
+END
+
+# Replace dpkg first, to avoid missing-program errors
+run_cmd apt-get -y \
+	--allow-remove-essential \
+	--no-install-recommends \
+	install \
+	dpkg:amd64 dpkg:$arch-
+
+# Workaround for dpkg-architecture(1)
+# (see get_raw_build_arch() in /usr/share/perl5/Dpkg/Arch.pm)
+run_cmd ln -s ../../bin/dpkg.$arch /usr/local/bin/dpkg
+
+run_cmd apt-get -y \
+	--allow-remove-essential \
+	--no-install-recommends \
+	install \
 	$(add_arch_suffix amd64  $essential_pkgs) \
 	$(add_arch_suffix $arch- $essential_pkgs)
 
@@ -171,15 +231,23 @@ tool_pkgs=$(echo \
 	xz-utils \
 )
 
-run_cmd apt-get -y install $(add_arch_suffix amd64 $tool_pkgs)
-
-run_cmd apt-get -y install nodejs:amd64
+run_cmd apt-get -y install \
+	$(add_arch_suffix amd64  $tool_pkgs) \
+	$(add_arch_suffix $arch- $tool_pkgs)
 
 # LLVM (need both native + amd64 packages for this one)
 
-N=18
+case "$suite" in
+	jammy | noble | oracular) N=18 ;;
+	plucky) N=20 ;;
+	*) N=19 ;;
+esac
 
-t64=$(test "_$suite" = _jammy || echo t64)
+case "$suite,$arch,$N" in
+	jammy,*,*) t64= ;;
+	*,armhf,* | *,i386,*) t64= ;;
+	*,*,1[67]) t64=t64 ;;
+esac
 
 llvm_pkgs=$(echo \
 	clang-$N \
@@ -188,42 +256,58 @@ llvm_pkgs=$(echo \
 	libclang-cpp$N$t64 \
 	$(test $N -lt 16 && echo libclang-$N-dev || echo libclang-rt-$N-dev) \
 	libclang1-$N$t64 \
+	libllvm$N \
 	lld-$N \
 	llvm-$N-linker-tools \
 )
 
-# Install this subset natively so we don't need to set LD_LIBRARY_PATH
+# Temporarily install this subset so its amd64 dependencies get pulled in
 #
 llvm_dep_pkgs="libllvm$N"
 
-run_cmd apt-get -y install $llvm_pkgs
+pkgs=$(add_arch_suffix amd64 $llvm_dep_pkgs)
+run_cmd apt-get -y install $pkgs
+run_cmd apt-get -y remove  $pkgs
 
-run_cmd apt-get -y install $(add_arch_suffix amd64 $llvm_dep_pkgs)
+run_cmd apt-get -y install $llvm_pkgs
 
 ########
 
-ctl_file=/tmp/hybrid-hack-deps.ctl
+# Workaround for
+#   https://bugs.debian.org/1106209
+#   https://bugs.launchpad.net/bugs/2111189
+run_cmd apt-get -y install node-corepack node-minimatch
+tmp_nodejs_deps='node-corepack:amd64 (= 9.9.9), node-minimatch:amd64 (= 9.9.9)'
+
+ctl_file=/tmp/hybrid-hack-tools.ctl
 cat > $ctl_file << END
-Package: hybrid-hack-deps
-Provides: $(comma_sep $(add_arch_suffix $arch $tool_pkgs nodejs))
+Package: hybrid-hack-tools
+Provides: $(make_provides $arch $tool_pkgs nodejs), $tmp_nodejs_deps
 Architecture: $arch
 Multi-Arch: same
 Description: Hybrid $arch/amd64 system hack - dependencies
- This metapackage prevents "PACKAGE:amd64" packages from being removed
- in favor of "PACKAGE" (implicitly "PACKAGE:$arch") ones.
+ This metapackage smooths over package dependencies on the native builds
+ of a number of tool packages that have been replaced with their amd64
+ counterparts.
 END
+(cd /tmp
+ echo ----; cat $ctl_file; echo ----
+ run_cmd equivs-build $ctl_file
+ run_cmd apt-get -y install ./hybrid-hack-tools_*.deb
+ rm hybrid-hack-tools*
+)
 
-(cd /tmp && run_cmd equivs-build $ctl_file)
+########
 
-(cd /tmp && run_cmd apt-get -y install ./hybrid-hack-deps_*.deb)
+# Node.js
 
-rm /tmp/hybrid-hack-deps*
+run_cmd apt-get -y install nodejs:amd64
+run_cmd apt-mark hold nodejs:amd64
 
 ########
 
 # The amd64 LLVM toolchain needs to be installed outside of the package
-# system; too much breaks otherwise. The $llvm_dep_pkgs should make it
-# unnecessary to set LD_LIBRARY_PATH, however.
+# system; too much breaks otherwise.
 
 mkdir /tmp/llvm-pkgs
 
@@ -256,6 +340,8 @@ case "\$name" in
 	ld.lld) target_opt= ;;
 	*)      target_opt=--target=$target ;;
 esac
+
+export LD_LIBRARY_PATH=/opt/llvm-amd64/lib/x86_64-linux-gnu
 
 exec -a \$0 /opt/llvm-amd64/lib/llvm-$N/bin/\$name \$target_opt "\$@"
 END
