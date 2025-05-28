@@ -87,8 +87,10 @@ sed -i -r '/^\s+rustc-web \(.+\),/s/-web//' $debian/control
 
 # Ubuntu provides "rustc-N.NN" packages
 rust_version=1.80
-! ubuntu_dist plucky || rust_version=1.84
-sed -i -r 's/^(\s+rustc) \(.+\),$/\1-'"$rust_version"',/' \
+! ubuntu_dist plucky || rust_version=1.82
+sed -i -r \
+	-e 's/^(\s+rustc)(:any)? \(.+\),$/\1-'"$rust_version"'\2,/' \
+	-e 's/^(\s+libstd-rust)(-dev) \(.+\)/\1-'"$rust_version"'\2/' \
 	$debian/control
 sed -i -r 's!^(rust_sysroot)=.*!\1=/usr/lib/rust-'"$rust_version"'!' \
 	$debian/rules
@@ -178,17 +180,6 @@ then
 		-e '/^defines\+=host_cpu=."arm64."/ and s/use_v4l2_codec=true (use_vaapi)=false/$1=true/;' \
 		-e '/^defines\+=host_cpu=."arm."/ and s/\s*use_v4l2_codec=true//' \
 		$debian/rules
-
-	# Why this only affects jammy is unclear, but the linker adds a
-	# spurious run-time dependency on libtest_trace_processor.so to the
-	# chromium-shell binary. This is a test-related library that is not
-	# packaged.
-	perl -pi \
-		-e '/# XtraDeb workaround/ and $_= <<END . $_;' \
-		-e '	# Avoid chromium-shell -> libtest_trace_processor.so dependency' \
-		-e '	sed -i \x{27}/^  solibs =/s! \\./libtest_trace_processor\\.so!!\x{27} out/Release/obj/content/shell/content_shell.ninja' \
-		-e 'END' \
-		$debian/rules
 fi
 
 ##
@@ -203,7 +194,17 @@ fi
 if ubuntu_dist jammy noble oracular
 then
 	new_patch bookworm/cacheline.patch
-	! ubuntu_dist jammy || new_patch bookworm/dav1d-extern.patch
+fi
+
+if ubuntu_dist jammy
+then
+	new_patch bookworm/dav1d-extern.patch
+fi
+
+new_patch bookworm/derivre-create.patch
+
+if ubuntu_dist jammy noble oracular
+then
 	new_patch bookworm/foreach.patch
 fi
 
@@ -243,8 +244,6 @@ then
 	new_patch fixes/absl-optional-bookworm.patch
 fi
 
-new_patch xtradeb/upstream-licenses-gn-gen.patch
-
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/av1-vaapi.patch
@@ -263,6 +262,11 @@ fi
 if ubuntu_dist jammy noble
 then
 	new_patch xtradeb/eslint.patch
+fi
+
+if [ $llvm_version -eq 18 ]
+then
+	new_patch xtradeb/flat-map-try-emplace.patch
 fi
 
 if ! ubuntu_dist jammy

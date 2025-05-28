@@ -15,6 +15,9 @@ $wget -O bookworm_cacheline.patch \
 $wget -O bookworm_dav1d-extern.patch \
 	$bookworm_prefix/debian/patches/bookworm/dav1d-extern.patch
 
+$wget -O bookworm_derivre-create.patch \
+	$bookworm_prefix/debian/patches/bookworm/derivre-create.patch
+
 $wget -O bookworm_fmodf.patch \
 	$bookworm_prefix/debian/patches/bookworm/fmodf.patch
 
