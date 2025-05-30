@@ -21,8 +21,16 @@ initialize rustc
 grep -Eq '^Source: rustc-[0-9.]+$' $debian/control 2>/dev/null \
 || error "$debian: not an Ubuntu rustc-X.YY source package debian/ subdirectory"
 
-dpkg --compare-versions $deb_version ge 1.81.0 \
-|| not_applicable 'only Rust versions beyond 1.80 are needed'
+# Latest version of Rust available in each Ubuntu release
+# (so the version we're converting had better be newer)
+latest=
+case $ubuntu_dist in
+	jammy | noble) latest=1.80 ;;
+	oracular) latest=1.81 ;;
+	plucky) latest=1.84 ;;
+esac
+test -z "$latest" || dpkg --compare-versions $deb_version gt $latest.99 \
+|| not_applicable "Rust $latest is in the official archive"
 
 ################################################################
 
@@ -76,6 +84,13 @@ END
 # Make this only a warning
 sed -i '/No suitable Rust toolchain found/s/error/info Warning:/' \
 	$debian/rules
+
+# This option interferes with creating the source package
+x=$debian/source/options
+if [ -f $x ] && grep -q '^include-removal' $x
+then
+	rm $x
+fi
 
 ##
 ## Patch series modifications
