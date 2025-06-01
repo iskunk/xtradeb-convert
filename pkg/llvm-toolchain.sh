@@ -29,9 +29,9 @@ sed -i '/^#BD_ALT_HELLO = yes/s/^#//' $debian/rules
 sed -i -r '/^\s*(g\+\+-multilib|wasi-libc)\b/s/@BEGIN_.*@//' \
 	$debian/control.in
 
-# Neutralize the "missing wasi-libc" error case, as it can interfere
-# with the regeneration step below.
-sed -i -r '/installed by another constraint/{n;s/^(\s+)(exit 1)/\1true XtraDeb \2/}' \
+# Neutralize a couple of checks in the rules file so that we don't
+# need a full development setup for the regeneration step below.
+sed -i -r '/installed by another constraint|dh_listpackages;/{n;s/^(\s+)(exit 1)/\1true XtraDeb \2/}' \
 	$debian/rules
 
 ################################################################
@@ -41,7 +41,7 @@ finish
 # Abbreviate an Ubuntu bit in the version string
 sed -i -r '1s/(-[0-9]+)ubuntu([0-9]+)/\1u\2/' $debian/changelog
 
-if [ -f $debian/../clang/CMakeLists.txt -a "_$(basename $debian)" = _debian ]
+if [ -f $debian/../LICENSE.TXT -a "_$(basename $debian)" = _debian ]
 then
 	# Make a list of all files present in the debianization dir
 	(cd $debian && : >xtradeb.tmp && find . -type f >xtradeb.tmp)

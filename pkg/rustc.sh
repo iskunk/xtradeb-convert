@@ -40,6 +40,11 @@ then
 	sed -i '/^\s*dh-cargo /s/ 28ubuntu1~/ 28/' $debian/control.in
 	sed -i '/dh-cargo-vendored-sources/s/^/#xtradeb#/' $debian/rules
 fi
+if ubuntu_dist noble oracular
+then
+	sed -i -r '/^\s*libclang-\w+-19-dev /s/1:19\.1\.[2-9]/1:19.1.1/' \
+		$debian/control.in
+fi
 if ubuntu_dist jammy noble oracular
 then
 	sed -i '/^\s*libgit2-dev /s/ 1.9.0~*/ 1.1.0/' $debian/control.in
