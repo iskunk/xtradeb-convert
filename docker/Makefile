@@ -72,7 +72,6 @@ run: $(build_stamp)
 			--env=APT_MIRROR=$(APT_MIRROR) \
 			--name=$(CONTAINER) \
 			--hostname=$(CONTAINER) \
-			--network=host \
 			--pids-limit -1 \
 			--cap-add=SYS_PTRACE \
 			$(VOL_MOUNTS) \
