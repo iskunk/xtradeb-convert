@@ -1,0 +1,18 @@
+Workaround for GDB crashes in debuginfo tests in jammy/armhf builds of
+rustc 1.83, 1.84:
+
+  https://github.com/rust-lang/rust/issues/96983
+  https://sourceware.org/bugzilla/show_bug.cgi?id=29272
+
+--- a/src/tools/compiletest/src/runtest/debuginfo.rs
++++ b/src/tools/compiletest/src/runtest/debuginfo.rs
+@@ -329,6 +329,9 @@ impl TestCx<'_> {
+             // Force GDB to print values in the Rust format.
+             script_str.push_str("set language rust\n");
+ 
++            // XtraDeb workaround for GDB bug on jammy/armhf
++            script_str.push_str("set displaced-stepping off\n");
++
+             // Add line breakpoints
+             for line in &dbg_cmds.breakpoint_lines {
+                 script_str.push_str(&format!(

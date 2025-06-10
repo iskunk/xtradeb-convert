@@ -101,6 +101,12 @@ fi
 ## Patch series modifications
 ##
 
+case "$deb_version/$ubuntu_dist" in
+	1.8[34].*/jammy)
+	new_patch xtradeb/debuginfo-gdb-armhf.patch
+	;;
+esac
+
 if ubuntu_dist jammy noble oracular
 then
 	# Beware of file paths containing version strings

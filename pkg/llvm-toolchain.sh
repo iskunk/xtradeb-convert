@@ -18,15 +18,27 @@ initialize llvm-toolchain
 grep -Eq '^Source: llvm-toolchain-[0-9]{2}$' $debian/control 2>/dev/null \
 || error "$debian: not an llvm-toolchain-NN source package debian/ subdirectory"
 
+dpkg --compare-versions $deb_version ge 1:18.0.0 \
+|| error 'version < 18 is not supported'
+
+dpkg --compare-versions $deb_version lt 1:19.0.0 \
+|| dpkg --compare-versions $deb_version ge 1:19.1.7 \
+|| error 'please convert version >= 19.1.7 to avoid https://bugs.launchpad.net/bugs/2097731'
+
 ################################################################
 
-# Enable the alternative "hello" build dependencies to avoid stage 2
-# requirements, like llvm-spirv-NN, that are not available.
+# Enable the alternative "|hello" build dependencies to allow some
+# flexibility in what packages are available.
 sed -i '/^#BD_ALT_HELLO = yes/s/^#//' $debian/rules
 
-# Drop the "hello" alternative for packages that *are* available,
-# however, to reduce the risk of unexpected behavior/breakage.
-sed -i -r '/^\s*(g\+\+-multilib|wasi-libc)\b/s/@BEGIN_.*@//' \
+# Don't use "|hello" for packages that *are* available, however,
+# to reduce the risk of unexpected behavior/breakage.
+sed -i -r '/^\s*(g\+\+-multilib|spirv-tools|wasi-libc)\b/{s/@BEGIN_.*@//;s/\s*\|\s*hello\b.*,/,/}' \
+	$debian/control.in
+
+# Make the llvm-spirv-NN optional build dependency use "|shove"
+# instead of "|hello", as the latter is not available on i386.
+sed -i -r '/^\s*llvm-spirv-\S+ /s/(\|\s*)hello\b/\1shove/' \
 	$debian/control.in
 
 # Neutralize a couple of checks in the rules file so that we don't
