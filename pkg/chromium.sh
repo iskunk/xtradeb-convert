@@ -108,11 +108,7 @@ grep -Eq "^\\s+clang-$llvm_version_orig(:\\w+)?,\$" $debian/control \
 || error "original control file does not use clang-$llvm_version_orig"
 
 case $ubuntu_dist in
-	jammy | noble) llvm_version=18 ;;
 	plucky) llvm_version=20 ;;
-
-	# Can't use 19 due to https://bugs.launchpad.net/bugs/2097731
-	oracular) llvm_version=18 ;;
 esac
 
 if [ $llvm_version != $llvm_version_orig ]
@@ -182,19 +178,25 @@ then
 		$debian/rules
 fi
 
+if ubuntu_dist jammy noble oracular plucky
+then
+	# Prevent the linker from adding a spurious run-time dependency on
+	# libtest_trace_processor.so to the chromium-shell binary. This is
+	# a test-related library that is not packaged.
+	perl -pi \
+		-e 'if (m!gn gen out/Release! && !$done) {' \
+		-e '  $_ .= <<END;' \
+		-e '	# Avoid chromium-shell -> libtest_trace_processor.so dependency' \
+		-e '	sed -i \x{27}/^  solibs =/s! \\./libtest_trace_processor\\.so!!\x{27} out/Release/obj/content/shell/content_shell.ninja' \
+		-e 'END' \
+		-e '  $done = 1;' \
+		-e '}' \
+		$debian/rules
+fi
+
 ##
 ## Patch series modifications
 ##
-
-if ubuntu_dist jammy
-then
-	new_patch bookworm/bubble-contents.patch
-fi
-
-if ubuntu_dist jammy noble oracular
-then
-	new_patch bookworm/cacheline.patch
-fi
 
 if ubuntu_dist jammy
 then
@@ -203,19 +205,11 @@ fi
 
 new_patch bookworm/derivre-create.patch
 
-if ubuntu_dist jammy noble oracular
-then
-	new_patch bookworm/foreach.patch
-fi
-
 if ubuntu_dist jammy noble
 then
-	new_patch bookworm/fmodf.patch
 	new_patch bookworm/gn-absl.patch
 	new_patch bookworm/gn-funcs.patch
 	new_patch bookworm/highway-blink.patch
-	new_patch bookworm/less-void.patch
-	new_patch bookworm/modff.patch
 
 	# Don't require a bleeding-edge version of LibXML2
 	# (note that Debian's package of 2.12 is now actually 2.9)
@@ -238,35 +232,14 @@ then
 	new_patch bookworm/rust-visibility.patch
 fi
 
-if ubuntu_dist jammy noble
-then
-	disable_patch fixes/absl-optional.patch
-	new_patch fixes/absl-optional-bookworm.patch
-fi
-
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/av1-vaapi.patch
 fi
 
-if [ $llvm_version -eq 18 ]
-then
-	new_patch xtradeb/clang-unknown-options.patch
-fi
-
-if ubuntu_dist jammy
-then
-	new_patch xtradeb/constexpr.patch
-fi
-
 if ubuntu_dist jammy noble
 then
 	new_patch xtradeb/eslint.patch
-fi
-
-if [ $llvm_version -eq 18 ]
-then
-	new_patch xtradeb/flat-map-try-emplace.patch
 fi
 
 if ! ubuntu_dist jammy
@@ -279,11 +252,6 @@ then
 	new_patch xtradeb/icf-arm.patch
 	new_patch xtradeb/libdav1d-fields.patch
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
-fi
-
-if [ $llvm_version -eq 18 ]
-then
-	new_patch xtradeb/template-args.patch
 fi
 
 ################################################################
