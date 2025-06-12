@@ -1,5 +1,5 @@
-Disable ICF on armhf to work around a bug in lld-16 that leads to a
-segfault, only on jammy, when linking libc++ et al. statically.
+Disable ICF on armhf to work around a bug in lld that leads to a
+segfault when linking libc++ et al. statically.
 
 For the record, here is the relevant backtrace, produced from a debug
 build of llvm-toolchain-16 version 16.0.6-23ubuntu4 performing an

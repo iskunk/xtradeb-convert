@@ -82,6 +82,11 @@ perl -pi \
 use_libcxx=$(grep -q '^\s*libc++-[0-9]*-dev,' $debian/control \
 	&& echo true || echo false)
 
+# Are we linking libc++ statically?
+static_libcxx=$($use_libcxx \
+	&& grep -q '^export LDFLAGS:=.* -static-libstdc++' $debian/rules \
+	&& echo true || echo false)
+
 # rustc-web is only available in Debian (old)stable
 sed -i -r '/^\s+rustc-web \(.+\),/s/-web//' $debian/control
 
@@ -130,6 +135,17 @@ then
 		$debian/rules
 fi
 
+if ubuntu_dist jammy noble oracular && $use_libcxx && ! $static_libcxx
+then
+	# Statically link the libc++ runtime libraries, as we are using a
+	# newer version of LLVM than is available in the official repos
+	# (note: -static-libstdc++ does apply to libc++, the option is
+	# just inappropriately named)
+	sed -i -r '/^export LDFLAGS:=/s!$! -static-libstdc++!' \
+		$debian/rules
+	static_libcxx=true
+fi
+
 if ubuntu_dist jammy
 then
 	# The libgtk-3-0t64 package is not available until noble
@@ -140,13 +156,6 @@ then
 	$use_libcxx || \
 	perl -pi -e '/^(\s+)libclang-\S+-dev,/ and $_.="${1}libstdc++-12-dev,\n"' \
 		$debian/control
-
-	# Statically link the libc++-18 libraries, as they are not normally
-	# available in jammy (note: -static-libstdc++ does apply to libc++,
-	# the option is just inappropriately named)
-	! $use_libcxx || \
-	sed -i -r '/^export LDFLAGS=/s!$! -static-libstdc++ -L/usr/lib/llvm-$(CLANG_MVERS)/lib -l:libc++abi.a -l:libunwind.a!' \
-		$debian/rules
 
 	# Jammy does not have a sufficiently new libspa-0.2-dev to compile
 	# Chromium's PipeWire support. Typical compile error:
@@ -247,9 +256,13 @@ then
 	new_patch xtradeb/fortify-level-3.patch
 fi
 
-if ubuntu_dist jammy
+if $static_libcxx
 then
 	new_patch xtradeb/icf-arm.patch
+fi
+
+if ubuntu_dist jammy
+then
 	new_patch xtradeb/libdav1d-fields.patch
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
 fi
