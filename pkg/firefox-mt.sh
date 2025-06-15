@@ -1,9 +1,10 @@
 #!/bin/bash
-# firefox-focal.sh
+# firefox-mt.sh
 #
-# This script operates on the debian/ subdirectory of an
-# Ubuntu 20.04 (focal) firefox source package, as available from
-# https://launchpad.net/ubuntu/focal/+source/firefox#files
+# This script operates on the debian/ subdirectory of a
+# Mozilla Team PPA firefox source package, as available from
+# https://launchpad.net/~mozillateam/+archive/ubuntu/ppa/+packages
+# https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu/pool/main/f/firefox/
 #
 
 debian="$1"
@@ -21,8 +22,9 @@ dpkg --status cdbs >/dev/null \
 grep -Fqx 'Source: firefox' $debian/control 2>/dev/null \
 || error "$debian: not a firefox source package debian/ subdirectory"
 
-head -n 1 $debian/changelog 2>/dev/null | grep -q '.-0ubuntu0\.20\.04\.' \
-|| error "$debian: not an Ubuntu 20.04 (focal) firefox source package debian/ subdirectory"
+head -n1 $debian/changelog 2>/dev/null \
+| grep -Pq '.-0ubuntu0\.\d\d\.\d\d\.1~mt\d\) ' \
+|| error "$debian: not a Mozilla Team PPA firefox source package debian/ subdirectory"
 
 ################################################################
 
@@ -44,17 +46,20 @@ item.2.icon=https://xtradeb.net/favicon.ico
 item.2.iconData=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACkUlEQVQ4jY2TX2jNYRjHP8/7vme//TlYOgodMhobWtyQuxOZ3Yhku3Eh1ERKSlyQCFdEiIiliIZyoYgVm1JbQtr2syQzjSaMcHZ2/vze93Ux/yLyvXl6+n6/z/P0rQf+A5dBA3RCVTd0hND+BCoBzB/ienT9O0TaiNILqQ0CtjpPWa6IlmfXSIyB+Rr4CJuAzX8MaLiC/dHEWG0CFuNg2DK5qJST6Qw5BS4HHQDyq9nvZrwrY5kzdEaPidkBrirFZ+v5II6kGk//xy5aC4MUEtU8ibdwwXgQUmhpI7Kl7NIlbFAWqOKI66XWlvAq3sJgZj1zcewsn0iDSTLWRpSl63j/4wJ/jKpomC5ThNgCfdqzRLbx/DsfHWKp3sKtoRSrYiU0KUFyjlBlapmUraNx+BFzlSbEoJ3joGzjuW8kBpA+zhwf8VmEfPwuZ/OeDuvBCk3KCeeUYpPtY130hmZXYIiI+x6EU0SdZayxl7iYbWO2/5ZZzHDeCrvG3OSwAaoLjoeiqPBphryngB0R7gHZWElKvaPaaaYJeA/SfZ1BB28BlHM0GkGrgDOmghodUE7AHAE/U5BxlWxnKqdVwAKfwgh4YIOGoz0w/WeIJ5gaDRGaGLGoQGjy1MkOBgBeTKE4UUUoir3hDZ6WQ4uCeA7aFSAelGykVzzNxNBmNDW2mGMhxPuTlFT0kZU8+3yeA3HN1QDiHvDQZEbqCHSenVYo1oZMrp92C9e/vKK4G1723mHGlHkkEtUMvO+h1Vru10DTvx6oqAsevgX/GnwIfmAGbdl60pkVPM3UMh9A/W70IK0pTAPkDez/BD2foD+C5tIkb0hi9Sy0C5j+1+2/4h6MegATdoPKLGJldi23/SmWf+e/AvzuCKinXVlBAAAAAElFTkSuQmCC
 END
 
-cat >$debian/xtradeb.tmp <<'END'
+# Use thin LTO for better performance
+cat >> $debian/config/mozconfig.in << END
 
-# Enable native Wayland support (https://launchpad.net/bugs/1916469)
-# only in Wayland sessions (https://launchpad.net/bugs/1923116)
-if [ "_$XDG_SESSION_TYPE" = "_wayland" ] ; then
-    export MOZ_ENABLE_WAYLAND=1
-fi
+# XtraDeb additions
+ac_add_options --enable-lto=thin
 END
-(cd $debian && \
-	sed -i '/^export MOZ_APP_LAUNCHER/ r xtradeb.tmp' firefox.sh.in)
-rm -f $debian/xtradeb.tmp
+
+# Allow unsigned extensions in system dirs
+perl -pi -e '/^ac_add_options --with-unsigned-addon-scopes=app/ && !/system/ and s/$/,system/' \
+	$debian/config/mozconfig.in
+
+# Don't print keepalive messages so frequently
+sed -i -r 's/^(\s*target_timeout) = 60$/\1 = 900/' \
+	$debian/build/keepalive-wrapper.py
 
 ################################################################
 ##
@@ -69,21 +74,7 @@ rm -f $debian/xtradeb.tmp
 sed -i -r '/^\s+debhelper \(>= 9\),/s/9/10/' $debian/control.in
 
 # Also needed for debhelper
-echo 10 >$debian/compat
-
-# rustc-1.80 is not available in plucky, use 1.84
-if ubuntu_dist plucky
-then
-	sed -i -r 's/\b(cargo|rustc)-1.80,/\1-1.84,/' $debian/control.in
-	sed -i -r '/^RUSTC_VERSIONS =/s/1.80/1.84/' $debian/build/rules.mk
-fi
-
-# Depend on the regular nodejs package instead of nodejs-mozilla. (Note
-# that on jammy, a backported version of nodejs is needed)
-perl -pi -e 's/\b(nodejs)-mozilla\b/$1/;' \
-	$debian/control.in
-perl -pi -e '/\bNODEJS=/ and s/^/#xtradeb#/' \
-	$debian/config/mozconfig.in
+echo 10 > $debian/compat
 
 ##
 ## Patch series modifications
@@ -95,12 +86,12 @@ perl -pi -e '/\bNODEJS=/ and s/^/#xtradeb#/' \
 
 finish
 
-# Add a "1:" epoch prefix to the version (so that the firefox snap package
-# isn't outright considered newer), and remove the Ubuntu release part
+# Add a "1:" epoch prefix to the version (so that this package is "newer"
+# than the firefox snap), and remove the Ubuntu release part
 perl -pi \
 	-e 'if (/^firefox / && $. == 1) {' \
 	-e '  s/\((.+)\)/(1:$1)/;' \
-	-e '  s/0ubuntu0\.20\.04\.//;' \
+	-e '  s/0ubuntu0\.\d\d\.\d\d\.\d~mt//;' \
 	-e '}' \
 	$debian/changelog
 
@@ -112,4 +103,4 @@ rm $debian/debian
 
 echo "Firefox package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
 
-# end firefox-focal.sh
+# end firefox-mt.sh
