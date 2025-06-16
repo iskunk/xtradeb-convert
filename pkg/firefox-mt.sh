@@ -61,6 +61,22 @@ perl -pi -e '/^ac_add_options --with-unsigned-addon-scopes=app/ && !/system/ and
 sed -i -r 's/^(\s*target_timeout) = 60$/\1 = 900/' \
 	$debian/build/keepalive-wrapper.py
 
+# Narrow the LLVM dependencies to a single version, as the alternations
+# that allow the use of multiple versions unfortunately do not ensure that
+# the versions installed are consistent (e.g. clang-20 + llvm-19-dev).
+case $ubuntu_dist in
+	jammy | noble | oracular) llvm_version=19 ;;
+	*) llvm_version=20 ;;
+esac
+grep -q '^\s*clang-20 | clang-19 | clang-18,' $debian/control \
+|| error 'debian/control no longer specifies clang-{20,19,18}'
+perl -pi \
+	-e 'if (/^\s*((lib)?clang|llvm)-20(-dev)? /) {' \
+	-e '  s/ \|[^,]+//;' \
+	-e '  s/-\d\d/-'"$llvm_version"'/;' \
+	-e '}' \
+	$debian/control.in
+
 ################################################################
 ##
 ## Modifications to allow building on Ubuntu jammy and later
