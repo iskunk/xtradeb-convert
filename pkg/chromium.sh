@@ -260,11 +260,6 @@ then
 	new_patch xtradeb/fortify-level-3.patch
 fi
 
-if $static_libcxx
-then
-	new_patch xtradeb/icf-arm.patch
-fi
-
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/libdav1d-fields.patch
