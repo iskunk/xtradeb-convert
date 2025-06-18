@@ -192,6 +192,7 @@ then
 	# Prevent the linker from adding a spurious run-time dependency on
 	# libtest_trace_processor.so to the chromium-shell binary. This is
 	# a test-related library that is not packaged.
+	# https://issues.chromium.org/425388883
 	perl -pi \
 		-e 'if (m!gn gen out/Release! && !$done) {' \
 		-e '  $_ .= <<END;' \
@@ -201,6 +202,9 @@ then
 		-e '  $done = 1;' \
 		-e '}' \
 		$debian/rules
+
+	# Zap Debian's workaround (ship the library) as we don't need it
+	sed -i '/libtest_trace_processor/s/^/#xtradeb#/' $debian/chromium-shell.install
 fi
 
 ##
