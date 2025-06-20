@@ -46,12 +46,24 @@ item.2.icon=https://xtradeb.net/favicon.ico
 item.2.iconData=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACkUlEQVQ4jY2TX2jNYRjHP8/7vme//TlYOgodMhobWtyQuxOZ3Yhku3Eh1ERKSlyQCFdEiIiliIZyoYgVm1JbQtr2syQzjSaMcHZ2/vze93Ux/yLyvXl6+n6/z/P0rQf+A5dBA3RCVTd0hND+BCoBzB/ienT9O0TaiNILqQ0CtjpPWa6IlmfXSIyB+Rr4CJuAzX8MaLiC/dHEWG0CFuNg2DK5qJST6Qw5BS4HHQDyq9nvZrwrY5kzdEaPidkBrirFZ+v5II6kGk//xy5aC4MUEtU8ibdwwXgQUmhpI7Kl7NIlbFAWqOKI66XWlvAq3sJgZj1zcewsn0iDSTLWRpSl63j/4wJ/jKpomC5ThNgCfdqzRLbx/DsfHWKp3sKtoRSrYiU0KUFyjlBlapmUraNx+BFzlSbEoJ3joGzjuW8kBpA+zhwf8VmEfPwuZ/OeDuvBCk3KCeeUYpPtY130hmZXYIiI+x6EU0SdZayxl7iYbWO2/5ZZzHDeCrvG3OSwAaoLjoeiqPBphryngB0R7gHZWElKvaPaaaYJeA/SfZ1BB28BlHM0GkGrgDOmghodUE7AHAE/U5BxlWxnKqdVwAKfwgh4YIOGoz0w/WeIJ5gaDRGaGLGoQGjy1MkOBgBeTKE4UUUoir3hDZ6WQ4uCeA7aFSAelGykVzzNxNBmNDW2mGMhxPuTlFT0kZU8+3yeA3HN1QDiHvDQZEbqCHSenVYo1oZMrp92C9e/vKK4G1723mHGlHkkEtUMvO+h1Vru10DTvx6oqAsevgX/GnwIfmAGbdl60pkVPM3UMh9A/W70IK0pTAPkDez/BD2foD+C5tIkb0hi9Sy0C5j+1+2/4h6MegATdoPKLGJldi23/SmWf+e/AvzuCKinXVlBAAAAAElFTkSuQmCC
 END
 
-# Use thin LTO for better performance
+# Use thin LTO (on 64-bit builders) for better performance
 cat >> $debian/config/mozconfig.in << END
 
 # XtraDeb additions
+%%if DEB_BUILD_ARCH_BITS == 64
 ac_add_options --enable-lto=thin
+%%endif
 END
+
+# Don't reduce LTO strength on arm64; the builders can handle it
+sed -i -r '/filter arm64 armhf/s/(arm64)/xtradeb-\1/' \
+	$debian/build/rules.mk
+sed -i -r '/filter aarch64 arm/s/(aarch64)/xtradeb-\1/' \
+	$debian/patches/armhf-rustc-thin-lto.patch
+patch_series_changed=yes
+
+# The armhf builders, however, can't do Rust thin LTO at all
+sed -i 's/lto = "thin"/lto = "off"/' $debian/build/rules.mk
 
 # Allow unsigned extensions in system dirs
 perl -pi -e '/^ac_add_options --with-unsigned-addon-scopes=app/ && !/system/ and s/$/,system/' \
@@ -60,6 +72,9 @@ perl -pi -e '/^ac_add_options --with-unsigned-addon-scopes=app/ && !/system/ and
 # Don't print keepalive messages so frequently
 sed -i -r 's/^(\s*target_timeout) = 60$/\1 = 900/' \
 	$debian/build/keepalive-wrapper.py
+
+# Don't need (fake)root to build the package
+sed -i '/^Build-Depends:/ i Rules-Requires-Root: no' $debian/control.in
 
 # Narrow the LLVM dependencies to a single version, as the alternations
 # that allow the use of multiple versions unfortunately do not ensure that
