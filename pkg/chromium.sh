@@ -204,7 +204,7 @@ then
 		$debian/rules
 
 	# Zap Debian's workaround (ship the library) as we don't need it
-	sed -i '/libtest_trace_processor/s/^/#xtradeb#/' $debian/chromium-shell.install
+	sed -i '/libtest_trace_processor/s/^/#xtradeb#/' $debian/*chromium-shell.install
 fi
 
 ##
