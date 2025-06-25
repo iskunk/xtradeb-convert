@@ -222,8 +222,15 @@ if ubuntu_dist jammy noble
 then
 	new_patch bookworm/gn-absl.patch
 	new_patch bookworm/gn-funcs.patch
-	new_patch bookworm/highway-blink.patch
+fi
 
+if ubuntu_dist jammy noble oracular plucky
+then
+	new_patch bookworm/gn-hpp11.patch
+fi
+
+if ubuntu_dist jammy noble
+then
 	# Don't require a bleeding-edge version of LibXML2
 	# (note that Debian's package of 2.12 is now actually 2.9)
 	perl -pi -e '/^\s+libxml2-dev\b/ and s/\(.+\),/(<< 2.10),/' \
@@ -242,6 +249,12 @@ fi
 if dpkg --compare-versions $rust_version le 1.82
 then
 	new_patch bookworm/rust-is-none-or.patch
+
+	if dpkg --compare-versions $rust_version le 1.80
+	then
+		new_patch bookworm/rust-unstable-features.patch
+	fi
+
 	new_patch bookworm/rust-visibility.patch
 fi
 
@@ -264,6 +277,7 @@ if ubuntu_dist jammy
 then
 	new_patch xtradeb/libdav1d-fields.patch
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
+	new_patch xtradeb/rust-allocator-types.patch
 fi
 
 ################################################################

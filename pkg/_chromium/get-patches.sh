@@ -18,14 +18,17 @@ $wget -O bookworm_gn-absl.patch \
 $wget -O bookworm_gn-funcs.patch \
 	$bookworm_prefix/debian/patches/bookworm/gn-funcs.patch
 
-$wget -O bookworm_highway-blink.patch \
-	$bookworm_prefix/debian/patches/bookworm/highway-blink.patch
+$wget -O bookworm_gn-hpp11.patch \
+	$bookworm_prefix/debian/patches/bookworm/gn-hpp11.patch
 
 $wget -O bookworm_node18-import.patch \
 	$bookworm_prefix/debian/patches/bookworm/node18-import.patch
 
 $wget -O bookworm_rust-is-none-or.patch \
 	$bookworm_prefix/debian/patches/bookworm/rust-is-none-or.patch
+
+$wget -O bookworm_rust-unstable-features.patch \
+	$bookworm_prefix/debian/patches/bookworm/rust-unstable-features.patch
 
 $wget -O bookworm_rust-visibility.patch \
 	$bookworm_prefix/debian/patches/bookworm/rust-visibility.patch

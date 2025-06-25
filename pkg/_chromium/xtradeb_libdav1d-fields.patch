@@ -41,7 +41,7 @@ Fortunately, these are easy to work around.
 
 --- a/third_party/webrtc/modules/video_coding/codecs/av1/dav1d_decoder.cc
 +++ b/third_party/webrtc/modules/video_coding/codecs/av1/dav1d_decoder.cc
-@@ -84,8 +84,10 @@ bool Dav1dDecoder::Configure(const Setti
+@@ -100,8 +100,10 @@ bool Dav1dDecoder::Configure(const Setti
    Dav1dSettings s;
    dav1d_default_settings(&s);
  
@@ -54,7 +54,7 @@ Fortunately, these are easy to work around.
    s.frame_size_limit = 16384 * 16384;
 --- a/media/filters/dav1d_video_decoder.cc
 +++ b/media/filters/dav1d_video_decoder.cc
-@@ -303,6 +303,7 @@ void Dav1dVideoDecoder::Initialize(const
+@@ -305,6 +305,7 @@ void Dav1dVideoDecoder::Initialize(const
    GetDecoderThreadCounts(config.coded_size().height(), &tile_threads,
                           &frame_threads);
  
@@ -62,7 +62,7 @@ Fortunately, these are easy to work around.
    // While dav1d has switched to a thread pool, preserve the same thread counts
    // we used when tile and frame threads were configured distinctly. It may be
    // possible to lower this after some performance analysis of the new system.
-@@ -314,6 +315,7 @@ void Dav1dVideoDecoder::Initialize(const
+@@ -316,6 +317,7 @@ void Dav1dVideoDecoder::Initialize(const
    if (low_delay) {
      s.max_frame_delay = 1;
    }
@@ -72,23 +72,25 @@ Fortunately, these are easy to work around.
    s.all_layers = 0;
 --- a/third_party/crabbyavif/src/src/codecs/dav1d.rs
 +++ b/third_party/crabbyavif/src/src/codecs/dav1d.rs
-@@ -52,8 +52,10 @@ impl Decoder for Dav1d {
+@@ -107,7 +107,7 @@ impl Dav1dDataWrapper {
+             dav1d_data_wrap(
+                 self.mut_ptr(),
+                 payload.as_ptr(),
+-                payload.len(),
++                payload.len() as size_t,  // XtraDeb fix
+                 Some(avif_dav1d_free_callback),
+                 /*cookie=*/ std::ptr::null_mut(),
+             )
+@@ -139,10 +139,12 @@ impl Dav1d {
          let mut settings_uninit: MaybeUninit<Dav1dSettings> = MaybeUninit::uninit();
          unsafe { dav1d_default_settings(settings_uninit.as_mut_ptr()) };
          let mut settings = unsafe { settings_uninit.assume_init() };
 +/* XtraDeb fix
-         settings.max_frame_delay = 1;
+         if low_latency {
+             settings.max_frame_delay = 1;
+         }
          settings.n_threads = i32::try_from(config.max_threads).unwrap_or(1);
 +*/
          settings.operating_point = config.operating_point as i32;
          settings.all_layers = if config.all_layers { 1 } else { 0 };
          let frame_size_limit = match config.image_size_limit {
-@@ -97,7 +99,7 @@ impl Decoder for Dav1d {
-             let res = dav1d_data_wrap(
-                 (&mut data) as *mut _,
-                 av1_payload.as_ptr(),
--                av1_payload.len(),
-+                av1_payload.len() as size_t,	// XtraDeb fix
-                 Some(avif_dav1d_free_callback),
-                 /*cookie=*/ std::ptr::null_mut(),
-             );
