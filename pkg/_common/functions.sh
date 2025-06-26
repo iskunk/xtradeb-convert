@@ -100,7 +100,7 @@ initialize()
 	version_suffix="xtradeb1.${ubuntu_ver/./}."
 
 	# Verify that these packages are installed
-	dpkg --status dpkg-dev devscripts quilt >/dev/null || exit
+	dpkg --status dpkg-dev devscripts >/dev/null || exit
 
 	deb_version=$(dpkg-parsechangelog --file $debian/changelog --show-field Version)
 
@@ -115,7 +115,9 @@ initialize()
 		--file $debian/changelog \
 		--show-field Distribution)
 
-	if grep -Fq "<$DEBEMAIL>" $debian/control && [ "_$cur_dist" != _UNRELEASED ]
+	if (grep -q xtradeb <<< $deb_version || \
+	    grep '^Maintainer:' $debian/control | grep -Fq "<$DEBEMAIL>") \
+	   && [ "_$cur_dist" != _UNRELEASED ]
 	then
 		# Package is already converted; prepare a new XtraDeb release
 		debchange \

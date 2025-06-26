@@ -15,7 +15,8 @@ base_dir=$(dirname $0)
 
 initialize llvm-toolchain
 
-grep -Eq '^Source: llvm-toolchain-[0-9]{2}$' $debian/control 2>/dev/null \
+grep -Eq '^Source: llvm-toolchain-([0-9]{2}|snapshot)$' \
+	$debian/control 2>/dev/null \
 || error "$debian: not an llvm-toolchain-NN source package debian/ subdirectory"
 
 dpkg --compare-versions $deb_version ge 1:18.0.0 \

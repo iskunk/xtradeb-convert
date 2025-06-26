@@ -47,8 +47,12 @@ ifneq "$(ARCH)" ""
 docker_arch := $(subst armhf,arm/v7,$(subst ppc64el,ppc64le,$(ARCH)))
 platform_opt = --platform=linux/$(docker_arch)
 qemu_arch   := $(subst arm64,aarch64,$(subst armhf,arm,$(subst ppc64el,ppc64le,$(ARCH))))
+ifdef NO_QEMU
+QEMU_BINFMT  = dummy
+else
 QEMU_INTERP  = $(QEMU_PATH)/qemu-$(qemu_arch)-static
 QEMU_BINFMT  = $(qemu_arch)-binfmt-P
+endif
 else
 platform_opt =
 QEMU_BINFMT  = dummy
