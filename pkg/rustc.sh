@@ -25,9 +25,9 @@ grep -Eq '^Source: rustc-[0-9.]+$' $debian/control 2>/dev/null \
 # (so the version we're converting had better be newer)
 latest=
 case $ubuntu_dist in
-	jammy | noble) latest=1.80 ;;
-	oracular) latest=1.81 ;;
+	jammy | noble) latest=1.82 ;;
 	plucky) latest=1.84 ;;
+	questing) latest=1.86 ;;
 esac
 test -z "$latest" || dpkg --compare-versions $deb_version gt $latest.99 \
 || not_applicable "Rust $latest is in the official archive"
@@ -40,12 +40,12 @@ then
 	sed -i '/^\s*dh-cargo /s/ 28ubuntu1~/ 28/' $debian/control.in
 	sed -i '/dh-cargo-vendored-sources/s/^/#xtradeb#/' $debian/rules
 fi
-if ubuntu_dist noble oracular
+if ubuntu_dist noble
 then
 	sed -i -r '/^\s*libclang-\w+-19-dev /s/1:19\.1\.[2-9]/1:19.1.1/' \
 		$debian/control.in
 fi
-if ubuntu_dist jammy noble oracular
+if ubuntu_dist jammy noble
 then
 	sed -i '/^\s*libgit2-dev /s/ 1.9.0~*/ 1.1.0/' $debian/control.in
 	# Also see libgit2-downgrade.patch below
@@ -107,7 +107,7 @@ case "$deb_version/$ubuntu_dist" in
 	;;
 esac
 
-if ubuntu_dist jammy noble oracular
+if ubuntu_dist jammy noble
 then
 	# Beware of file paths containing version strings
 	test -f $debian/../vendor/libgit2-sys-0.17.0+1.8.1/build.rs \

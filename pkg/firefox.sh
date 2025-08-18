@@ -176,7 +176,7 @@ sed -i '/^%if DIST != bullseye/s/$/  \&\& DIST != jammy/' \
 	$debian/control.in
 
 # SYSTEM_LIBS += nss
-sed -i -r 's/(filter bullseye bookworm),/\1  jammy noble oracular plucky,/' \
+sed -i -r 's/(filter bullseye bookworm),/\1  jammy noble plucky,/' \
 	$debian/rules
 
 ## This conditional doesn't handle USE_SYSTEM_NSS=0 properly
@@ -199,7 +199,7 @@ fi
 ##
 
 # https://bugs.launchpad.net/bugs/2033572
-if ubuntu_dist noble oracular plucky
+if ubuntu_dist noble plucky
 then
 	new_patch xtradeb/fix-libc++-wasm-link-error.patch
 fi

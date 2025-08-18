@@ -80,7 +80,7 @@ sed -i '/^Build-Depends:/ i Rules-Requires-Root: no' $debian/control.in
 # that allow the use of multiple versions unfortunately do not ensure that
 # the versions installed are consistent (e.g. clang-20 + llvm-19-dev).
 case $ubuntu_dist in
-	jammy | noble | oracular) llvm_version=19 ;;
+	jammy | noble) llvm_version=19 ;;
 	*) llvm_version=20 ;;
 esac
 grep -q '^\s*clang-20 | clang-19 | clang-18,' $debian/control \

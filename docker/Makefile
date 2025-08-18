@@ -29,7 +29,7 @@ endif
 endif
 
 ifeq "$(DISTRO)" "ubuntu"
-ifeq "$(filter jammy kinetic lunar mantic noble oracular plucky, $(RELEASE))" ""
+ifeq "$(filter jammy kinetic lunar mantic noble oracular plucky questing, $(RELEASE))" ""
 $(error invalid Ubuntu release "$(RELEASE)")
 endif
 endif

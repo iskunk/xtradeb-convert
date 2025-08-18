@@ -92,8 +92,8 @@ initialize()
 	case "$ubuntu_dist" in
 		jammy)    ubuntu_ver=22.04 ;;
 		noble)    ubuntu_ver=24.04 ;;
-		oracular) ubuntu_ver=24.10 ;;
 		plucky)   ubuntu_ver=25.04 ;;
+		questing) ubuntu_ver=25.10 ;;
 		*) error "invalid Ubuntu distribution \"$ubuntu_dist\"" ;;
 	esac
 

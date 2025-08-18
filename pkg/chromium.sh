@@ -39,7 +39,7 @@ END
 
 rm -f $debian/xtradeb.tmp
 
-if ubuntu_dist noble oracular plucky
+if ubuntu_dist noble plucky
 then
 	cat >$debian/xtradeb.tmp <<'END'
 ifneq ($(filter armhf,$(DEB_HOST_ARCH)),)
@@ -135,7 +135,7 @@ then
 		$debian/rules
 fi
 
-if ubuntu_dist jammy noble oracular && $use_libcxx && ! $static_libcxx
+if ubuntu_dist jammy noble && $use_libcxx && ! $static_libcxx
 then
 	# Statically link the libc++ runtime libraries, as we are using a
 	# newer version of LLVM than is available in the official repos
@@ -187,7 +187,7 @@ then
 		$debian/rules
 fi
 
-if ubuntu_dist jammy noble oracular plucky
+if ubuntu_dist jammy noble plucky
 then
 	# Prevent the linker from adding a spurious run-time dependency on
 	# libtest_trace_processor.so to the chromium-shell binary. This is
@@ -224,7 +224,7 @@ then
 	new_patch bookworm/gn-funcs.patch
 fi
 
-if ubuntu_dist jammy noble oracular plucky
+if ubuntu_dist jammy noble plucky
 then
 	new_patch bookworm/gn-hpp11.patch
 fi
@@ -235,13 +235,9 @@ then
 	# (note that Debian's package of 2.12 is now actually 2.9)
 	perl -pi -e '/^\s+libxml2-dev\b/ and s/\(.+\),/(<< 2.10),/' \
 		$debian/control
-elif ubuntu_dist oracular
-then
-	# The LibXML2 2.12 package in oracular is (still) the real deal
-	disable_patch bookworm/libxml-parseerr.patch
 fi
 
-if ubuntu_dist jammy noble oracular plucky
+if ubuntu_dist jammy noble plucky
 then
 	new_patch bookworm/node18-import.patch
 fi

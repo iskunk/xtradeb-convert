@@ -105,7 +105,7 @@ check_release()
 	local rel="$1"
 	case "$rel" in
 		jammy | kinetic | lunar | mantic | noble | oracular) ;;
-		plucky) ;;
+		plucky | questing) ;;
 		*) echo "error: unrecognized Ubuntu release \"$rel\""; exit 1 ;;
 	esac
 }
