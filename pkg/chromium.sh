@@ -88,11 +88,11 @@ static_libcxx=$($use_libcxx \
 	&& echo true || echo false)
 
 # rustc-web is only available in Debian (old)stable
-sed -i -r '/^\s+rustc-web \(.+\),/s/-web//' $debian/control
+sed -i -r '/^\s+rustc-web(:any)? \(.+\),/s/-web//' $debian/control
 
 # Ubuntu provides "rustc-N.NN" packages
-rust_version=1.80
-! ubuntu_dist plucky || rust_version=1.82
+rust_version=1.82
+! ubuntu_dist plucky questing || rust_version=1.83
 sed -i -r \
 	-e 's/^(\s+rustc)(:any)? \(.+\),$/\1-'"$rust_version"'\2,/' \
 	-e 's/^(\s+libstd-rust)(-dev) \(.+\)/\1-'"$rust_version"'\2/' \
@@ -113,12 +113,12 @@ grep -Eq "^\\s+clang-$llvm_version_orig(:\\w+)?,\$" $debian/control \
 || error "original control file does not use clang-$llvm_version_orig"
 
 case $ubuntu_dist in
-	plucky) llvm_version=20 ;;
+	plucky | questing) llvm_version=20 ;;
 esac
 
 if [ $llvm_version != $llvm_version_orig ]
 then
-	sed -i -r '/(clang|libc\+\+|lld)/'"s/-$llvm_version_orig/-$llvm_version/" \
+	sed -i -r '/(clang|libc\+\+|lld|llvm)/'"s/-$llvm_version_orig/-$llvm_version/" \
 		$debian/control \
 		$debian/rules \
 		$debian/patches/debianization/clang-version.patch
@@ -187,7 +187,7 @@ then
 		$debian/rules
 fi
 
-if ubuntu_dist jammy noble plucky
+if ubuntu_dist jammy noble plucky questing
 then
 	# Prevent the linker from adding a spurious run-time dependency on
 	# libtest_trace_processor.so to the chromium-shell binary. This is
@@ -211,15 +211,24 @@ fi
 ## Patch series modifications
 ##
 
+if dpkg --compare-versions $rust_version le 1.85
+then
+	new_patch bookworm/adler1.patch
+fi
+
 if ubuntu_dist jammy
 then
 	new_patch bookworm/dav1d-extern.patch
 fi
 
-new_patch bookworm/derivre-create.patch
+if dpkg --compare-versions $rust_version le 1.82
+then
+	new_patch bookworm/derivre-create.patch
+fi
 
 if ubuntu_dist jammy noble
 then
+	new_patch bookworm/eslint.patch
 	new_patch bookworm/gn-absl.patch
 	new_patch bookworm/gn-funcs.patch
 fi
@@ -229,12 +238,21 @@ then
 	new_patch bookworm/gn-hpp11.patch
 fi
 
-if ubuntu_dist jammy noble
+if ubuntu_dist jammy noble plucky
 then
-	# Don't require a bleeding-edge version of LibXML2
-	# (note that Debian's package of 2.12 is now actually 2.9)
-	perl -pi -e '/^\s+libxml2-dev\b/ and s/\(.+\),/(<< 2.10),/' \
+	# Available libxml2-dev versions:
+	# * jammy ...... 2.9
+	# * noble ...... 2.9
+	# * plucky ..... 2.12-but-really-2.9 (!)
+	# * questing ... 2.14
+	libxml2_lt_ver=2.10
+	! ubuntu_dist plucky || libxml2_lt_ver=2.13
+	sed -i -r \
+		-e '/^\s+libxml2-dev\b/s/\(.+\),/(<< @LIBXML2_LT_VER@),/' \
+		-e "s/@LIBXML2_LT_VER@/$libxml2_lt_ver/" \
 		$debian/control
+
+	new_patch bookworm/libxml-parseerr.patch
 fi
 
 if ubuntu_dist jammy noble plucky
@@ -244,24 +262,12 @@ fi
 
 if dpkg --compare-versions $rust_version le 1.82
 then
-	new_patch bookworm/rust-is-none-or.patch
-
-	if dpkg --compare-versions $rust_version le 1.80
-	then
-		new_patch bookworm/rust-unstable-features.patch
-	fi
-
 	new_patch bookworm/rust-visibility.patch
 fi
 
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/av1-vaapi.patch
-fi
-
-if ubuntu_dist jammy noble
-then
-	new_patch xtradeb/eslint.patch
 fi
 
 if ! ubuntu_dist jammy
