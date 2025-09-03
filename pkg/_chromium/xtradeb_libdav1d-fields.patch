@@ -72,7 +72,7 @@ Fortunately, these are easy to work around.
    s.all_layers = 0;
 --- a/third_party/crabbyavif/src/src/codecs/dav1d.rs
 +++ b/third_party/crabbyavif/src/src/codecs/dav1d.rs
-@@ -107,7 +107,7 @@ impl Dav1dDataWrapper {
+@@ -118,7 +118,7 @@ impl Dav1dDataWrapper {
              dav1d_data_wrap(
                  self.mut_ptr(),
                  payload.as_ptr(),
@@ -81,9 +81,9 @@ Fortunately, these are easy to work around.
                  Some(avif_dav1d_free_callback),
                  /*cookie=*/ std::ptr::null_mut(),
              )
-@@ -139,10 +139,12 @@ impl Dav1d {
-         let mut settings_uninit: MaybeUninit<Dav1dSettings> = MaybeUninit::uninit();
+@@ -153,10 +153,12 @@ impl Dav1d {
          unsafe { dav1d_default_settings(settings_uninit.as_mut_ptr()) };
+         // # Safety: settings_uninit was initialized in the C function above.
          let mut settings = unsafe { settings_uninit.assume_init() };
 +/* XtraDeb fix
          if low_latency {

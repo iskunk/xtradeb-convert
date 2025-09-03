@@ -268,6 +268,7 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/av1-vaapi.patch
+	new_patch xtradeb/flac-error-status.patch
 fi
 
 if ! ubuntu_dist jammy

@@ -1,0 +1,22 @@
+libflac-dev 1.3.3 in Ubuntu jammy does not have
+
+  FLAC__STREAM_DECODER_ERROR_STATUS_BAD_METADATA
+
+but it does have
+
+  FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM
+
+which is the last enumeration value of `FLAC__StreamDecoderErrorStatus`
+that the Chromium code wants.
+
+--- a/media/audio/flac_audio_handler.cc
++++ b/media/audio/flac_audio_handler.cc
+@@ -166,7 +166,7 @@ void FlacAudioHandler::ErrorCallback(con
+   // `FLAC__STREAM_DECODER_ERROR_STATUS_BAD_METADATA` is the last enumeration
+   // value of `FLAC__StreamDecoderErrorStatus`. The legal status value should be
+   // less than or equal to it.
+-  CHECK_LE(status, FLAC__STREAM_DECODER_ERROR_STATUS_BAD_METADATA);
++  CHECK_LE(status, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM);
+   LOG(ERROR) << "Got an error callback: "
+              // SAFETY: The above CHECK ensures that `status` does not exceed
+              // the length of `FLAC__StreamDecoderErrorStatusString`
