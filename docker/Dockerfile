@@ -1,10 +1,6 @@
 ARG DISTRO_RELEASE=ubuntu:jammy
 FROM $DISTRO_RELEASE
 
-# https://bugs.debian.org/1054104
-ARG QEMU_BINFMT=dummy
-ADD $QEMU_BINFMT /usr/libexec/qemu-binfmt/
-
 ARG APT_MIRROR=mirrors.wikimedia.org
 RUN perl -pi \
     -e 's,deb.debian.org/(debian)(?!-sec),<APT>/$1,;' \

@@ -16,13 +16,15 @@ VOL_MOUNTS = \
 	--tmpfs=/external/tmp:exec
 
 APT_MIRROR =
-QEMU_PATH  = /usr/bin
 
 ifeq "$(filter debian ubuntu, $(DISTRO))" ""
 $(error invalid distribution "$(DISTRO)")
 endif
 
 ifeq "$(DISTRO)" "debian"
+ifeq "$(RELEASE)" "sid"
+$(error please use "unstable" instead of "sid")
+endif
 ifeq "$(filter bullseye bookworm trixie unstable, $(RELEASE))" ""
 $(error invalid Debian release "$(RELEASE)")
 endif
@@ -46,16 +48,8 @@ build_stamp = build-$(RELEASE)-$(HOSTNAME)$(_arch_tag).stamp
 ifneq "$(ARCH)" ""
 docker_arch := $(subst armhf,arm/v7,$(subst ppc64el,ppc64le,$(ARCH)))
 platform_opt = --platform=linux/$(docker_arch)
-qemu_arch   := $(subst arm64,aarch64,$(subst armhf,arm,$(subst ppc64el,ppc64le,$(ARCH))))
-ifdef NO_QEMU
-QEMU_BINFMT  = dummy
-else
-QEMU_INTERP  = $(QEMU_PATH)/qemu-$(qemu_arch)-static
-QEMU_BINFMT  = $(qemu_arch)-binfmt-P
-endif
 else
 platform_opt =
-QEMU_BINFMT  = dummy
 endif
 
 CCACHE_DIR := $(firstword $(wildcard $(SCRATCH)/xtradeb/ccache$(_arch_tag) /dept/ter/speech/$(USER)/xtradeb/ccache$(_arch_tag)))
@@ -87,14 +81,10 @@ build: $(build_stamp)
 $(build_stamp): Dockerfile
 	rm -rf $(CTX)
 	mkdir $(CTX)
-ifdef QEMU_INTERP
-	cp --preserve=times $(QEMU_INTERP) $(CTX)/$(QEMU_BINFMT)
-endif
 	cp -p $< $(CTX)
 	cp -p hybrid-*.sh $(CTX)
 	touch $(CTX)/dummy
 	TMPDIR=$(CTX) docker build $(platform_opt) \
-		--build-arg QEMU_BINFMT=$(QEMU_BINFMT) \
 		--build-arg DISTRO_RELEASE=$(DISTRO):$(RELEASE) \
 		$(if $(APT_MIRROR),--build-arg APT_MIRROR=$(APT_MIRROR)) \
 		--network=host \
