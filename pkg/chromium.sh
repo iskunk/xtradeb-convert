@@ -187,6 +187,25 @@ then
 		$debian/rules
 fi
 
+if ubuntu_dist jammy noble
+then
+	# Fix OpenH264 breakage due to an older system library:
+	#
+	#   third_party/webrtc/modules/video_coding/codecs/h264/h264_encoder_impl.cc:483:18: error: no member named 'bPsnrY' in 'Source_Picture_s'
+	#     483 |     pictures_[i].bPsnrY = calculate_psnr;
+	#         |     ~~~~~~~~~~~~ ^
+	#   third_party/webrtc/modules/video_coding/codecs/h264/h264_encoder_impl.cc:484:18: error: no member named 'bPsnrU' in 'Source_Picture_s'
+	#     484 |     pictures_[i].bPsnrU = calculate_psnr;
+	#         |     ~~~~~~~~~~~~ ^
+	#   third_party/webrtc/modules/video_coding/codecs/h264/h264_encoder_impl.cc:485:18: error: no member named 'bPsnrV' in 'Source_Picture_s'
+	#     485 |     pictures_[i].bPsnrV = calculate_psnr;
+	#         |     ~~~~~~~~~~~~ ^
+	#
+	# Keep this run of spaces: ..................... vvvvvvvvv
+	sed -i '/use_unofficial_version_number=false/ a \         rtc_video_psnr=false \\' \
+		$debian/rules
+fi
+
 if ubuntu_dist jammy noble plucky questing
 then
 	# Prevent the linker from adding a spurious run-time dependency on
