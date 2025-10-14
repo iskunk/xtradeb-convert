@@ -55,6 +55,14 @@ ac_add_options --enable-lto=thin
 %%endif
 END
 
+# Enable ALSA support
+x=$debian/../toolkit/moz.configure
+test ! -f $x || grep -q .--enable-alsa $x \
+|| error 'ALSA support appears to be missing'
+cat >> $debian/config/mozconfig.in << END
+ac_add_options --enable-alsa
+END
+
 # Don't reduce LTO strength on arm64; the builders can handle it
 sed -i -r '/filter arm64 armhf/s/(arm64)/xtradeb-\1/' \
 	$debian/build/rules.mk
