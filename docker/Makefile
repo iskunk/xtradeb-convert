@@ -57,6 +57,9 @@ ifneq "$(CCACHE_DIR)" ""
 VOL_MOUNTS += -v $(CCACHE_DIR):/external/ccache
 endif
 
+# Refer to podman-run(1)
+export PODMAN_USERNS = keep-id:uid=1024,gid=100
+
 # Don't use "docker attach", as the container will be stopped when the
 # shell exits. We want that to happen only for the initial shell.
 #
@@ -71,6 +74,7 @@ run: $(build_stamp)
 			--name=$(CONTAINER) \
 			--hostname=$(CONTAINER) \
 			--pids-limit -1 \
+			--user root \
 			--cap-add=SYS_PTRACE \
 			$(VOL_MOUNTS) \
 			$(IMAGE); \

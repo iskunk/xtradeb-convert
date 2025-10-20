@@ -237,15 +237,16 @@ finish()
 	test ! -f $debian/control.in || control=control.in
 
 	# We are now the maintainer
-	test $control_contact_edits != yes \
-	|| perl -pi \
-		-e '/^XSBC-Original-Maintainer:/i and $_="";' \
-		-e 's/^(Maintainer): (.+)$/$1: $ENV{DEBFULLNAME} <$ENV{DEBEMAIL}>\nXSBC-Original-Maintainer: $2/;' \
-		$debian/$control
+	if [ $control_contact_edits = yes ]
+	then
+		perl -pi \
+			-e '/^XSBC-Original-Maintainer:/i and $_="";' \
+			-e 's/^(Maintainer): (.+)$/$1: $ENV{DEBFULLNAME} <$ENV{DEBEMAIL}>\nXSBC-Original-Maintainer: $2/;' \
+			$debian/$control
 
-	# Remove Uploaders: field (mind the multiple lines)
-	test $control_contact_edits != yes \
-	|| perl -0777 -pi -e 's/^Uploaders:.*(\n .+)*\n//m' $debian/$control
+		# Remove Uploaders: field (mind the multiple lines)
+		perl -0777 -pi -e 's/^Uploaders:.*(\n .+)*\n//m' $debian/$control
+	fi
 
 	if [ -f $patch_series_tmp ]
 	then
