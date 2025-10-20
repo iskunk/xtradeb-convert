@@ -16,4 +16,4 @@ in Ubuntu (prior to oracular).
 +        self.assertEqual(data, ZSTD_uncompress(cdata))
  
      def test_html5lib(self):
-         import html5lib.html5parser  # noqa
+         import html5lib.html5parser  # noqa: F401
