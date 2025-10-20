@@ -15,7 +15,7 @@ error()
 
 not_applicable()
 {
-	local message="$1"
+	local message="${1:-}"
 	test -n "$message" || message='package can be built without modifications'
 	if [ -z "$ubuntu_ver" ]
 	then
@@ -28,7 +28,7 @@ not_applicable()
 
 not_supported()
 {
-	local message="$1"
+	local message="${1:-}"
 	test -n "$message" || message='package cannot be built for this release'
 	if [ -z "$ubuntu_ver" ]
 	then
