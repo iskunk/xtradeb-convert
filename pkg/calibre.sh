@@ -28,6 +28,18 @@ ubuntu_dist noble || not_applicable
 ##
 ################################################################
 
+# Downgrade some dependencies to what's available
+sed -i -r \
+	-e '/^\s+dh-python /s/>= \S+\)/>= 6.2024)/' \
+	-e '/^\s+python3-py7zr /s/>= \S+\)/>= 0.11.3)/' \
+	$debian/control
+
+# Drop some others that aren't available
+sed -i -r \
+	-e '/^\s+libonnxruntime-dev,/d' \
+	-e '/^\s+qt6-svg-plugins,/d' \
+	$debian/control
+
 ##
 ## Patch series modifications
 ##
@@ -40,6 +52,9 @@ then
 	# python3-pyzstd is not available before oracular
 	sed -i 's/python3-pyzstd,/python3-zstd,/' $debian/control
 	new_patch 0099-rewrite-test_zstd.patch
+
+	new_patch 0100-drop-piper.patch
+	new_patch 0101-py7zr-compat.patch
 fi
 
 ################################################################
