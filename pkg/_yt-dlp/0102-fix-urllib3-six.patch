@@ -1,0 +1,25 @@
+Avoid test error due to a python3-urllib3 package that lacks the fix from
+https://bugs.debian.org/1089507 :
+
+  ImportError while importing test module '.../yt-dlp-2025.10.14/test/test_http_proxy.py'.
+  Hint: make sure your test modules/packages have valid Python names.
+  Traceback:
+  /usr/lib/python3.10/importlib/__init__.py:126: in import_module
+      return _bootstrap._gcd_import(name[level:], package, level)
+  test/test_http_proxy.py:88: in <module>
+      import urllib3.util.ssltransport
+  /usr/lib/python3/dist-packages/urllib3/util/ssltransport.py:6: in <module>
+      from urllib3.packages import six
+  E   ImportError: cannot import name 'six' from 'urllib3.packages' (/usr/lib/python3/dist-packages/urllib3/packages/__init__.py)
+
+--- a/test/test_http_proxy.py
++++ b/test/test_http_proxy.py
+@@ -84,7 +84,7 @@ class HTTPProxyHandler(BaseHTTPRequestHa
+         self.server.close_request(self.request)
+ 
+ 
+-if urllib3:
++if False:  # XtraDeb
+     import urllib3.util.ssltransport
+ 
+     class SSLTransport(urllib3.util.ssltransport.SSLTransport):
