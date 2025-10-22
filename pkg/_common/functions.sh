@@ -283,6 +283,19 @@ finish()
 	# Drop Debian stable release from the version string, if present
 	sed -i '1s/~deb[0-9][0-9]u/u/' $debian/changelog
 
+	if [ -n "${XTRADEB_VERSION_MAJOR:-}" ]
+	then
+		echo "Overriding XtraDeb version major to $XTRADEB_VERSION_MAJOR"
+		sed -i -r "1s/(xtradeb)[0-9]+\\./\\1$XTRADEB_VERSION_MAJOR./" \
+			$debian/changelog
+	fi
+	if [ -n "${XTRADEB_VERSION_MINOR:-}" ]
+	then
+		echo "Overriding XtraDeb version minor to $XTRADEB_VERSION_MINOR"
+		sed -i -r "1s/\\.[0-9]+\\) /.$XTRADEB_VERSION_MINOR) /" \
+			$debian/changelog
+	fi
+
 	if [ $patch_series_changed = yes -a -f $debian/../.pc/applied-patches ]
 	then
 		cat <<END
