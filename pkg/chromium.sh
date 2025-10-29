@@ -92,9 +92,8 @@ sed -i -r '/^\s+rustc-web(:any)? \(.+\),/s/-web//' $debian/control
 
 # Ubuntu provides "rustc-N.NN" packages
 case $ubuntu_dist in
-	plucky)   rust_version=1.84 ;;
 	questing) rust_version=1.88 ;;
-	*)        rust_version=1.82 ;;
+	*)        rust_version=1.85 ;;
 esac
 sed -i -r \
 	-e 's/^(\s+rustc)(:any)? \(.+\),$/\1-'"$rust_version"'\2,/' \
@@ -258,6 +257,7 @@ fi
 if ubuntu_dist jammy noble plucky
 then
 	new_patch bookworm/gn-hpp11.patch
+	new_patch bookworm/gn-path-exists2.patch
 fi
 
 if ubuntu_dist jammy noble plucky
@@ -303,6 +303,11 @@ then
 	new_patch xtradeb/libdav1d-fields.patch
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
 	new_patch xtradeb/rust-allocator-types.patch
+fi
+
+if dpkg --compare-versions $rust_version lt 1.90
+then
+	new_patch xtradeb/rust-alloc-error-handler.patch
 fi
 
 ################################################################
