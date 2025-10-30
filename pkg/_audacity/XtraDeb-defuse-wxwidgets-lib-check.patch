@@ -1,0 +1,27 @@
+The CMake script file patched below checks for the presence of every
+library returned by
+
+  $ /usr/lib/<arch>/wx/config/gtk3-unicode-static-3.2 --libs
+
+(which is quite a long list, in a static build of wxWidgets)
+
+and causes the overall wxWidgets inquiry to fail with the following error
+(not printed unless you enable debug messages in the script):
+
+  wxWidgets not found due to following missing libraries: notify curl
+
+If libraries are missing, I'd rather get a link error at build time, TYVM.
+That's a much easier failure mode to diagnose.
+
+
+--- a/cmake-proxies/cmake-modules/FindwxWidgets.cmake
++++ b/cmake-proxies/cmake-modules/FindwxWidgets.cmake
+@@ -1018,7 +1018,7 @@ endforeach()
+ set(wxWidgets_LIBRARIES ${_wx_libraries})
+ unset(_wx_libraries)
+ 
+-if (_wx_lib_missing)
++if (FALSE)  # XtraDeb
+   string(REPLACE ";" " " _wx_lib_missing "${_wx_lib_missing}")
+   DBG_MSG_V("wxWidgets not found due to following missing libraries: ${_wx_lib_missing}")
+   set(wxWidgets_FOUND FALSE)
