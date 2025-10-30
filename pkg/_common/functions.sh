@@ -150,6 +150,47 @@ ubuntu_dist()
 	return 1
 }
 
+add_to_package_description()
+{
+	local package_name=$1	# can be a Perl regex
+	cat > $debian/xtradeb.tmp
+
+	test "_$package_name" != _ALL || package_name='.+'
+
+	perl -pi -0777 -e 's/^(Package: '"$package_name"'\n(?:[\t ]*\S.*\n)*Description:.*\n(?: .+\n)*)/${1} .\n\@XTRADEB_APPEND_DESC\@\n/gm' \
+		$debian/control
+
+	(cd $debian && sed -i \
+		-e '/^@XTRADEB_APPEND_DESC@$/{r xtradeb.tmp' \
+		-e 'd}' \
+		control
+	)
+
+	rm $debian/xtradeb.tmp
+}
+
+get_rust_version()
+{
+	# Look here to see available versions for each release:
+	# https://packages.ubuntu.com/search?suite=default&section=all&arch=any&keywords=rustc-1&searchon=names
+
+	case $ubuntu_dist in
+		jammy | noble | plucky)
+		rust_version=1.85
+		;;
+
+		questing)
+		rust_version=1.88
+		;;
+
+		*)
+		error "$FUNCNAME(): unhandled Ubuntu release \"$ubuntu_dist\""
+		;;
+	esac
+
+	echo "Available Rust version: $rust_version"
+}
+
 new_patch()
 {
 	local inline=no
@@ -230,6 +271,33 @@ disable_patch()
 	fi
 }
 
+zap_control_field()
+{
+	local field_name="$1"	# can be a Perl regex
+	local file="$2"
+
+	perl -0777 -pi -e "s/^$field_name:.*(?:\\n[\\t ].+)*\\n//m" $file
+}
+
+zap_control_package()
+{
+	local package_name="$1"	# can be a Perl regex
+	local file="$2"
+
+	perl -0777 -pi -e "s/^\\nPackage: $package_name(?:\\n.+)*\\n//m" $file
+
+	# Also remove any Depends: references to this package
+	perl -pi -e "/^\\s+$package_name \\(= .+\\),/ and \$_ = \"\"" $file
+}
+
+zap_rules_target()
+{
+	local target_name="$1"
+	local file="$2"
+
+	perl -pi -e "s!^($target_name) *:!XTRADEB-DISABLED.\$1:!" $file
+}
+
 finish()
 {
 	# Firefox packages use a generated control file
@@ -244,8 +312,7 @@ finish()
 			-e 's/^(Maintainer): (.+)$/$1: $ENV{DEBFULLNAME} <$ENV{DEBEMAIL}>\nXSBC-Original-Maintainer: $2/;' \
 			$debian/$control
 
-		# Remove Uploaders: field (mind the multiple lines)
-		perl -0777 -pi -e 's/^Uploaders:.*(\n .+)*\n//m' $debian/$control
+		zap_control_field Uploaders $debian/$control
 	fi
 
 	if [ -f $patch_series_tmp ]
