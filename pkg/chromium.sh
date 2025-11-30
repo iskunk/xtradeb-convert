@@ -277,9 +277,20 @@ then
 	new_patch bookworm/libxml-parseerr.patch
 fi
 
+if ubuntu_dist jammy noble
+then
+	new_patch bookworm/node-esm-dirname.patch
+fi
+
 if ubuntu_dist jammy noble plucky
 then
 	new_patch bookworm/node18-import.patch
+fi
+
+if ubuntu_dist jammy noble
+then
+	# Contingent on the version of rust-bindgen
+	new_patch bookworm/rust-unsafe-extern.patch
 fi
 
 if dpkg --compare-versions $rust_version le 1.82
@@ -287,9 +298,23 @@ then
 	new_patch bookworm/rust-visibility.patch
 fi
 
+if dpkg --compare-versions $rust_version lt 1.87
+then
+	new_patch trixie/rust-is-multiple-of.patch
+fi
+
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/av1-vaapi.patch
+fi
+
+if [ $llvm_version -lt 20 ]
+then
+	new_patch xtradeb/clang-flags.patch
+fi
+
+if ubuntu_dist jammy
+then
 	new_patch xtradeb/flac-error-status.patch
 fi
 
@@ -309,6 +334,9 @@ if dpkg --compare-versions $rust_version lt 1.90
 then
 	new_patch xtradeb/rust-alloc-error-handler.patch
 fi
+
+# Disable the loong64 patches, as Ubuntu doesn't support that architecture
+sed -i '/^loongarch64/ s/^/#xd#/' $debian/patches/series
 
 ################################################################
 

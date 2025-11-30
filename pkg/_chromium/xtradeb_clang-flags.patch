@@ -1,0 +1,15 @@
+Avoid the following error, seen in Rust compilation with clang-19:
+
+  error: '-ftrivial-auto-var-init=zero' hasn't been enabled; enable it at your own peril for benchmarking purpose only with '-enable-trivial-auto-var-init-zero-knowing-it-will-be-removed-from-clang', err: true
+
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -3361,7 +3361,7 @@ config("default_init_stack_vars") {
+   cflags = []
+   if (init_stack_vars && is_clang && !using_sanitizer) {
+     if (init_stack_vars_zero) {
+-      cflags += [ "-ftrivial-auto-var-init=zero" ]
++      cflags += []
+     } else {
+       cflags += [ "-ftrivial-auto-var-init=pattern" ]
+     }
