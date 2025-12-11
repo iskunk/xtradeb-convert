@@ -187,6 +187,13 @@ then
 		-e '/^defines\+=host_cpu=."arm64."/ and s/use_v4l2_codec=true (use_vaapi)=false/$1=true/;' \
 		-e '/^defines\+=host_cpu=."arm."/ and s/\s*use_v4l2_codec=true//' \
 		$debian/rules
+
+	# Jammy does not have a recent enough kernel to use the AV1
+	# hardware decoder. Also drop the linux-libc-dev build-dep,
+	# as it is a proxy for the required kernel version.
+	sed -ri '/^defines.=use_av1_hw_decoder=true/ s/^/#xtradeb#/' \
+		$debian/rules
+	sed -ri '/^\s+linux-libc-dev / d' $debian/control
 fi
 
 if ubuntu_dist jammy noble
