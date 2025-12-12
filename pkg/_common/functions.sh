@@ -89,11 +89,13 @@ initialize()
 	fi
 	test -n "$ubuntu_dist" || ubuntu_dist=jammy
 
+	# https://en-wp.org/wiki/Ubuntu_version_history#Table_of_versions
 	case "$ubuntu_dist" in
-		jammy)    ubuntu_ver=22.04 ;;
-		noble)    ubuntu_ver=24.04 ;;
-		plucky)   ubuntu_ver=25.04 ;;
-		questing) ubuntu_ver=25.10 ;;
+		jammy)    ubuntu_ver=22.04; support_end=2027-06-01 ;;
+		noble)    ubuntu_ver=24.04; support_end=2029-05-31 ;;
+		plucky)   ubuntu_ver=25.04; support_end=2026-01-15 ;;
+		questing) ubuntu_ver=25.10; support_end=2026-07-09 ;;
+		resolute) ubuntu_ver=26.04; support_end=2031-05-29 ;;
 		*) error "invalid Ubuntu distribution \"$ubuntu_dist\"" ;;
 	esac
 
@@ -375,6 +377,17 @@ Warning: Patch series has changed, please run
 in the top-level source directory of the package.
 
 END
+	fi
+
+	local t_now=$(date -u '+%s')
+	local t_end=$(date -u -d $support_end '+%s')
+	local days=$(( (t_end - t_now) / 86400 ))
+	if [ 0 -ge $days ]
+	then
+		warning "Ubuntu $ubuntu_ver/$ubuntu_dist is no longer receiving standard support."
+	elif [ $days -le 30 ]
+	then
+		warning "Ubuntu $ubuntu_ver/$ubuntu_dist has $days day(s) of standard support remaining."
 	fi
 }
 
