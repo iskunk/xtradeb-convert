@@ -100,12 +100,8 @@ perl -pi \
 	-e '}' \
 	$debian/control.in
 
-rust_version=
-case $ubuntu_dist in
-	questing) rust_version=1.88 ;;
-esac
-if [ -n "$rust_version" ] && \
-   ! grep -Fq "rustc-$rust_version" $debian/control.in
+get_rust_version
+if ! grep -Fq "rustc-$rust_version" $debian/control.in
 then
 	sed -i -r 's/^(\s+)(cargo|rustc)-/\1\2-'"$rust_version"' | \2-/' \
 		$debian/control.in

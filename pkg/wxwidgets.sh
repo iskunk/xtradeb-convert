@@ -38,18 +38,12 @@ sed -i 's/\.so$/.a/; /\.so\.\*$/d' $debian/*.install
 #
 sed -i -r 's!(config/gtk3-unicode)!\1-static!' $debian/*.alternatives.in
 
-# Add a warning note to the package descriptions
-perl -pi -0777 -e 's/^(Description:.*\n(?: .+\n)*)\n/${1} \@XTRADEB-DESC-ADD\@\n\n/gm' \
-	$debian/control
-cat > $debian/xtradeb.tmp << END
- .
+# Add a warning note
+add_to_package_description ALL << END
  NOTE: This package comes from a build that was modified by XtraDeb to provide
  static libraries only.  It is intended solely for use as a build dependency,
  and should not be installed on a user system otherwise.
 END
-(cd $debian && sed -i -e '/^ @XTRADEB-DESC-ADD@/{r xtradeb.tmp' -e 'd}' \
-	control)
-rm $debian/xtradeb.tmp
 
 # Already in main -dev package
 sed -i '/libwx_gtk\*media\*/d; /libwx_gtk\*webview\*/d' $debian/*.install
@@ -59,10 +53,8 @@ echo 'usr/lib/*/libwxscintilla*.a' >> $debian/libwxgtk3.2-dev.install
 
 # Don't build the doc package, as it depends on a CSS package not
 # available in jammy
-sed -i '/^Package: wx3.2-doc$/,/^$/d' $debian/control
-#
-sed -i -r 's/^(override_dh_installdocs-indep:)/XTRADEB-DISABLED.\1/' \
-	$debian/rules
+zap_control_package wx3.2-doc $debian/control
+zap_rules_target override_dh_installdocs-indep $debian/rules
 
 ##
 ## Patch series modifications

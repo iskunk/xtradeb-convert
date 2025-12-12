@@ -54,20 +54,12 @@ sed -ri \
 
 # Remove all runtime library package definitions, as they are not
 # needed when only static libraries are used
-sed -ri \
-	-e '/^Package: gir[0-9.]+-harfbuzz-[0-9.]+$/,/^$/d' \
-	-e '/^Package: libharfbuzz[0-9]b$/,/^$/d' \
-	-e '/^Package: libharfbuzz-cairo[0-9]$/,/^$/d' \
-	-e '/^Package: libharfbuzz-gobject[0-9]$/,/^$/d' \
-	-e '/^Package: libharfbuzz-icu[0-9]$/,/^$/d' \
-	-e '/^Package: libharfbuzz-subset[0-9]$/,/^$/d' \
-	$debian/control
-
-# Remove dependencies on the above runtime library packages
-sed -ri \
-	-e '/^\s+gir[0-9.]+-harfbuzz-[0-9.]+ \(= \$\{binary:Version\}\),$/d' \
-	-e '/^\s+libharfbuzz\S+ \(= \$\{binary:Version\}\),$/d' \
-	$debian/control
+zap_control_package 'gir[\d.]+-harfbuzz-[\d.]+'	$debian/control
+zap_control_package 'libharfbuzz\d+b'		$debian/control
+zap_control_package 'libharfbuzz-cairo\d+'	$debian/control
+zap_control_package 'libharfbuzz-gobject\d+'	$debian/control
+zap_control_package 'libharfbuzz-icu\d+'	$debian/control
+zap_control_package 'libharfbuzz-subset\d+'	$debian/control
 
 # Add build options to prefer static libraries, disable introspection,
 # and disable chafa support

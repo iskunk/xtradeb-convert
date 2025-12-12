@@ -57,7 +57,7 @@ END
 	mozconfig.thunderbird)
 rm $debian/xtradeb.tmp
 
-rust_version=$(ubuntu_dist plucky && echo 1.84 || echo 1.80)
+get_rust_version
 
 # Use version-specific cargo/rustc packages
 sed -i -r 's/^(\s+(cargo|rustc)) \(.+\),/\1-'"$rust_version,/" $debian/control
