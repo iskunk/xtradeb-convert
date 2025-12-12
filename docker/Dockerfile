@@ -17,7 +17,9 @@ RUN apt-get update && apt-get -y install whiptail \
     apt-utils \
     ccache \
     cdbs \
+    debian-archive-keyring \
     debian-keyring \
+    debian-ports-archive-keyring \
     devscripts \
     dpkg-dev \
     equivs \

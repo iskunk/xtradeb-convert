@@ -109,6 +109,17 @@ then
 		$debian/build/rules.mk
 fi
 
+# Don't build for armhf, as it is prone to failing with
+#
+#   13:03.67 rustc-LLVM ERROR: out of memory
+#   13:03.67 Allocation failed
+#   13:04.07 error: could not compile `firefox-on-glean` (lib)
+#
+sed -i -r 's/^(Architecture): any$/\1: amd64 arm64 ppc64el riscv64 s390x/' \
+	$debian/control.in \
+	$debian/control.langpacks \
+	$debian/control.langpacks.unavail
+
 ################################################################
 ##
 ## Modifications to allow building on Ubuntu jammy and later

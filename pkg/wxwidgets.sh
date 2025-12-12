@@ -16,7 +16,7 @@ base_dir=$(dirname $0)
 initialize wxwidgets
 
 grep -Fqx 'Source: wxwidgets3.2' $debian/control 2>/dev/null \
-|| error "$debian: not a wxwidgets source package debian/ subdirectory"
+|| error "$debian: not a wxwidgets3.2 source package debian/ subdirectory"
 
 ubuntu_dist jammy || not_applicable
 
@@ -37,6 +37,15 @@ perl -pi -e 'm!GREP=/bin/grep! and $_ .= "\t\t--disable-shared \\\n"' \
 sed -i 's/\.so$/.a/; /\.so\.\*$/d' $debian/*.install
 #
 sed -i -r 's!(config/gtk3-unicode)!\1-static!' $debian/*.alternatives.in
+
+# Add a couple of dependencies to the libwxgtkX.Y-dev package that are
+# needed by the static library (and are not auto-detected)
+perl -pi \
+	-e 'if (/^(\s{,10})libglu1-mesa-dev,/) {' \
+	-e '  $_ .= "${1}libgtk-3-dev,\n";' \
+	-e '  $_ .= "${1}libnotify-dev,\n";' \
+	-e '}' \
+	$debian/control
 
 # Add a warning note
 add_to_package_description ALL << END

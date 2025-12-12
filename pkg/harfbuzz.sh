@@ -66,7 +66,7 @@ zap_control_package 'libharfbuzz-subset\d+'	$debian/control
 perl -pi \
 	-e 'if (/^\s+dh_auto_configure\b/) {' \
 	-e '  /chafa=disabled/ or s/$/ -Dchafa=disabled/;' \
-	-e '  s/$/ --default-library static -Dintrospection=disabled/;' \
+	-e '  s/$/ -Dintrospection=disabled --default-library static/;' \
 	-e '}' \
 	$debian/rules
 
@@ -76,9 +76,6 @@ perl -pi \
 	-e 's/\.so(\.\*(\[0-9\])?)?/.a/;' \
 	-e 'm!^usr/share/gir-! and $_=""' \
 	$debian/libharfbuzz-dev.install
-
-# Remove *.symbols files, as they are not needed for static libs
-rm -f $debian/*.symbols
 
 ################################################################
 
