@@ -1,23 +1,13 @@
-#!/bin/bash
-# llvm-toolchain.sh
+# pkg/llvm-toolchain/script.sh
 #
-# This script operates on the debian/ subdirectory of an
-# Ubuntu llvm-toolchain-NN source package, as available from e.g.
-# https://packages.ubuntu.com/source/plucky/llvm-toolchain-20
+# https://packages.ubuntu.com/source/llvm-toolchain-NN (pattern)
+# https://packages.ubuntu.com/source/llvm-toolchain-20
+# https://packages.ubuntu.com/source/llvm-toolchain-21
 #
 
-# llvm-toolchain-NN/debian/ location and (optional) Ubuntu release
-debian="$1"
-ubuntu_dist="$2"
+################################################################
 
-base_dir=$(dirname $0)
-. $base_dir/_common/functions.sh
-
-initialize llvm-toolchain
-
-grep -Eq '^Source: llvm-toolchain-([0-9]{2}|snapshot)$' \
-	$debian/control 2>/dev/null \
-|| error "$debian: not an llvm-toolchain-NN source package debian/ subdirectory"
+xd_convert() {
 
 dpkg --compare-versions $deb_version ge 1:18.0.0 \
 || error 'version < 18 is not supported'
@@ -26,7 +16,7 @@ dpkg --compare-versions $deb_version lt 1:19.0.0 \
 || dpkg --compare-versions $deb_version ge 1:19.1.7 \
 || error 'please convert version >= 19.1.7 to avoid https://bugs.launchpad.net/bugs/2097731'
 
-################################################################
+################
 
 # Enable the alternative "|hello" build dependencies to allow some
 # flexibility in what packages are available.
@@ -47,13 +37,16 @@ sed -i -r '/^\s*llvm-spirv-\S+ /s/(\|\s*)hello\b/\1shove/' \
 sed -i -r '/installed by another constraint|dh_listpackages;/{n;s/^(\s+)(exit 1)/\1true XtraDeb \2/}' \
 	$debian/rules
 
+} # xd_convert()
+
 ################################################################
 
-finish
+xd_convert_post() {
 
 # Abbreviate an Ubuntu bit in the version string
 sed -i -r '1s/(-[0-9]+)ubuntu([0-9]+)/\1u\2/' $debian/changelog
 
+# Regenerate files
 if [ -f $debian/../LICENSE.TXT -a "_$(basename $debian)" = _debian ]
 then
 	# Make a list of all files present in the debianization dir
@@ -83,6 +76,8 @@ in the LLVM source tree, to regenerate necessary files.
 END
 fi
 
-echo "LLVM package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
+} # xd_convert_post()
 
-# end llvm-toolchain.sh
+################################################################
+
+# end pkg/llvm-toolchain/script.sh

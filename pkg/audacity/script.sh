@@ -1,22 +1,12 @@
-#!/bin/bash
-# audacity.sh
+# pkg/audacity/script.sh
 #
-# This script operates on the debian/ subdirectory of a
-# Debian audacity source package, as available from
 # https://packages.debian.org/source/sid/audacity#pdownload
+# https://packages.ubuntu.com/source/audacity
 #
 
-# audacity/debian/ directory location and (optional) Ubuntu release
-debian="$1"
-ubuntu_dist="$2"
+################################################################
 
-base_dir=$(dirname $0)
-. $base_dir/_common/functions.sh
-
-initialize audacity
-
-grep -Fqx 'Source: audacity' $debian/control 2>/dev/null \
-|| error "$debian: not an audacity source package debian/ subdirectory"
+xd_convert() {
 
 ubuntu_dist jammy || not_applicable
 
@@ -57,10 +47,8 @@ then
 	new_patch XtraDeb-defuse-wxwidgets-lib-check.patch
 fi
 
+} # xd_convert()
+
 ################################################################
 
-finish
-
-echo "Audacity package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
-
-# end audacity.sh
+# end pkg/audacity/script.sh

@@ -1,23 +1,11 @@
-#!/bin/bash
-# thunderbird.sh
+# pkg/thunderbird/script.sh
 #
-# This script operates on the debian/ subdirectory of a Debian
-# thunderbird source package, as available from
-# https://packages.debian.org/source/bookworm/thunderbird#pdownload
 # https://packages.debian.org/source/sid/thunderbird#pdownload
 #
 
-# thunderbird/debian/ directory location and (optional) Ubuntu release
-debian="$1"
-ubuntu_dist="$2"
+################################################################
 
-base_dir=$(dirname $0)
-. $base_dir/_common/functions.sh
-
-initialize thunderbird
-
-grep -Fqx 'Source: thunderbird' $debian/control 2>/dev/null \
-|| error "$debian: not a thunderbird source package debian/ subdirectory"
+xd_convert() {
 
 ! ubuntu_dist jammy \
 || not_applicable 'release already has an official thunderbird package'
@@ -86,15 +74,10 @@ new_patch xtradeb/fortify-source-3.patch
 new_patch xtradeb/mach-python-312.patch
 new_patch xtradeb/skia-cpu-arch.patch
 
+need_version_epoch_bump=yes
+
+} # xd_convert()
+
 ################################################################
 
-finish
-
-# Bump the epoch prefix up to 2, so that the thunderbird snap package isn't
-# outright considered newer
-perl -pi -e 'if (/^thunderbird / && $. == 1) { s/\(1:/(2:/; }' \
-	$debian/changelog
-
-echo "Thunderbird package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
-
-# end thunderbird.sh
+# end pkg/thunderbird/script.sh

@@ -13,6 +13,35 @@ error()
 	exit 1
 }
 
+get_resource_name()
+{
+	local name="$1"
+
+	# Map the Source: name of a package to the name of its resource
+	# directory (which may or may not be present) under pkg/. Note
+	# that if there is no match below, then the names are the same.
+	case "$name" in
+		firefox-esr) name=firefox ;;
+		llvm-toolchain-*) name=llvm-toolchain ;;
+		qt6-base) name=qt6 ;;
+		rustc-[1-9].[0-9]*) name=rustc ;;
+		ungoogled-chromium) name=chromium ;;
+		wxwidgets[3-9].*) name=wxwidgets ;;
+
+		firefox)
+		case "$deb_version" in
+			*~mt[1-9]) name=firefox-mt ;;
+		esac
+		;;
+
+		node-cjs-module-lexer | node-undici | pkg-js-tools)
+		name=nodejs
+		;;
+	esac
+
+	echo "$name"
+}
+
 not_applicable()
 {
 	local message="${1:-}"
@@ -37,105 +66,6 @@ not_supported()
 		echo "$0: not supported on Ubuntu $ubuntu_ver/$ubuntu_dist: $message"
 	fi
 	exit 3
-}
-
-initialize()
-{
-	package_name="$1"
-	shift
-
-	multi_dist=no
-
-	while [ -n "$1" ]
-	do
-		case "$1" in
-			--multi-dist) multi_dist=yes ;;
-			*) error "initialize(): unrecognized option \"$1\"" ;;
-		esac
-		shift
-	done
-
-	test -n "$BASH_VERSION" \
-	|| error 'initialize(): script must run under bash(1)'
-
-	set -eu
-
-	# In case the user is confused
-	case "$debian" in
-		'' | -h | --help)
-		echo "usage: $0 DEBIAN-DIR [UBUNTU-RELEASE]"
-		exit 0
-		;;
-	esac
-
-	if [ -z "${DEBFULLNAME:-}" ]
-	then
-		export DEBFULLNAME='XtraDeb User'
-		export DEBEMAIL='xtradeb.user@example.com'
-	fi
-
-	# Sanity checks
-
-	if [ ! -f $debian/changelog -o \
-	     ! -f $debian/control -o \
-	     ! -f $debian/rules ]
-	then
-		error "$debian: not a source package debian/ subdirectory"
-	fi
-
-	if [ -z "$ubuntu_dist" -a $(lsb_release -is) = Ubuntu ]
-	then
-		ubuntu_dist=$(lsb_release -cs)
-	fi
-	test -n "$ubuntu_dist" || ubuntu_dist=jammy
-
-	# https://en-wp.org/wiki/Ubuntu_version_history#Table_of_versions
-	case "$ubuntu_dist" in
-		jammy)    ubuntu_ver=22.04; support_end=2027-06-01 ;;
-		noble)    ubuntu_ver=24.04; support_end=2029-05-31 ;;
-		plucky)   ubuntu_ver=25.04; support_end=2026-01-15 ;;
-		questing) ubuntu_ver=25.10; support_end=2026-07-09 ;;
-		resolute) ubuntu_ver=26.04; support_end=2031-05-29 ;;
-		*) error "invalid Ubuntu distribution \"$ubuntu_dist\"" ;;
-	esac
-
-	version_suffix="xtradeb1.${ubuntu_ver/./}."
-
-	# Verify that these packages are installed
-	dpkg --status dpkg-dev devscripts >/dev/null || exit
-
-	deb_version=$(dpkg-parsechangelog --file $debian/changelog --show-field Version)
-
-	if [ $multi_dist = yes ]
-	then
-		changelog_text="XtraDeb conversion for Ubuntu $ubuntu_ver/$ubuntu_dist and later releases."
-	else
-		changelog_text="XtraDeb conversion for Ubuntu $ubuntu_ver/$ubuntu_dist."
-	fi
-
-	cur_dist=$(dpkg-parsechangelog \
-		--file $debian/changelog \
-		--show-field Distribution)
-
-	if (grep -q xtradeb <<< $deb_version || \
-	    grep '^Maintainer:' $debian/control | grep -Fq "<$DEBEMAIL>") \
-	   && [ "_$cur_dist" != _UNRELEASED ]
-	then
-		# Package is already converted; prepare a new XtraDeb release
-		debchange \
-			--no-conf \
-			--no-auto-nmu \
-			--distribution $ubuntu_dist \
-			--local $version_suffix \
-			--changelog $debian/changelog
-		exit
-	fi
-
-	patch_series_changed=no
-	patch_series_tmp=$debian/patches/xtradeb-series.tmp
-	rm -f $patch_series_tmp
-
-	control_contact_edits=yes
 }
 
 ubuntu_dist()
@@ -236,7 +166,7 @@ new_patch()
 		then
 			sed 's/^=$/ /' > $debian/patches/$patch_path || exit
 		else
-			cp -p $base_dir/_$package_name/$patch_file $debian/patches/$patch_path || exit
+			cp -p $resource_dir/$patch_file $debian/patches/$patch_path || exit
 		fi
 	fi
 
@@ -300,95 +230,41 @@ zap_rules_target()
 	perl -pi -e "s!^($target_name) *:!XTRADEB-DISABLED.\$1:!" $file
 }
 
-finish()
+# Can be overridden in script.sh
+xd_convert()
 {
-	# Firefox packages use a generated control file
-	control=control
-	test ! -f $debian/control.in || control=control.in
-
-	# We are now the maintainer
-	if [ $control_contact_edits = yes ]
+	if [ $have_xtradeb_patch = no ]
 	then
-		perl -pi \
-			-e '/^XSBC-Original-Maintainer:/i and $_="";' \
-			-e 's/^(Maintainer): (.+)$/$1: $ENV{DEBFULLNAME} <$ENV{DEBEMAIL}>\nXSBC-Original-Maintainer: $2/;' \
-			$debian/$control
-
-		zap_control_field Uploaders $debian/$control
+		control_contact_edits=no
+		echo "No-change version tweak for Ubuntu $ubuntu_ver/$ubuntu_dist." > $changelog_add_file
 	fi
+}
 
-	if [ -f $patch_series_tmp ]
-	then
-		(echo; echo '# XtraDeb'; cat $patch_series_tmp) >>$debian/patches/series
-		rm -f $patch_series_tmp
-		patch_series_changed=yes
-	fi
+# Can be overridden in script.sh
+xd_convert_post()
+{
+	true
+}
 
-	if [ -f $debian/patches/series ]
-	then
-		# Check that all referenced patches are present
-		for patch in $(grep -v '^#' $debian/patches/series | grep .)
-		do
-			test -f $debian/patches/$patch \
-			|| error "finish(): $patch: missing patch file"
-		done
-	fi
+# Utility function for xd_check()
+check_no_shared_libs()
+{
+	for deb in "$@"
+	do
+		! dpkg-deb -c "$deb" | grep -E '\.so(\.[0-9]+)*$' \
+		|| error 'package contains shared libraries'
+	done
+}
 
-	# Use the same urgency as the upstream release
-	urgency=$(dpkg-parsechangelog \
-		--file $debian/changelog \
-		--show-field Urgency)
+default_check()
+{
+	$base_dir/util/can-install.sh $ubuntu_dist "$@"
+}
 
-	# Add new changelog entry
-	debchange \
-		--no-conf \
-		--no-auto-nmu \
-		--distribution $ubuntu_dist \
-		--local $version_suffix \
-		--urgency $urgency \
-		--changelog $debian/changelog \
-		"$changelog_text"
-
-	# Drop Debian stable release from the version string, if present
-	sed -i '1s/~deb[0-9][0-9]u/u/' $debian/changelog
-
-	if [ -n "${XTRADEB_VERSION_MAJOR:-}" ]
-	then
-		echo "Overriding XtraDeb version major to $XTRADEB_VERSION_MAJOR"
-		sed -i -r "1s/(xtradeb)[0-9]+\\./\\1$XTRADEB_VERSION_MAJOR./" \
-			$debian/changelog
-	fi
-	if [ -n "${XTRADEB_VERSION_MINOR:-}" ]
-	then
-		echo "Overriding XtraDeb version minor to $XTRADEB_VERSION_MINOR"
-		sed -i -r "1s/\\.[0-9]+\\) /.$XTRADEB_VERSION_MINOR) /" \
-			$debian/changelog
-	fi
-
-	if [ $patch_series_changed = yes -a -f $debian/../.pc/applied-patches ]
-	then
-		cat <<END
-
-Warning: Patch series has changed, please run
-
-  \$ cd $(cd $debian/.. && pwd)
-  \$ quilt pop -afq && quilt push -afq
-
-in the top-level source directory of the package.
-
-END
-	fi
-
-	local t_now=$(date -u '+%s')
-	local t_end=$(date -u -d $support_end '+%s')
-	local days=$(( (t_end - t_now) / 86400 ))
-	if [ 0 -ge $days ]
-	then
-		warning "Ubuntu $ubuntu_ver/$ubuntu_dist is no longer receiving standard support."
-	elif [ $days -le 30 ]
-	then
-		warning "Ubuntu $ubuntu_ver/$ubuntu_dist has $days day(s) of standard support remaining."
-	fi
+# Can be overridden in script.sh
+xd_check()
+{
+	default_check "$@"
 }
 
 # end functions.sh

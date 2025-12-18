@@ -1,28 +1,21 @@
-#!/bin/bash
-# firefox-mt.sh
+# pkg/firefox-mt/script.sh
 #
-# This script operates on the debian/ subdirectory of a
-# Mozilla Team PPA firefox source package, as available from
+# Operates on a Mozilla Team PPA firefox source package; see
 # https://launchpad.net/~mozillateam/+archive/ubuntu/ppa/+packages
 # https://ppa.launchpadcontent.net/mozillateam/ppa/ubuntu/pool/main/f/firefox/
 #
 
-debian="$1"
-ubuntu_dist="$2"
+multi_dist=yes
 
-base_dir=$(dirname $0)
-. $base_dir/_common/functions.sh
+################################################################
 
-initialize firefox --multi-dist
+xd_convert() {
 
 # Need cdbs to regenerate the control file
 dpkg --status cdbs >/dev/null \
 || error '"cdbs" package is required to regenerate files'
 
-grep -Fqx 'Source: firefox' $debian/control 2>/dev/null \
-|| error "$debian: not a firefox source package debian/ subdirectory"
-
-head -n1 $debian/changelog 2>/dev/null \
+head -n1 $debian/changelog \
 | grep -Pq '.-0ubuntu0\.\d\d\.\d\d\.1~mt\d\) ' \
 || error "$debian: not a Mozilla Team PPA firefox source package debian/ subdirectory"
 
@@ -141,17 +134,16 @@ echo 10 > $debian/compat
 
 # (none at present)
 
+need_version_epoch_bump=yes
+
+} # xd_convert()
+
 ################################################################
 
-finish
+xd_convert_post() {
 
-# Add a "1:" epoch prefix to the version (so that this package is "newer"
-# than the firefox snap), and remove the Ubuntu release part
-perl -pi \
-	-e 'if (/^firefox / && $. == 1) {' \
-	-e '  s/\((.+)\)/(1:$1)/;' \
-	-e '  s/0ubuntu0\.\d\d\.\d\d\.\d~mt//;' \
-	-e '}' \
+# Remove the (non-XtraDeb) Ubuntu release bit from the version string
+sed -ri '1s/0ubuntu0\.[0-9]{2}\.[0-9]{2}\.[0-9]~mt//' \
 	$debian/changelog
 
 # Regenerate control file
@@ -160,6 +152,8 @@ ln -s . $debian/debian || exit
 || error 'failed to regenerate debianization files'
 rm $debian/debian
 
-echo "Firefox package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
+} # xd_convert_post()
 
-# end firefox-mt.sh
+################################################################
+
+# end pkg/firefox-mt/script.sh

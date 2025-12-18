@@ -1,40 +1,24 @@
-#!/bin/bash
-# nodejs.sh
+# pkg/nodejs/script.sh
 #
-# This script operates on the debian/ subdirectory of any of the following
-# Node.js-related source packages from Ubuntu lunar or later:
+# https://packages.debian.org/source/sid/pkg-js-tools#pdownload
+# https://packages.debian.org/source/sid/node-undici#pdownload
+# https://packages.debian.org/source/sid/node-cjs-module-lexer#pdownload
+# https://packages.debian.org/source/sid/nodejs#pdownload
 #
-#	pkg-js-tools
-#	node-undici
-#	node-cjs-module-lexer
-#	nodejs
-#
-# It specifically enables these packages to be built on jammy, to fulfill
-# build dependencies for Chromium. Newer Ubuntu releases already have
-# recent enough Node.js packages to avoid needing this script.
-#
-
-debian="$1"
-ubuntu_dist="$2"
-
-base_dir=$(dirname $0)
-. $base_dir/_common/functions.sh
-
-initialize nodejs
-
-ubuntu_dist jammy || not_applicable 'this script is needed only for jammy'
-
-pkg=$(dpkg-parsechangelog -l $debian/changelog -S Source)
 
 ################################################################
 
-case "$pkg" in
+xd_convert() {
+
+ubuntu_dist jammy || not_applicable 'this script is needed only for jammy'
+
+case "$source_name" in
 	pkg-js-tools)
 	# Downgrade the node-marked-man dep to what is available in jammy
 	# (the package still builds just fine)
 	perl -pi -e '/^ , node-marked-man/ and s/\(>= .+?\)/(>= 0.7.0)/' \
 		$debian/control
-	changelog_text='Downgrade the node-marked-man build-dependency.'
+	echo 'Downgrade the node-marked-man build-dependency.' > $changelog_add_file
 	;;
 
 	node-undici)
@@ -49,7 +33,7 @@ case "$pkg" in
 	# when building packages from lunar or mantic, no idea why
 	perl -pi -e '/^esbuild/ and s/$/ || (: XtraDeb: Oh well, we tried && touch undici-fetch.js)/' \
 		$debian/nodejs/build
-	changelog_text='Add missing "ms" module, and work around esbuild failure.'
+	echo 'Add missing "ms" module, and work around esbuild failure.' > $changelog_add_file
 	;;
 
 	node-cjs-module-lexer)
@@ -57,14 +41,14 @@ case "$pkg" in
 	perl -pi -e '/^ , node-babel-plugin-transform-modules-commonjs/ and $_.=" , node-istanbul\n"' \
 		$debian/control
 	new_patch xtradeb-node-cjs-module-lexer.patch
-	changelog_text='Add node-istanbul build-dependency and use alternate implementation of "node:fs/promises".'
+	echo 'Add node-istanbul build-dependency and use alternate implementation of "node:fs/promises".' > $changelog_add_file
 	;;
 
 	nodejs)
 	perl -pi -e 'if(/^exp-relax-check :=/){s/^/#xtradeb#/; $_.="exp-relax-check = -i\n"}' \
 		$debian/rules
 	new_patch xtradeb-nodejs.patch
-	changelog_text='Fix unavailable uv_available_parallelism() call, and allow test suite failures.'
+	echo 'Fix unavailable uv_available_parallelism() call, and allow test suite failures.' > $changelog_add_file
 	;;
 
 	*)
@@ -72,10 +56,8 @@ case "$pkg" in
 	;;
 esac
 
+} # xd_convert()
+
 ################################################################
 
-finish
-
-echo "$pkg package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
-
-# end nodejs.sh
+# end pkg/nodejs/script.sh

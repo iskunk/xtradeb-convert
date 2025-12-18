@@ -1,23 +1,12 @@
-#!/bin/bash
-# firefox.sh
+# pkg/firefox/script.sh
 #
-# This script operates on the debian/ subdirectory of a Debian
-# firefox or firefox-esr source package, as available from
 # https://packages.debian.org/source/sid/firefox#pdownload
 # https://packages.debian.org/source/sid/firefox-esr#pdownload
 #
 
-# firefox/debian/ directory location and (optional) Ubuntu release
-debian="$1"
-ubuntu_dist="$2"
+################################################################
 
-base_dir=$(dirname $0)
-. $base_dir/_common/functions.sh
-
-initialize firefox
-
-grep -Eq '^Source: firefox(-esr)?$' $debian/control 2>/dev/null \
-|| error "$debian: not a firefox(-esr) source package debian/ subdirectory"
+xd_convert() {
 
 test -f $debian/browser.README.Debian.in \
 || error "$debian: not a Debian firefox source package debian/ subdirectory"
@@ -216,16 +205,16 @@ else
 	new_patch xtradeb/fortify-source-3.patch
 fi
 
-################################################################
-
-finish
-
 if ! $is_esr
 then
-	# Add a "1:" epoch prefix to the version, so that the firefox snap
-	# package isn't outright considered newer
-	sed -i -r '1{/^firefox /s/\((.+)\)/(1:\1)/}' $debian/changelog
+	need_version_epoch_bump=yes
 fi
+
+} # xd_convert()
+
+################################################################
+
+xd_convert_post() {
 
 files_to_regen=
 for file in \
@@ -258,6 +247,8 @@ in the Firefox source tree, to regenerate necessary files.
 END
 fi
 
-echo "Firefox package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
+} # xd_convert_post()
 
-# end firefox.sh
+################################################################
+
+# end pkg/firefox/script.sh

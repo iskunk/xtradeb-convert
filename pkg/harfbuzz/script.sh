@@ -1,33 +1,27 @@
-#!/bin/bash
-# harfbuzz.sh
+# pkg/harfbuzz/script.sh
 #
-# This script operates on the debian/ subdirectory of a
-# Debian (or Ubuntu) harfbuzz source package, as available from
 # https://packages.debian.org/source/sid/harfbuzz#pdownload
-#
-# It modifies harfbuzz not only so that it builds on jammy, but
-# also to build as static libraries, so that it can fulfill build
-# dependencies for Chromium without requiring new shared libraries
-# at runtime. Newer Ubuntu releases already have a recent enough
-# harfbuzz package to avoid needing this script.
+# https://packages.ubuntu.com/source/harfbuzz
 #
 
-debian="$1"
-ubuntu_dist="$2"
+################################################################
 
-base_dir=$(dirname $0)
-. $base_dir/_common/functions.sh
+xd_convert() {
 
-initialize harfbuzz
-
-grep -Fqx 'Source: harfbuzz' $debian/control 2>/dev/null \
-|| error "$debian: not a harfbuzz source package debian/ subdirectory"
+# This script modifies harfbuzz not only so that it builds on jammy,
+# but also to build as static libraries, so that it can fulfill build
+# dependencies for Chromium without requiring new shared libraries at
+# runtime. Newer Ubuntu releases already have a recent enough harfbuzz
+# package to avoid needing this script.
 
 ubuntu_dist jammy || not_applicable 'this script is needed only for jammy'
 
-changelog_text+=" NOTE: This package has been modified to provide static libraries only, and support for GObject introspection and chafa rendering have been disabled. It is intended solely for use as a build dependency."
-
-################################################################
+echo \
+	"NOTE: This package has been modified to provide static" \
+	"libraries only, and support for GObject introspection and" \
+	"chafa rendering have been disabled.  It is intended solely" \
+	"for use as a build dependency." \
+>> $changelog_add_file
 
 # There are two main changes that need to be made:
 #
@@ -77,10 +71,18 @@ perl -pi \
 	-e 'm!^usr/share/gir-! and $_=""' \
 	$debian/libharfbuzz-dev.install
 
+} # xd_convert()
+
 ################################################################
 
-finish
+xd_check() {
 
-echo "Harfbuzz package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
+check_no_shared_libs "$@"
 
-# end harfbuzz.sh
+default_check "$@"
+
+} # xd_check()
+
+################################################################
+
+# end pkg/harfbuzz/script.sh

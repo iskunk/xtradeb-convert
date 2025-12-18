@@ -1,25 +1,14 @@
-#!/bin/bash
-# rustc.sh
+# pkg/rustc/script.sh
 #
-# This script operates on the debian/ subdirectory of an
-# Ubuntu rustc-X.YY source package, as available from
-# https://packages.ubuntu.com/source/plucky/rustc-1.81#pdownload
-# https://packages.ubuntu.com/source/plucky/rustc-1.82#pdownload
-# https://packages.ubuntu.com/source/plucky/rustc-1.83#pdownload
-# https://packages.ubuntu.com/source/plucky/rustc-1.84#pdownload
+# https://packages.ubuntu.com/source/rustc-X.YY (pattern)
+# https://packages.ubuntu.com/source/rustc-1.85
+# https://packages.ubuntu.com/source/rustc-1.88
+# https://packages.ubuntu.com/source/rustc-1.89
 #
 
-# rustc-X.YY/debian/ location and (optional) Ubuntu release
-debian="$1"
-ubuntu_dist="$2"
+################################################################
 
-base_dir=$(dirname $0)
-. $base_dir/_common/functions.sh
-
-initialize rustc
-
-grep -Eq '^Source: rustc-[0-9.]+$' $debian/control 2>/dev/null \
-|| error "$debian: not an Ubuntu rustc-X.YY source package debian/ subdirectory"
+xd_convert() {
 
 # Latest version of Rust available in each Ubuntu release
 # (so the version we're converting had better be newer)
@@ -118,9 +107,11 @@ then
 	new_patch xtradeb/libgit2-downgrade.patch
 fi
 
+} # xd_convert()
+
 ################################################################
 
-finish
+xd_convert_post() {
 
 # Abbreviate an Ubuntu bit in an overly long version string
 sed -i -r '1s/(-[0-9]+)ubuntu([0-9]+)/\1u\2/' $debian/changelog
@@ -151,6 +142,8 @@ in the Rust source tree, to regenerate necessary files.
 END
 fi
 
-echo "Rust package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
+} # xd_convert_post()
 
-# end rustc.sh
+################################################################
+
+# end pkg/rustc/script.sh

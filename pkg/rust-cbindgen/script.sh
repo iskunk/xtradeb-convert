@@ -1,22 +1,11 @@
-#!/bin/bash
-# rust-cbindgen.sh
+# pkg/rust-cbindgen/script.sh
 #
-# This script operates on the debian/ subdirectory of an
-# Ubuntu rust-cbindgen source package, as available from
-# https://packages.ubuntu.com/source/oracular/rust-cbindgen
+# https://packages.ubuntu.com/source/rust-cbindgen
 #
 
-# rust-cbindgen/debian/ location and (optional) Ubuntu release
-debian="$1"
-ubuntu_dist="$2"
+################################################################
 
-base_dir=$(dirname $0)
-. $base_dir/_common/functions.sh
-
-initialize rust-cbindgen
-
-grep -Fqx 'Source: rust-cbindgen' $debian/control 2>/dev/null \
-|| error "$debian: not a rust-cbindgen source package debian/ subdirectory"
+xd_convert() {
 
 ubuntu_dist jammy noble || not_applicable
 
@@ -100,13 +89,17 @@ vendor-tarball: vendor/VERSION
 	&& ls -l $$tarball
 END
 
+} # xd_convert()
+
 ################################################################
 
-finish
+xd_convert_post() {
 
 # Abbreviate an Ubuntu bit in the version string
 sed -i -r '1s/(-[0-9]+)ubuntu([0-9]+)/\1u\2/' $debian/changelog
 
-echo "Rust-cbindgen package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
+} # xd_convert_post()
 
-# end rust-cbindgen.sh
+################################################################
+
+# end pkg/rust-cbindgen/script.sh

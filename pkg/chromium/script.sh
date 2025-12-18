@@ -1,24 +1,11 @@
-#!/bin/bash
-# chromium.sh
+# pkg/chromium/script.sh
 #
-# This script operates on the debian/ subdirectory of a
-# Debian chromium source package, as available from
 # https://packages.debian.org/source/sid/chromium#pdownload
 #
 
-# chromium/debian/ directory location and (optional) Ubuntu release
-debian="$1"
-ubuntu_dist="$2"
-
-base_dir=$(dirname $0)
-. $base_dir/_common/functions.sh
-
-initialize chromium
-
-grep -Eq '^Source: (ungoogled-)?chromium$' $debian/control 2>/dev/null \
-|| error "$debian: not an (ungoogled-)chromium source package debian/ subdirectory"
-
 ################################################################
+
+xd_convert() {
 
 # Comment out Debian bookmarks
 perl -pi \
@@ -63,7 +50,7 @@ rm -f $debian/xtradeb.tmp
 perl -pi -e 's/(ninja .* chrome )/\$(keepalive) $1/' $debian/rules
 
 # Borrow the keepalive wrapper from the Ubuntu 20.04 Firefox build
-cp -fp $base_dir/_chromium/keepalive-wrapper.py $debian/scripts/
+cp -fp $resource_dir/keepalive-wrapper.py $debian/scripts/
 
 perl -pi \
 	-e '/ninja .+ chrome/ and $_= <<END . $_;' \
@@ -343,10 +330,8 @@ fi
 # Disable the loong64 patches, as Ubuntu doesn't support that architecture
 sed -i '/^loongarch64/ s/^/#xd#/' $debian/patches/series
 
+} # xd_convert()
+
 ################################################################
 
-finish
-
-echo "Chromium package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
-
-# end chromium.sh
+# end pkg/chromium/script.sh

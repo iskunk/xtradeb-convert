@@ -1,22 +1,12 @@
-#!/bin/bash
-# wxwidgets.sh
+# pkg/wxwidgets/script.sh
 #
-# This script operates on the debian/ subdirectory of a
-# Debian wxwidgets source package, as available from
 # https://packages.debian.org/source/sid/wxwidgets3.2#pdownload
+# https://packages.ubuntu.com/source/wxwidgets3.2
 #
 
-# wxwidgets/debian/ directory location and (optional) Ubuntu release
-debian="$1"
-ubuntu_dist="$2"
+################################################################
 
-base_dir=$(dirname $0)
-. $base_dir/_common/functions.sh
-
-initialize wxwidgets
-
-grep -Fqx 'Source: wxwidgets3.2' $debian/control 2>/dev/null \
-|| error "$debian: not a wxwidgets3.2 source package debian/ subdirectory"
+xd_convert() {
 
 ubuntu_dist jammy || not_applicable
 
@@ -71,10 +61,8 @@ zap_rules_target override_dh_installdocs-indep $debian/rules
 
 # (none for now)
 
+} # xd_convert()
+
 ################################################################
 
-finish
-
-echo "wxWidgets package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
-
-# end wxwidgets.sh
+# end pkg/wxwidgets/script.sh

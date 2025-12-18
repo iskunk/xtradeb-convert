@@ -1,22 +1,12 @@
-#!/bin/bash
-# calibre.sh
+# pkg/calibre/script.sh
 #
-# This script operates on the debian/ subdirectory of a
-# Debian calibre source package, as available from
 # https://packages.debian.org/source/sid/calibre#pdownload
+# https://packages.ubuntu.com/source/calibre
 #
 
-# calibre/debian/ directory location and (optional) Ubuntu release
-debian="$1"
-ubuntu_dist="$2"
+################################################################
 
-base_dir=$(dirname $0)
-. $base_dir/_common/functions.sh
-
-initialize calibre
-
-grep -Fqx 'Source: calibre' $debian/control 2>/dev/null \
-|| error "$debian: not a calibre source package debian/ subdirectory"
+xd_convert() {
 
 ! ubuntu_dist jammy || not_supported
 
@@ -57,10 +47,8 @@ then
 	new_patch 0101-py7zr-compat.patch
 fi
 
+} # xd_convert()
+
 ################################################################
 
-finish
-
-echo "Calibre package conversion for Ubuntu $ubuntu_ver/$ubuntu_dist complete."
-
-# end calibre.sh
+# end pkg/calibre/script.sh
