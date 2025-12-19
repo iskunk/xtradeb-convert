@@ -6,7 +6,7 @@
 #
 
 debian="$1"
-ubuntu_dist="$2"
+ubuntu_dist_raw="$2"
 
 set -eu
 
@@ -28,21 +28,13 @@ then
 fi
 
 # If the Ubuntu release was not specified, then use a reasonable default
-if [ -z "$ubuntu_dist" -a "_$(lsb_release -is)" = _Ubuntu ]
+if [ -z "$ubuntu_dist_raw" -a "_$(lsb_release -is)" = _Ubuntu ]
 then
-	ubuntu_dist=$(lsb_release -cs)
+	ubuntu_dist_raw=$(lsb_release -cs)
 fi
-test -n "$ubuntu_dist" || ubuntu_dist=jammy
+test -n "$ubuntu_dist_raw" || ubuntu_dist_raw=jammy
 
-# https://en-wp.org/wiki/Ubuntu_version_history#Table_of_versions
-case "$ubuntu_dist" in
-	jammy)    ubuntu_ver=22.04; support_end=2027-06-01 ;;
-	noble)    ubuntu_ver=24.04; support_end=2029-05-31 ;;
-	plucky)   ubuntu_ver=25.04; support_end=2026-01-15 ;;
-	questing) ubuntu_ver=25.10; support_end=2026-07-09 ;;
-	resolute) ubuntu_ver=26.04; support_end=2031-05-29 ;;
-	*) error "invalid Ubuntu distribution \"$ubuntu_dist\"" ;;
-esac
+set_ubuntu_dist "$ubuntu_dist_raw"
 
 # Verify that these packages are installed
 dpkg --status dpkg-dev devscripts >/dev/null || exit
@@ -237,7 +229,7 @@ fi
 
 # Check if we are nearing end of support for the targeted Ubuntu release
 t_now=$(date -u '+%s')
-t_end=$(date -u -d $support_end '+%s')
+t_end=$(date -u -d $ubuntu_support_end '+%s')
 days=$(( (t_end - t_now) / 86400 ))
 if [ 0 -ge $days ]
 then

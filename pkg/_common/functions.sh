@@ -42,6 +42,71 @@ get_resource_name()
 	echo "$name"
 }
 
+set_ubuntu_dist()
+{
+	local dist="$1"
+
+	local rel_table=$(grep -v '^#' $base_dir/pkg/_common/ubuntu.txt | grep '\S')
+
+	ubuntu_dist=
+	ubuntu_ver=
+	ubuntu_is_lts=
+	ubuntu_support_end=
+	rust_version=
+
+	dist_span_all=
+	dist_span_lts=
+
+	local in_span_all=false
+	local in_span_lts=false
+
+	local      codename release is_lts support_end rust
+	while read codename release is_lts support_end rust
+	do
+		grep -Eqx '[a-z]{2,12}' <<< $codename \
+		|| error 'invalid codename in table'
+		grep -Eqx '[0-9]{2}\.[0-9]{2}' <<< $release \
+		|| error 'invalid release in table'
+		grep -Eqx 'true|false' <<< $is_lts \
+		|| error 'invalid is_lts in table'
+		grep -Eqx '[0-9]{4}-[0-9]{2}-[0-9]{2}' <<< $support_end \
+		|| error 'invalid support_end in table'
+		grep -Eqx '[1-9]\.[0-9]{2}' <<< $rust \
+		|| error 'invalid rust version in table'
+
+		# Accept any of e.g. "noble", "24.04", "2404"
+		if [ "_$dist" = "_$codename" -o \
+		     "_$dist" = "_$release" -o \
+		     "_$dist" = "_${release/./}" ]
+		then
+			ubuntu_dist=$codename
+			ubuntu_ver=$release
+			ubuntu_is_lts=$is_lts
+			ubuntu_support_end=$support_end
+			rust_version=$rust
+
+			in_span_all=true
+			in_span_lts=true
+		fi
+
+		if $in_span_all
+		then
+			dist_span_all+="$codename "
+		fi
+		if $in_span_lts
+		then
+			if [ "_$is_lts" = _true -a -n "$dist_span_lts" ]
+			then
+				in_span_lts=false
+			else
+				dist_span_lts+="$codename "
+			fi
+		fi
+	done <<< $rel_table
+
+	test -n "$ubuntu_dist" || error "invalid Ubuntu release \"$dist\""
+}
+
 not_applicable()
 {
 	local message="${1:-}"
@@ -99,28 +164,6 @@ add_to_package_description()
 	)
 
 	rm $debian/xtradeb.tmp
-}
-
-get_rust_version()
-{
-	# Look here to see available versions for each release:
-	# https://packages.ubuntu.com/search?suite=default&section=all&arch=any&keywords=rustc-1&searchon=names
-
-	case $ubuntu_dist in
-		jammy | noble | plucky)
-		rust_version=1.85
-		;;
-
-		questing)
-		rust_version=1.88
-		;;
-
-		*)
-		error "$FUNCNAME(): unhandled Ubuntu release \"$ubuntu_dist\""
-		;;
-	esac
-
-	echo "Available Rust version: $rust_version"
 }
 
 new_patch()

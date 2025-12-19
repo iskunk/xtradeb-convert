@@ -93,7 +93,6 @@ perl -pi \
 	-e '}' \
 	$debian/control.in
 
-get_rust_version
 if ! grep -Fq "rustc-$rust_version" $debian/control.in
 then
 	sed -i -r 's/^(\s+)(cargo|rustc)-/\1\2-'"$rust_version"' | \2-/' \

@@ -1,7 +1,7 @@
 #!/bin/bash
 # check.sh
 
-ubuntu_dist="$1"
+ubuntu_dist_raw="$1"
 shift
 
 set -eu
@@ -16,10 +16,12 @@ usage()
 	exit $status
 }
 
-case "$ubuntu_dist" in
+case "$ubuntu_dist_raw" in
 	''|*.deb)  usage 1 ;;
 	-h|--help) usage 0 ;;
 esac
+
+set_ubuntu_dist "$ubuntu_dist_raw"
 
 test $# -ne 0 || usage 1
 

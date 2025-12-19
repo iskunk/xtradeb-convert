@@ -77,8 +77,6 @@ static_libcxx=$($use_libcxx \
 # rustc-web is only available in Debian (old)stable
 sed -i -r '/^\s+rustc-web(:any)? \(.+\),/s/-web//' $debian/control
 
-get_rust_version
-
 # Ubuntu provides "rustc-N.NN" packages
 sed -i -r \
 	-e 's/^(\s+rustc)(:any)? \(.+\),$/\1-'"$rust_version"'\2,/' \
