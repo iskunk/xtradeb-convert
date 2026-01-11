@@ -55,7 +55,7 @@ cp -fp $resource_dir/keepalive-wrapper.py $debian/scripts/
 perl -pi \
 	-e '/ninja .+ chrome/ and $_= <<END . $_;' \
 	-e '	# XtraDeb workaround for https://crbug.com/40943790' \
-	-e '	ninja -j\$(njobs) -C out/Release ui/webui/resources/cr_components/history_clusters:build_ts' \
+	-e '	ninja \$(CR_VERBOSE) -j\$(njobs) -C out/Release ui/webui/resources/cr_components/history_clusters:build_ts' \
 	-e 'END' \
 	$debian/rules
 
@@ -80,6 +80,7 @@ sed -i -r '/^\s+rustc-web(:any)? \(.+\),/s/-web//' $debian/control
 # Ubuntu provides "rustc-N.NN" packages
 sed -i -r \
 	-e 's/^(\s+rustc)(:any)? \(.+\),$/\1-'"$rust_version"'\2,/' \
+	-e 's/^(\s+rustfmt)(:any)?,$/\1-'"$rust_version"'\2,/' \
 	-e 's/^(\s+libstd-rust)(-dev) \(.+\)/\1-'"$rust_version"'\2/' \
 	$debian/control
 sed -i -r 's!^(rust_sysroot)=.*!\1=/usr/lib/rust-'"$rust_version"'!' \
@@ -222,11 +223,6 @@ fi
 ## Patch series modifications
 ##
 
-if dpkg --compare-versions $rust_version le 1.85
-then
-	new_patch bookworm/adler1.patch
-fi
-
 if ubuntu_dist jammy
 then
 	new_patch bookworm/dav1d-extern.patch
@@ -250,23 +246,6 @@ then
 	new_patch bookworm/gn-path-exists2.patch
 fi
 
-if ubuntu_dist jammy noble plucky
-then
-	# Available libxml2-dev versions:
-	# * jammy ...... 2.9
-	# * noble ...... 2.9
-	# * plucky ..... 2.12-but-really-2.9 (!)
-	# * questing ... 2.14
-	libxml2_lt_ver=2.10
-	! ubuntu_dist plucky || libxml2_lt_ver=2.13
-	sed -i -r \
-		-e '/^\s+libxml2-dev\b/s/\(.+\),/(<< @LIBXML2_LT_VER@),/' \
-		-e "s/@LIBXML2_LT_VER@/$libxml2_lt_ver/" \
-		$debian/control
-
-	new_patch bookworm/libxml-parseerr.patch
-fi
-
 if ubuntu_dist jammy noble
 then
 	new_patch bookworm/node-esm-dirname.patch
@@ -286,6 +265,29 @@ fi
 if dpkg --compare-versions $rust_version le 1.82
 then
 	new_patch bookworm/rust-visibility.patch
+fi
+
+if dpkg --compare-versions $rust_version le 1.85
+then
+	new_patch trixie/adler1.patch
+fi
+
+if ubuntu_dist jammy noble plucky
+then
+	# Available libxml2-dev versions:
+	# * jammy ...... 2.9
+	# * noble ...... 2.9
+	# * plucky ..... 2.12-but-really-2.9 (!)
+	# * questing ... 2.14
+	libxml2_lt_ver=2.10
+	! ubuntu_dist plucky || libxml2_lt_ver=2.13
+	sed -i -r \
+		-e '/^\s+libxml2-dev\b/s/\(.+\),/(<< @LIBXML2_LT_VER@),/' \
+		-e "s/@LIBXML2_LT_VER@/$libxml2_lt_ver/" \
+		$debian/control
+
+	new_patch trixie/libxml-parseerr.patch
+	new_patch trixie/libxml2-no-xxe.patch
 fi
 
 if dpkg --compare-versions $rust_version lt 1.87
@@ -324,6 +326,8 @@ if dpkg --compare-versions $rust_version lt 1.90
 then
 	new_patch xtradeb/rust-alloc-error-handler.patch
 fi
+
+new_patch xtradeb/rustfmt-path.patch
 
 # Disable the loong64 patches, as Ubuntu doesn't support that architecture
 sed -i '/^loongarch64/ s/^/#xd#/' $debian/patches/series

@@ -1,0 +1,17 @@
+Help the Chromium build find the rustfmt binary from the rustfmt-X.YY
+package, which does not place the binary in /usr/bin/.
+
+Note: Depends on ppc64le/fixes/bindgen.patch
+
+--- a/build/rust/rust_bindgen_generator.gni
++++ b/build/rust/rust_bindgen_generator.gni
+@@ -17,8 +17,7 @@ if (host_os == "win") {
+ }
+ 
+ _rustfmt_path = "${rust_bindgen_root}/bin/rustfmt"
+-if (!use_chromium_rust_toolchain &&
+-    (host_cpu == "s390x")) {
++if (true) {
+   _rustfmt_path = rust_sysroot_absolute + "/bin/rustfmt"
+ } else if (host_os == "win") {
+   _rustfmt_path = "${_rustfmt_path}.exe"

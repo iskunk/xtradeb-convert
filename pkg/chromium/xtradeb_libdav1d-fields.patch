@@ -41,7 +41,7 @@ Fortunately, these are easy to work around.
 
 --- a/third_party/webrtc/modules/video_coding/codecs/av1/dav1d_decoder.cc
 +++ b/third_party/webrtc/modules/video_coding/codecs/av1/dav1d_decoder.cc
-@@ -100,8 +100,10 @@ bool Dav1dDecoder::Configure(const Setti
+@@ -101,8 +101,10 @@ bool Dav1dDecoder::Configure(const Setti
    Dav1dSettings s;
    dav1d_default_settings(&s);
  
@@ -81,7 +81,7 @@ Fortunately, these are easy to work around.
                  Some(avif_dav1d_free_callback),
                  /*cookie=*/ std::ptr::null_mut(),
              )
-@@ -153,10 +153,12 @@ impl Dav1d {
+@@ -151,12 +151,14 @@ impl Dav1d {
          unsafe { dav1d_default_settings(settings_uninit.as_mut_ptr()) };
          // # Safety: settings_uninit was initialized in the C function above.
          let mut settings = unsafe { settings_uninit.assume_init() };
@@ -89,7 +89,9 @@ Fortunately, these are easy to work around.
          if low_latency {
              settings.max_frame_delay = 1;
          }
-         settings.n_threads = i32::try_from(config.max_threads).unwrap_or(1);
+         settings.n_threads = i32::try_from(config.max_threads)
+             .unwrap_or(1)
+             .clamp(1, DAV1D_MAX_THREADS as _);
 +*/
          settings.operating_point = config.operating_point as i32;
          settings.all_layers = if config.all_layers { 1 } else { 0 };
