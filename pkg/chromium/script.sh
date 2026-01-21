@@ -272,24 +272,6 @@ then
 	new_patch trixie/adler1.patch
 fi
 
-if ubuntu_dist jammy noble plucky
-then
-	# Available libxml2-dev versions:
-	# * jammy ...... 2.9
-	# * noble ...... 2.9
-	# * plucky ..... 2.12-but-really-2.9 (!)
-	# * questing ... 2.14
-	libxml2_lt_ver=2.10
-	! ubuntu_dist plucky || libxml2_lt_ver=2.13
-	sed -i -r \
-		-e '/^\s+libxml2-dev\b/s/\(.+\),/(<< @LIBXML2_LT_VER@),/' \
-		-e "s/@LIBXML2_LT_VER@/$libxml2_lt_ver/" \
-		$debian/control
-
-	new_patch trixie/libxml-parseerr.patch
-	new_patch trixie/libxml2-no-xxe.patch
-fi
-
 if dpkg --compare-versions $rust_version lt 1.87
 then
 	new_patch trixie/rust-is-multiple-of.patch
@@ -314,6 +296,8 @@ if ! ubuntu_dist jammy
 then
 	new_patch xtradeb/fortify-level-3.patch
 fi
+
+new_patch xtradeb/libcxx-hardening.patch
 
 if ubuntu_dist jammy
 then

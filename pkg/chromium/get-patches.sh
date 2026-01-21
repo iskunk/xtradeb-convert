@@ -43,12 +43,6 @@ $wget -O bookworm_rust-visibility.patch \
 $wget -O trixie_adler1.patch \
 	$git_prefix/trixie/debian/patches/trixie/adler1.patch
 
-$wget -O trixie_libxml-parseerr.patch \
-	$git_prefix/trixie/debian/patches/trixie/libxml-parseerr.patch
-
-$wget -O trixie_libxml2-no-xxe.patch \
-	$git_prefix/trixie/debian/patches/trixie/libxml2-no-xxe.patch
-
 $wget -O trixie_rust-is-multiple-of.patch \
 	$git_prefix/trixie/debian/patches/trixie/rust-is-multiple-of.patch
 
