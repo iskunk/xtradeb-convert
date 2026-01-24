@@ -9,27 +9,47 @@
 
 xd_convert() {
 
-dpkg --compare-versions $deb_version ge 1:18.0.0 \
-|| error 'version < 18 is not supported'
+dpkg --compare-versions $deb_version ge 1:19.0.0 \
+|| error 'version < 19 is not supported'
 
-dpkg --compare-versions $deb_version lt 1:19.0.0 \
-|| dpkg --compare-versions $deb_version ge 1:19.1.7 \
+dpkg --compare-versions $deb_version ge 1:19.1.7 \
 || error 'please convert version >= 19.1.7 to avoid https://bugs.launchpad.net/bugs/2097731'
 
 ################
 
-# Enable the alternative "|hello" build dependencies to allow some
-# flexibility in what packages are available.
-sed -i '/^#BD_ALT_HELLO = yes/s/^#//' $debian/rules
+# Don't use the alternative "| hello" build dependencies, so that we
+# have better control over how the package is built.
+sed -i '/^BD_ALT_HELLO = yes/ s/yes/xtradeb_no/' $debian/rules
 
-# Don't use "|hello" for packages that *are* available, however,
-# to reduce the risk of unexpected behavior/breakage.
-sed -i -r '/^\s*(g\+\+-multilib|spirv-tools|wasi-libc)\b/{s/@BEGIN_.*@//;s/\s*\|\s*hello\b.*,/,/}' \
+# Delete the "| hello" comment verbiage, as it no longer applies.
+sed -i \
+	-e '/^# .* is for older buster.bionic distros /d' \
+	-e '/^# We need to keep the constraints coherent /d' \
+	-e '/^# hello would get installed unexpectedly /d' \
 	$debian/control.in
 
-# Make the llvm-spirv-NN optional build dependency use "|shove"
-# instead of "|hello", as the latter is not available on i386.
-sed -i -r '/^\s*llvm-spirv-\S+ /s/(\|\s*)hello\b/\1shove/' \
+# Don't skip the build of common packages (like libc++1).
+sed -i '/^SKIP_COMMON_PACKAGES = yes/ s/yes/xtradeb_no/' $debian/rules
+
+# Don't use dependencies from other llvm-toolchain-NN builds...
+sed -i -r '/^\s+llvm-spirv-[0-9]+ [^,]+,$/d' $debian/control.in
+
+# ...including lld. (Note that jammy on riscv64 has no "lld" package.)
+sed -i -r '/^\s+/ s/, lld [^,]+,/,/' $debian/control.in
+sed -i -r \
+	-e 's/^(LLD_BUILD_ARCHS :=)/\1 #xtradeb#/' \
+	-e '/^BINUTILS_ARCHS :=/ { s/^/#xtradeb#/' \
+	-e 'a BINUTILS_ARCHS := $(LLD_ARCHS) # XtraDeb' -e '}' \
+	$debian/rules
+
+# Don't build Windows support, as the MinGW libraries may not be
+# up to snuff (e.g. missing InitOnceExecuteOnce() in jammy).
+sed -i -r '/^\s+mingw-w64-common,$/d' $debian/control.in
+zap_control_package 'libclang-rt-\@\w+\@-dev-win' $debian/control.in
+
+# Fix an incompatibility between two binary packages from 19
+# (see https://bugs.launchpad.net/bugs/2139024)
+sed -i -r '/^Breaks: libomp-@\w+@-dev \(<< 1:2024[0-9]+\+[0-9a-f]+\)$/d' \
 	$debian/control.in
 
 # Neutralize a couple of checks in the rules file so that we don't
@@ -49,19 +69,12 @@ sed -i -r '1s/(-[0-9]+)ubuntu([0-9]+)/\1u\2/' $debian/changelog
 # Regenerate files
 if [ -f $debian/../LICENSE.TXT -a "_$(basename $debian)" = _debian ]
 then
-	# Make a list of all files present in the debianization dir
-	(cd $debian && : >xtradeb.tmp && find . -type f >xtradeb.tmp)
-
 	rm -f $debian/../stamps/preconfigure
 
 	# Regenerate files
-	(unset MAKEFLAGS; cd $debian/.. && set -x && debian/rules stamps/preconfigure) \
+	(unset MAKEFLAGS; cd $debian/.. && set -x && debian/rules stamps/preconfigure override_dh_auto_clean) \
 	|| error 'failed to regenerate debianization files'
 	echo
-
-	# Delete any (new) files that were not previously present
-	(cd $debian && find . -type f ! -exec grep -Fqx {} xtradeb.tmp \; -delete)
-	rm $debian/xtradeb.tmp
 else
 	cat <<END
 
