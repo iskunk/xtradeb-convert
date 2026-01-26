@@ -7,7 +7,7 @@ IMAGE     = xtradeb-$(RELEASE)$(_arch_tag)-$(USER)
 CONTAINER = $(IMAGE)-con
 HOSTNAME := $(shell hostname -s)
 TOP      := $(shell cd .. && pwd)
-CTX      := $(firstword $(SCRATCH) $(XDG_RUNTIME_DIR))/tmp.context
+CTX      := $(firstword $(wildcard $(SCRATCH) $(HOME)/tmp))/tmp.context
 
 SRC        = /home/xtradeb/src
 VOL_MOUNTS = \
@@ -52,7 +52,7 @@ else
 platform_opt =
 endif
 
-CCACHE_DIR := $(firstword $(wildcard $(SCRATCH)/xtradeb/ccache$(_arch_tag) /dept/ter/speech/$(USER)/xtradeb/ccache$(_arch_tag)))
+CCACHE_DIR := $(firstword $(wildcard $(SCRATCH)/xtradeb/ccache$(_arch_tag) $(HOME)/xtradeb/ccache$(_arch_tag)))
 ifneq "$(CCACHE_DIR)" ""
 VOL_MOUNTS += -v $(CCACHE_DIR):/external/ccache
 endif

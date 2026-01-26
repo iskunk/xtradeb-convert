@@ -150,6 +150,7 @@ ln -s . $debian/debian || exit
 (unset MAKEFLAGS; cd $debian && set -x && debian/rules debian/control) \
 || error 'failed to regenerate debianization files'
 rm $debian/debian
+echo
 
 } # xd_convert_post()
 

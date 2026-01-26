@@ -16,9 +16,9 @@ case "$arch" in
 	;;
 esac
 
-if [ "_$QEMU_BINFMT" = _dummy ]
+if [ "_$(uname -m)" != _x86_64 ]
 then
-	echo 'Not applicable as no emulation is active'
+	echo 'Not applicable, not running on amd64'
 	exit 0
 fi
 
@@ -212,7 +212,7 @@ tmp_nodejs_deps='node-corepack:amd64 (= 9.9.9), node-minimatch:amd64 (= 9.9.9)'
 ctl_file=/tmp/hybrid-hack-tools.ctl
 cat > $ctl_file << END
 Package: hybrid-hack-tools
-Provides: $(make_provides $arch $tool_pkgs nodejs), $tmp_nodejs_deps
+Provides: $(make_provides $arch $tool_pkgs nodejs node-types-node), $tmp_nodejs_deps
 Architecture: $arch
 Multi-Arch: same
 Description: Hybrid $arch/amd64 system hack - tool packages

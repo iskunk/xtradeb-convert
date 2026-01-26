@@ -167,7 +167,7 @@ do
 		"$cl_line"
 done < $changelog_add_file
 
-sed -i '3{/^  \* <dummy_line>$/d}' $debian/changelog
+sed -i '/^\w/,/^\w/{/^  \* <dummy_line>$/d}' $debian/changelog
 
 debchange \
 	--no-conf \

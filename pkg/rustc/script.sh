@@ -116,6 +116,7 @@ xd_convert_post() {
 # Abbreviate an Ubuntu bit in an overly long version string
 sed -i -r '1s/(-[0-9]+)ubuntu([0-9]+)/\1u\2/' $debian/changelog
 
+# Regenerate files
 if [ -f $debian/../version -a "_$(basename $debian)" = _debian ]
 then
 	# Make a list of all files present in the debianization dir

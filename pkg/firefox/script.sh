@@ -216,6 +216,7 @@ fi
 
 xd_convert_post() {
 
+# Regenerate files
 files_to_regen=
 for file in \
 	control \
