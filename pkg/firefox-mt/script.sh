@@ -93,6 +93,17 @@ perl -pi \
 	-e '}' \
 	$debian/control.in
 
+# The riscv64 build cannot use the default gold linker as it is
+# not available for that architecture.
+perl -pi -e '/^(\s+)libclang-(\d+)-dev,$/ and $_.="${1}lld-$2 [riscv64],\n"' \
+	$debian/control.in
+cat >> $debian/config/mozconfig.in << END
+%%if DEB_HOST_ARCH == riscv64
+# See https://bugs.launchpad.net/bugs/2138397
+ac_add_options --enable-linker=lld-$llvm_version
+%%endif
+END
+
 if ! grep -Fq "rustc-$rust_version" $debian/control.in
 then
 	sed -i -r 's/^(\s+)(cargo|rustc)-/\1\2-'"$rust_version"' | \2-/' \
