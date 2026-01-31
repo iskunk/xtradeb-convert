@@ -142,7 +142,7 @@ echo 10 > $debian/compat
 ## Patch series modifications
 ##
 
-# (none at present)
+new_patch xtradeb-ppc64el-workaround-for-llvm-assembler.patch
 
 need_version_epoch_bump=yes
 
