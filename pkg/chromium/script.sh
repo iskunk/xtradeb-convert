@@ -26,7 +26,7 @@ END
 
 rm -f $debian/xtradeb.tmp
 
-if ubuntu_dist noble plucky
+if ubuntu_dist noble
 then
 	cat >$debian/xtradeb.tmp <<'END'
 ifneq ($(filter armhf,$(DEB_HOST_ARCH)),)
@@ -99,7 +99,7 @@ grep -Eq "^\\s+clang-$llvm_version_orig(:\\w+)?,\$" $debian/control \
 || error "original control file does not use clang-$llvm_version_orig"
 
 case $ubuntu_dist in
-	plucky | questing) llvm_version=20 ;;
+	questing | resolute) llvm_version=20 ;;
 esac
 
 if [ $llvm_version != $llvm_version_orig ]
@@ -199,7 +199,7 @@ then
 		$debian/rules
 fi
 
-if ubuntu_dist jammy noble plucky questing
+if ubuntu_dist jammy noble questing
 then
 	# Prevent the linker from adding a spurious run-time dependency on
 	# libtest_trace_processor.so to the chromium-shell binary. This is
@@ -238,26 +238,11 @@ then
 	new_patch bookworm/eslint.patch
 	new_patch bookworm/gn-absl.patch
 	new_patch bookworm/gn-funcs.patch
-fi
-
-if ubuntu_dist jammy noble plucky
-then
 	new_patch bookworm/gn-hpp11.patch
 	new_patch bookworm/gn-path-exists2.patch
-fi
-
-if ubuntu_dist jammy noble
-then
 	new_patch bookworm/node-esm-dirname.patch
-fi
-
-if ubuntu_dist jammy noble plucky
-then
 	new_patch bookworm/node18-import.patch
-fi
 
-if ubuntu_dist jammy noble
-then
 	# Contingent on the version of rust-bindgen
 	new_patch bookworm/rust-unsafe-extern.patch
 fi
