@@ -257,14 +257,27 @@ then
 	new_patch trixie/adler1.patch
 fi
 
+if ubuntu_dist jammy noble questing
+then
+	new_patch trixie/gn-len.patch
+	new_patch trixie/nodejs-main.patch
+fi
+
 if dpkg --compare-versions $rust_version lt 1.87
 then
 	new_patch trixie/rust-is-multiple-of.patch
 fi
 
+if dpkg --compare-versions $rust_version lt 1.89
+then
+	new_patch rust-1.85/jxl-features.patch
+	new_patch rust-1.85/jxl-simd-avx512.patch
+fi
+
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/av1-vaapi.patch
+	new_patch xtradeb/bindgen-no-c++23.patch
 fi
 
 if [ $llvm_version -lt 20 ]
