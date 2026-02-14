@@ -57,6 +57,17 @@ sed -i -r '/^Breaks: libomp-@\w+@-dev \(<< 1:2024[0-9]+\+[0-9a-f]+\)$/d' \
 sed -i -r '/installed by another constraint|dh_listpackages;/{n;s/^(\s+)(exit 1)/\1true XtraDeb \2/}' \
 	$debian/rules
 
+##
+## Patch series modifications
+##
+
+# Don't use the RISC-V RVA23 profile prior to 25.10/questing.
+rva23_patch=ubuntu-clang-use-RVA23U64-profile.patch
+if ubuntu_dist jammy noble && grep -Fqx $rva23_patch $debian/patches/series
+then
+	disable_patch $rva23_patch
+fi
+
 } # xd_convert()
 
 ################################################################
