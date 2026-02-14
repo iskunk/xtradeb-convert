@@ -1,0 +1,53 @@
+Work around an inscrutable C++ compilation error that occurs in the
+questing and resolute builds of a couple non-amd64 architectures, due
+to the use of -std=c++23 instead of -std=c++20:
+
+  FAILED: [code=1] obj/third_party/swiftshader/third_party/llvm-16.0/swiftshader_llvm_source_set_0/DWARFContext.o
+  [...]
+  In file included from ../../third_party/swiftshader/third_party/llvm-16.0/llvm/lib/DebugInfo/DWARF/DWARFContext.cpp:9:
+  In file included from ../../third_party/swiftshader/third_party/llvm-16.0/llvm/include/llvm/DebugInfo/DWARF/DWARFContext.h:12:
+  In file included from ../../third_party/swiftshader/third_party/llvm-16.0/llvm/include/llvm/ADT/SmallVector.h:25:
+  In file included from /usr/bin/../include/c++/v1/functional:557:
+  In file included from /usr/bin/../include/c++/v1/__functional/boyer_moore_searcher.h:25:
+  /usr/bin/../include/c++/v1/__vector/vector.h:1335:11: error: no matching function for call to object of type 'const __copy_n'
+   1335 |           ranges::copy_n(std::move(__first), __n, __p);
+        |           ^~~~~~~~~~~~~~
+  /usr/bin/../include/c++/v1/__vector/vector.h:503:12: note: in instantiation of function template specialization 'std::vector<llvm::DWARFDie>::__insert_with_size<llvm::DWARFDie::iterator, llvm::DWARFDie::iterator>' requested here
+    503 |     return __insert_with_size(__position, __first, __last, std::distance(__first, __last));
+        |            ^
+  ../../third_party/swiftshader/third_party/llvm-16.0/llvm/include/llvm/ADT/STLExtras.h:2015:5: note: in instantiation of function template specialization 'std::vector<llvm::DWARFDie>::insert<llvm::DWARFDie::iterator, 0>' requested here
+   2015 |   C.insert(C.end(), R.begin(), R.end());
+        |     ^
+  ../../third_party/swiftshader/third_party/llvm-16.0/llvm/lib/DebugInfo/DWARF/DWARFContext.cpp:1171:5: note: in instantiation of function template specialization 'llvm::append_range<std::vector<llvm::DWARFDie>, llvm::DWARFDie &>' requested here
+   1171 |     append_range(Worklist, DIE);
+        |     ^
+  /usr/bin/../include/c++/v1/__algorithm/ranges_copy_n.h:64:3: note: candidate template ignored: constraints not satisfied [with _Ip = __libcpp_remove_reference_t<iterator &>, _Op = pointer]
+     64 |   operator()(_Ip __first, iter_difference_t<_Ip> __n, _Op __result) const {
+        |   ^
+  /usr/bin/../include/c++/v1/__algorithm/ranges_copy_n.h:61:13: note: because 'llvm::DWARFDie::iterator' does not satisfy 'input_iterator'
+     61 |   template <input_iterator _Ip, weakly_incrementable _Op>
+        |             ^
+  /usr/bin/../include/c++/v1/__iterator/concepts.h:154:26: note: because 'llvm::DWARFDie::iterator' does not satisfy 'input_or_output_iterator'
+    154 | concept input_iterator = input_or_output_iterator<_Ip> && indirectly_readable<_Ip> && requires {
+        |                          ^
+  /usr/bin/../include/c++/v1/__iterator/concepts.h:135:6: note: because 'llvm::DWARFDie::iterator' does not satisfy 'weakly_incrementable'
+    135 | } && weakly_incrementable<_Ip>;
+        |      ^
+  /usr/bin/../include/c++/v1/__iterator/concepts.h:122:10: note: because '__i++' would be invalid: cannot increment value of type 'llvm::DWARFDie::iterator'
+    122 |       __i++;                      // not required to be equality-preserving
+        |          ^
+
+--- a/third_party/swiftshader/third_party/llvm-16.0/BUILD.gn
++++ b/third_party/swiftshader/third_party/llvm-16.0/BUILD.gn
+@@ -87,6 +87,11 @@ config("swiftshader_llvm_private_config"
+     ]
+   }
+ 
++  # XtraDeb fix
++  if (current_cpu == "arm64" || current_cpu == "ppc64") {
++    cflags_cc = [ "-std=c++20" ]
++  }
++
+   defines = [
+     "__STDC_CONSTANT_MACROS",
+     "__STDC_LIMIT_MACROS",

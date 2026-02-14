@@ -119,6 +119,8 @@ then
 
 	perl -pi -e '/^(\s+)-Wno-unknown-pragmas / and $_.="$1'"$x"' \\\n"' \
 		$debian/rules
+
+	sed -i '/toolchain_supports_rust_thin_lto=false/d' $debian/rules
 fi
 
 if ubuntu_dist jammy noble && $use_libcxx && ! $static_libcxx
@@ -219,6 +221,11 @@ then
 	sed -i '/libtest_trace_processor/s/^/#xtradeb#/' $debian/*chromium-shell.install
 fi
 
+# Temporary fix for 145.0.7632.75-1
+patch=$debian/patches/rust-1.85/jxl-simd-avx512.patch
+! grep -q cfg_attr $patch || error "$patch: edit no longer needed"
+sed -i '/^+.*stdarch/{s/\[/[cfg_attr(target_arch = "x86_64", /;s/]/)]/}' $patch
+
 ##
 ## Patch series modifications
 ##
@@ -310,6 +317,11 @@ then
 fi
 
 new_patch xtradeb/rustfmt-path.patch
+
+if ubuntu_dist questing resolute
+then
+	new_patch xtradeb/swiftshader-llvm-16.patch
+fi
 
 # Disable the loong64 patches, as Ubuntu doesn't support that architecture
 sed -i '/^loongarch64/ s/^/#xd#/' $debian/patches/series
