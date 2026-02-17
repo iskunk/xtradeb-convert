@@ -44,7 +44,9 @@ cat >> $debian/config/mozconfig.in << END
 
 # XtraDeb additions
 %%if DEB_BUILD_ARCH_BITS == 64
+%%if DEB_BUILD_ARCH != riscv64
 ac_add_options --enable-lto=thin
+%%endif
 %%endif
 END
 
@@ -64,7 +66,7 @@ sed -i -r '/filter aarch64 arm/s/(aarch64)/xtradeb-\1/' \
 patch_series_changed=yes
 
 # The armhf builders, however, can't do Rust thin LTO at all
-sed -i 's/lto = "thin"/lto = "off"/' $debian/build/rules.mk
+sed -i 's/lto = "thin"/lto = false/' $debian/build/rules.mk
 
 # Allow unsigned extensions in system dirs
 perl -pi -e '/^ac_add_options --with-unsigned-addon-scopes=app/ && !/system/ and s/$/,system/' \
@@ -100,6 +102,12 @@ ac_add_options --enable-linker=lld-$llvm_version
 %%endif
 END
 
+if ! grep '^LLVM_VERSIONS =' $debian/build/rules.mk | grep -qw $llvm_version
+then
+	sed -i -r "s/^(LLVM_VERSIONS =) */\\1 $llvm_version /" \
+		$debian/build/rules.mk
+fi
+
 if ! grep -Fq "rustc-$rust_version" $debian/control.in
 then
 	sed -i -r 's/^(\s+)(cargo|rustc)-/\1\2-'"$rust_version"' | \2-/' \
@@ -114,7 +122,7 @@ fi
 #   13:03.67 Allocation failed
 #   13:04.07 error: could not compile `firefox-on-glean` (lib)
 #
-sed -i -r 's/^(Architecture): any$/\1: amd64 arm64 ppc64el riscv64 s390x/' \
+sed -i -r 's/^(Architecture): any$/\1: amd64 amd64v3 arm64 ppc64el riscv64 s390x/' \
 	$debian/control.in \
 	$debian/control.langpacks \
 	$debian/control.langpacks.unavail
