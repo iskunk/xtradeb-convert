@@ -52,6 +52,7 @@ set_ubuntu_dist()
 	ubuntu_ver=
 	ubuntu_is_lts=
 	ubuntu_support_end=
+	llvm_version=
 	rust_version=
 
 	dist_span_all=
@@ -60,8 +61,8 @@ set_ubuntu_dist()
 	local in_span_all=false
 	local in_span_lts=false
 
-	local      codename release is_lts support_end rust
-	while read codename release is_lts support_end rust
+	local      codename release is_lts support_end llvm rust
+	while read codename release is_lts support_end llvm rust
 	do
 		grep -Eqx '[a-z]{2,12}' <<< $codename \
 		|| error 'invalid codename in table'
@@ -71,6 +72,8 @@ set_ubuntu_dist()
 		|| error 'invalid is_lts in table'
 		grep -Eqx '[0-9]{4}-[0-9]{2}-[0-9]{2}' <<< $support_end \
 		|| error 'invalid support_end in table'
+		grep -Eqx '[1-9][0-9]' <<< $llvm \
+		|| error 'invalid llvm version in table'
 		grep -Eqx '[1-9]\.[0-9]{2}' <<< $rust \
 		|| error 'invalid rust version in table'
 
@@ -83,6 +86,7 @@ set_ubuntu_dist()
 			ubuntu_ver=$release
 			ubuntu_is_lts=$is_lts
 			ubuntu_support_end=$support_end
+			llvm_version=$llvm
 			rust_version=$rust
 
 			in_span_all=true

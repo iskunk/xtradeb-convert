@@ -4,8 +4,8 @@
 ##   https://en-wp.org/wiki/Ubuntu_version_history#Table_of_versions
 ##   https://packages.ubuntu.com/source/rustc-1
 ##
-#codename	release	is_lts	support_end	rust
-jammy		22.04	true	2027-06-01	1.89
-noble		24.04	true	2029-05-31	1.89
-questing	25.10	false	2026-07-09	1.88
-resolute	26.04	true	2031-05-29	1.91
+#codename	release	is_lts	support_end	llvm	rust
+jammy		22.04	true	2027-06-01	20	1.89
+noble		24.04	true	2029-05-31	20	1.89
+questing	25.10	false	2026-07-09	20	1.88
+resolute	26.04	true	2031-05-29	21	1.91

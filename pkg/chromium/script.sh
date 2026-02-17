@@ -93,16 +93,11 @@ sed -i -r \
 	$debian/rules
 
 llvm_version_orig=19
-llvm_version=$llvm_version_orig
 
 grep -Eq "^\\s+clang-$llvm_version_orig(:\\w+)?,\$" $debian/control \
 || error "original control file does not use clang-$llvm_version_orig"
 
-case $ubuntu_dist in
-	questing | resolute) llvm_version=20 ;;
-esac
-
-if [ $llvm_version != $llvm_version_orig ]
+if [ $llvm_version -ne $llvm_version_orig ]
 then
 	sed -i -r '/(clang|libc\+\+|lld|llvm)/'"s/-$llvm_version_orig/-$llvm_version/" \
 		$debian/control \
