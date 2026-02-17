@@ -1,0 +1,3 @@
+These files are copied from the cdbs package. They originally resided in
+/usr/share/cdbs/1/class/, but were removed from the package in version
+0.4.182. They are needed by the Firefox build in its current state.

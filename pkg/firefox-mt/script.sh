@@ -123,6 +123,20 @@ sed -i -r 's/^(Architecture): any$/\1: amd64 arm64 ppc64el riscv64 s390x/' \
 	$debian/control.langpacks \
 	$debian/control.langpacks.unavail
 
+# The cdbs package dropped the entire /usr/share/cdbs/1/class/ directory
+# in resolute, which breaks the debianization. Bundle a copy of makefile.mk
+# and its dependencies to allow the build to proceed.
+if ubuntu_dist resolute
+then
+	cp -a $resource_dir/cdbs-class $debian/
+	sed -i \
+		-e '1G' \
+		-e '1a # XtraDeb workaround' \
+		-e '1a _cdbs_class_path = $(CURDIR)/debian/cdbs-class' \
+		-e 's!/usr/share/cdbs/1/class/!$(_cdbs_class_path)/!' \
+		$debian/build/rules.mk
+fi
+
 ################################################################
 ##
 ## Modifications to allow building on Ubuntu jammy and later
