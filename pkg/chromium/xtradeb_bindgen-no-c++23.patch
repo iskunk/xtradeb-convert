@@ -16,14 +16,19 @@ passed, with an error message like the following:
 
 Reducing the option to -std=c++20 avoids the problem.
 
+Also address an error due to a different option:
+
+  error: '-ftrivial-auto-var-init=zero' hasn't been enabled; enable it at your own peril for benchmarking purpose only with '-enable-trivial-auto-var-init-zero-knowing-it-will-be-removed-from-clang', err: true
+
 --- a/build/rust/gni_impl/run_bindgen.py
 +++ b/build/rust/gni_impl/run_bindgen.py
-@@ -66,6 +66,9 @@ def main():
+@@ -66,6 +66,10 @@ def main():
        nargs="*")
    args = parser.parse_args()
  
 +  # XtraDeb workaround to avoid libclang breakage
-+  args.clangargs = ['-std=c++20' if arg == '-std=c++23' else arg for arg in args.clangargs]
++  args.clangargs = ['-std=c++20' if arg == '-std=c++23' else arg \
++      for arg in args.clangargs if arg != '-ftrivial-auto-var-init=zero']
 +
    # Abort if `TARGET` exists in the environment. Cargo sets `TARGET` when
    # running build scripts and bindgen will try to be helpful by using that value
