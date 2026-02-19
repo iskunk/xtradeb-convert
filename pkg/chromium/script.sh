@@ -216,11 +216,6 @@ then
 	sed -i '/libtest_trace_processor/s/^/#xtradeb#/' $debian/*chromium-shell.install
 fi
 
-# Temporary fix for 145.0.7632.75-1
-patch=$debian/patches/rust-1.85/jxl-simd-avx512.patch
-! grep -q cfg_attr $patch || error "$patch: edit no longer needed"
-sed -i '/^+.*stdarch/{s/\[/[cfg_attr(target_arch = "x86_64", /;s/]/)]/}' $patch
-
 ##
 ## Patch series modifications
 ##
