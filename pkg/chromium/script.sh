@@ -308,10 +308,7 @@ fi
 
 new_patch xtradeb/rustfmt-path.patch
 
-if ubuntu_dist questing resolute
-then
-	new_patch xtradeb/swiftshader-llvm-16.patch
-fi
+new_patch xtradeb/swiftshader-llvm-16.patch
 
 # Disable the loong64 patches, as Ubuntu doesn't support that architecture
 sed -i '/^loongarch64/ s/^/#xd#/' $debian/patches/series
