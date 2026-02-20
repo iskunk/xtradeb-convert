@@ -101,6 +101,16 @@ cat >> $debian/config/mozconfig.in << END
 ac_add_options --enable-linker=lld-$llvm_version
 %%endif
 END
+cat > $debian/xtradeb.tmp << 'END'
+ifeq (riscv64,$(DEB_BUILD_ARCH))
+max_build_time = 9999
+else
+max_build_time = 1440
+endif
+END
+(cd $debian && sed -i -e '/keepalive-wrapper.py 1440/{r xtradeb.tmp' \
+	-e 'N;s/1440/$(max_build_time)/}' build/rules.mk)
+rm $debian/xtradeb.tmp
 
 if ! grep '^LLVM_VERSIONS =' $debian/build/rules.mk | grep -qw $llvm_version
 then
