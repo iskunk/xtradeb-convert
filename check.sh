@@ -63,6 +63,9 @@ do
 	deb_to_source_name_map[$deb]=$source_name
 done
 
+# Additional XtraDeb PPA for the can-install check
+include_xtradeb_ppa=
+
 for source_name in "${!source_name_set[@]}"
 do
 	unset deb_file_list

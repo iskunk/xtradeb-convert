@@ -305,7 +305,9 @@ check_no_shared_libs()
 
 default_check()
 {
-	$base_dir/util/can-install.sh $ubuntu_dist "$@"
+	$base_dir/util/can-install.sh \
+		${include_xtradeb_ppa:+xtradeb-$include_xtradeb_ppa-}$ubuntu_dist \
+		"$@"
 }
 
 # Can be overridden in script.sh
