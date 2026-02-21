@@ -1,0 +1,16 @@
+Run the test suite as part of the build.
+
+--- a/debian/rules
++++ b/debian/rules
+@@ -55,6 +55,10 @@
+ ## re-build themes
+ 	cd gui/themes && python3 ./scummtheme.py makeall
+ 
++# XtraDeb
++override_dh_auto_test:
++	make test
++
+ override_dh_installchangelogs:
+ 	dh_installchangelogs NEWS.md
+ 
+--
