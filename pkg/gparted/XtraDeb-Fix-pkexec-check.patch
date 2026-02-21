@@ -1,0 +1,28 @@
+Work around this annoyance...
+
+  $ pkexec --version
+  pkexec version 0.105
+
+  $ setpriv --no-new-privs pkexec --version
+  pkexec must be setuid root
+
+...which can cause the configure check to fail, and later lead to this:
+
+  dh_install
+  dh_install: warning: Cannot find (any matches for) "usr/share/polkit-1" (tried in ., debian/tmp)
+  dh_install: warning: gparted-common missing files: usr/share/polkit-1
+  dh_install: error: missing files, aborting
+  make[1]: *** [debian/rules:18: override_dh_install] Error 25
+
+Needed only on jammy.
+
+--- a/configure.ac
++++ b/configure.ac
+@@ -29,6 +29,7 @@ PKEXEC_REQUIRED_VERSION='0.102'
+ AC_MSG_CHECKING([for pkexec >= $PKEXEC_REQUIRED_VERSION])
+ PKEXEC_REQUIRED_INT=`echo "$PKEXEC_REQUIRED_VERSION" | $AWK -F. '{print $1 * 10000 + $2}'`
+ PKEXEC_VERSION_OUTPUT=`pkexec --version 2> /dev/null` ||
++PKEXEC_VERSION_OUTPUT='pkexec version 0.105' ||  # XtraDeb
+ 	AC_MSG_RESULT([not found])
+ if test "x$PKEXEC_VERSION_OUTPUT" != 'x'; then
+ 	PKEXEC_FOUND_VERSION=`echo "$PKEXEC_VERSION_OUTPUT" | head -1 | cut -d' ' -f3`
