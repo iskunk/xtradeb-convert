@@ -1,0 +1,12 @@
+libsonivox-dev is not available on jammy.
+
+--- a/debian/control
++++ b/debian/control
+@@ -30,7 +30,6 @@
+               ,libpng-dev
+               ,libsdl2-dev | libsdl1.2-dev
+               ,libsdl2-net-dev | libsdl-net1.2-dev
+-              ,libsonivox-dev
+               ,libspeechd-dev
+               ,libtheora-dev
+               ,libvorbis-dev
