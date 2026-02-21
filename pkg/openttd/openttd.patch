@@ -1,0 +1,52 @@
+Changes submitted upstream at
+
+  https://salsa.debian.org/openttd-team/openttd/-/merge_requests/5
+
+diff --git a/debian/patches/0002-Disable-redundant-FORTIFY-SOURCE.patch b/debian/patches/0002-Disable-redundant-FORTIFY-SOURCE.patch
+new file mode 100644
+index 00000000..c7a1fa17
+--- /dev/null
++++ b/debian/patches/0002-Disable-redundant-FORTIFY-SOURCE.patch
+@@ -0,0 +1,13 @@
++Debian sets _FORTIFY_SOURCE via dpkg-buildflags(1); the build doesn't need
++to set it again, especially if the value conflicts.
++
++--- a/cmake/CompileFlags.cmake
+++++ b/cmake/CompileFlags.cmake
++@@ -28,7 +28,6 @@ macro(compile_flags)
++     # it does not appear to support the $<> tags.
++     add_compile_options(
++         "$<$<CONFIG:Debug>:-D_DEBUG>"
++-        "$<$<NOT:$<CONFIG:Debug>>:-D_FORTIFY_SOURCE=2>" # FORTIFY_SOURCE should only be used in non-debug builds (requires -O1+)
++     )
++     if(MINGW)
++         add_link_options(
+diff --git a/debian/patches/series b/debian/patches/series
+index 69f8023b..08392a58 100644
+--- a/debian/patches/series
++++ b/debian/patches/series
+@@ -0,0 +1 @@
++0002-Disable-redundant-FORTIFY-SOURCE.patch
+diff --git a/debian/rules b/debian/rules
+index 734f4790..fad0f508 100755
+--- a/debian/rules
++++ b/debian/rules
+@@ -16,8 +16,6 @@ export DEB_LDFLAGS_MAINT_APPEND=-Wl,-as-needed
+ # service that handles untrusted data).
+ export DEB_BUILD_MAINT_OPTIONS=hardening=+all
+ 
+-# Build release
+-CMAKE_CONFIG_ARGUMENTS += -DCMAKE_BUILD_TYPE=RelWithDebInfo
+ # Explicitly mark dependencies as required or disabled, so an issue with
+ # build dependencies does not silently remove a feature or add a
+ # dependency
+@@ -70,6 +68,9 @@ ifneq ($(TOOLS_DIR),)
+ endif
+ 	dh_auto_build
+ 
++override_dh_auto_test:
++	obj-$(DEB_HOST_GNU_TYPE)/openttd_test
++
+ execute_after_dh_install-arch:
+ 	# Prevent installing duplicate license file
+ 	rm debian/openttd/usr/share/doc/openttd/COPYING.md

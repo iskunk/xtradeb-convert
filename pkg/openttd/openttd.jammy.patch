@@ -1,0 +1,30 @@
+Neither g++-12 nor clang-15 is able to compile openttd 15.1. We need a
+newer compiler, and a slightly newer C++ library too.
+
+--- a/debian/control
++++ b/debian/control
+@@ -7,7 +7,7 @@
+  libfluidsynth-dev, libopengl-dev, libharfbuzz-dev,
+  libcurl4-openssl-dev | libcurl-dev,
+  grfcodec, openttd-opengfx,
+- cmake
++ cmake, clang-20, libstdc++-12-dev
+ Standards-Version: 4.7.3
+ Vcs-Browser: https://salsa.debian.org/openttd-team/openttd
+ Vcs-Git: https://salsa.debian.org/openttd-team/openttd.git
+--- a/debian/rules
++++ b/debian/rules
+@@ -2,6 +2,13 @@
+ # -*- makefile -*-
+ # Makefile to build the openttd debian package.
+ 
++# XtraDeb
++export CC  = clang-20
++export CXX = clang++-20
++# Prevent "dwz: ... Unknown debugging section .debug_addr" error
++export DEB_CFLAGS_MAINT_APPEND   = -gdwarf-4
++export DEB_CXXFLAGS_MAINT_APPEND = -gdwarf-4
++
+ include /usr/share/dpkg/architecture.mk
+ 
+ # Use debhelper default for all targets (but some are overridden below).
