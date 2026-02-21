@@ -1,0 +1,15 @@
+https://bugs.debian.org/1122854
+
+(Technically needed only on jammy, as tzdata is already required by the
+system Python interpreter on noble and later)
+
+--- a/debian/control
++++ b/debian/control
+@@ -33,6 +33,7 @@
+ #   ,doxygen
+ ## Needed by tests:
+     ,locales-all
++    ,tzdata
+ #   ,faketime
+ Build-Conflicts: guile-1.8
+ Homepage: https://www.gnucash.org/
