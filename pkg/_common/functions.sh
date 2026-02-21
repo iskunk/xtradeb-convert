@@ -22,9 +22,11 @@ get_resource_name()
 	# that if there is no match below, then the names are the same.
 	case "$name" in
 		firefox-esr) name=firefox ;;
+		flightgear-data) name=flightgear ;;
 		llvm-toolchain-*) name=llvm-toolchain ;;
 		qt6-base) name=qt6 ;;
 		rustc-[1-9].[0-9]*) name=rustc ;;
+		simgear) name=flightgear ;;
 		ungoogled-chromium) name=chromium ;;
 		wxwidgets[3-9].*) name=wxwidgets ;;
 

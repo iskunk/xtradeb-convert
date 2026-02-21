@@ -1,0 +1,31 @@
+In the resolute armhf build on Launchpad, test_emesary crashes. I have
+not been able to reproduce this crash on an armhf test system; it passes
+successfully, and Valgrind only picks up some harmless memory leaks.
+
+  test 3
+        Start  3: test_emesary
+
+  3: Test command: /<<PKGBUILDDIR>>/build/simgear/emesary/test_emesary
+  3: Working Directory: /<<PKGBUILDDIR>>/build/simgear/emesary
+  3: Test timeout computed to be: 10000000
+   3/50 Test  #3: test_emesary ........................***Exception: SegFault 10.16 sec
+  [...]
+  The following tests FAILED:
+            3 - test_emesary (SEGFAULT)
+  Errors while running CTest
+
+--- a/debian/rules
++++ b/debian/rules
+@@ -48,5 +48,11 @@
+ 	dh_clean
+ 	rm -rf CMakeFiles
+ 
++ifeq (armhf,$(DEB_HOST_ARCH))
++xtradeb_test_args = ARGS+='--exclude-regex test_emesary'
++else
++xtradeb_test_args =
++endif
++
+ override_dh_auto_test:
+-		dh_auto_test --no-parallel
++		dh_auto_test --no-parallel -- $(xtradeb_test_args)

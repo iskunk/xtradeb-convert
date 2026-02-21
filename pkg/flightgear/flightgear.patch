@@ -1,0 +1,42 @@
+https://salsa.debian.org/debian/flightgear/-/merge_requests/7
+
+commit f3ff57fa7463314f4a8fd7e55fd6f95b5535e54b
+Author: Daniel Richard G. <skunk@iSKUNK.ORG>
+Date:   Fri Feb 20 02:37:50 2026 -0500
+
+    Fix build/run of the test suite
+
+    Use parallel=N setting (if present) when building the test suite,
+    and ensure that the override_dh_auto_test target is still defined
+    when nocheck is set, or else debhelper will "helpfully" run the
+    test suite for us.
+
+diff --git a/debian/rules b/debian/rules
+index 7b53ffde..eb847e94 100755
+--- a/debian/rules
++++ b/debian/rules
+@@ -34,6 +34,12 @@ ifneq (,$(filter $(DEB_HOST_ARCH), i386))
+ 	export DEB_CXXFLAGS_MAINT_APPEND += -ffloat-store
+ endif
+ 
++ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
++	NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
++else
++	NUMJOBS = 1
++endif
++
+ CMAKE_FLAGS = \
+ 	-DCMAKE_BUILD_TYPE="RelWithDebInfo" \
+ 	-DCMAKE_C_FLAGS="$(CFLAGS)" \
+@@ -68,9 +74,9 @@ execute_after_dh_installdocs:
+ override_dh_installchangelogs:
+ 	dh_installchangelogs ChangeLog
+ 
+-ifeq (,$(filter nocheck, $(DEB_BUILD_OPTIONS) $(DEB_BUILD_PROFILES)))
+ override_dh_auto_test:
+-	cd $(DEFAULT_BUILD_DIRECTORY) && make fgfs_test_suite
++ifeq (,$(filter nocheck, $(DEB_BUILD_OPTIONS) $(DEB_BUILD_PROFILES)))
++	cd $(DEFAULT_BUILD_DIRECTORY) && make -j$(NUMJOBS) fgfs_test_suite
+ 	dh_auto_test --no-parallel
+ endif
+ 
