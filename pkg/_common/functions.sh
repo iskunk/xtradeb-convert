@@ -62,6 +62,7 @@ get_resource_name()
 	# directory (which may or may not be present) under pkg/. Note
 	# that if there is no match below, then the names are the same.
 	case "$name" in
+		0ad-data) name=0ad ;;
 		firefox-esr) name=firefox ;;
 		flightgear-data) name=flightgear ;;
 		llvm-toolchain-*) name=llvm-toolchain ;;
