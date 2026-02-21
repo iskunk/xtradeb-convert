@@ -1,0 +1,14 @@
+Enable running tests on non-amd64, but don't let them fail the build.
+
+--- a/debian/rules
++++ b/debian/rules
+@@ -59,6 +59,9 @@ override_dh_auto_test:
+ 	# Also avoid running tests on non-amd64 due to testsuite flakiness.
+ ifeq (amd64, $(DEB_HOST_ARCH))
+ 	cd binaries/system/ && LD_LIBRARY_PATH=. ./test
++else
++	cd binaries/system/ && LD_LIBRARY_PATH=. ./test \
++	|| echo 'XtraDeb: test suite failed'
+ endif
+ 
+ override_dh_auto_install:
