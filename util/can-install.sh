@@ -60,6 +60,42 @@ Signed-By:
  +2FGi8kHKqg=
  =3I/o
  -----END PGP PUBLIC KEY BLOCK-----
+
+# TEMPORARY ADDITION FOR TESTING
+Types: deb
+URIs: http://ppa.launchpadcontent.net/slugcat/test-tmp/ubuntu
+Suites: $suite
+Components: main
+Signed-By:
+ -----BEGIN PGP PUBLIC KEY BLOCK-----
+ Version: Hockeypuck 2.2
+ .
+ xsFNBGk4xiMBEADSbfJNul7irmxfs5wNuHDk7CUkm8JmK8/JxbW+djA7yer6QuQJ
+ 9qNAAipGLCktBnxpL1DwwYPZlwLeRPm0Xiw+O0Kp3DoP9rXKmzr7e//BV0PR5DJT
+ 41x0NIIZoIDLv+sCdquL+q3y3NQRnNXKJ4+dihNEwSx+L1KmGowT6gWDvPR4FYep
+ V5hEsHdE0Y+Pjgb1be5foKGYZOqv/nzPqWoocybJKQtiGL9gcEqj81mSM9KvpuuB
+ 81qM/wELpo8WqBgpf634XVxtRiK2kiRs9h8x4VGluCqT9/ABFtjcfNnpMV7apCVJ
+ xh3a3k3sOCr4HXIGVF2RD4mqERvVcDtQs6HDd/3rRHvyhLTX2AK1FIMy5XJ1YzLx
+ G2IHoEuBSDzfEvbGbZnao8qSlnqqbzZopjsZcYG4JD/EEamLD3K1c9xFWDrcRm9p
+ wY2XKmUKyHl+zK81sfM5i2UjfC1eC2xPi8D6psOE38BqUxmFi1NSIi9YVefkoXyR
+ DFeHUJtkAAku2ibSFKtwBEzAVg/5F8FRARxQcbY1E0iX8fNLKZKPxNVZrEEyN9Ka
+ uiGQVXlkYpLOvWMAgPNQoYwciB6nkb69G9IZneUTZsjCjDqFCIl1nI5MvBEmgQOL
+ fgPFogGElFIj/7+h/V62S30bj+T4WllNzMT/rMY858nJIfWMVkgPilpiGwARAQAB
+ zRlMYXVuY2hwYWQgUFBBIGZvciBSaXZ1bGV0wsGOBBMBCgA4FiEEw2gVKEIbmQkK
+ dts39WQJeJ8MJ/0FAmk4xiMCGwMFCwkIBwIGFQoJCAsCBBYCAwECHgECF4AACgkQ
+ 9WQJeJ8MJ/3RGg//RCQ90Zy13EVS1qwthQ/krj5iZ8t6g4XfXrO0GYviBMjcbSfK
+ XoA4r1Sh9VXLUilYsXhsT6e9ep9on7qBa8rzpIxOsvhHnUGeRFuU0SUoqRQsht/4
+ 4uGUmXWKw7AVGg+Soa/i/P7OV900K54HrxljIFeU943umeJNVKtLdY8RNde37ppY
+ f/PKagd8da+7tcNXr1ZKdwLX957PhwwxAmQj+3UlAz+esqANMdR8M0Jlp06UL1n4
+ /8HikJ3E0SpCtR6etZSsBlplKUIbWxLHYeM3ZuJWP0UlDgNHfeuYnic2I/dOD9yW
+ l5g3Ewun+V8LfzAKCGRn0LywO+LlGpD8zntJsPC3DcvPw/l0kK5h3Wnk4WJJvhOs
+ Ex0tThsJuXMl7GlvWExMpEQy5NJZIFF018DYu6pFXVOs7cmgw83OIhLTu7gdPGrD
+ qrKrUToAHKfD0Icvs1Oy6mq5McSHz92bkULBUaZCqlt0yqCF454Ji1GP/oqJlDG2
+ BxyEYt71fE8z8F8388Ug9Ov8O+hi4psf83ZVxKCbSDaqZdBGUwLZSVpvO8YUKUK6
+ aIk+fGoqdX3DPRV/+BbL75f8ZNU3ag5pAB1671tHT4jJ5Ab8yJZBhPvrYHiHF/TY
+ g1rUoZNZ2P8pOgiwb2wXxUeUEExiUA3dW3vBIVtuF9GJidqECT7Y+tbuk+s=
+ =xUww
+ -----END PGP PUBLIC KEY BLOCK-----
 END
 }
 
@@ -145,6 +181,11 @@ then
 Package: *
 Pin: release o=LP-PPA-xtradeb-*
 Pin-Priority: 990
+
+# TEMPORARY
+Package: *
+Pin: release o=LP-PPA-slugcat-*
+Pin-Priority: 991
 END
 
 	# Don't need Translation-xx files
