@@ -1,0 +1,22 @@
+Downgrade a couple of build dependencies for jammy.
+
+--- a/debian/control
++++ b/debian/control
+@@ -9,7 +9,7 @@
+  debhelper-compat (= 13),
+  dh-python,
+  dh-sequence-python3,
+- dpkg-dev (>= 1.22.5),
++ dpkg-dev (>= 1.21.1),
+  intltool,
+  libargon2-dev,
+  libcurl4-gnutls-dev,
+@@ -20,7 +20,7 @@
+  libsearpc-dev (>= 3.2.0),
+  libsqlite3-dev,
+  libtool,
+- libwebsockets-dev (>= 4.3.0),
++ libwebsockets-dev (>= 4.0.20),
+  uuid-dev,
+  valac,
+ Build-Depends-Indep: python3-all,
