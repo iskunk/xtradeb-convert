@@ -70,6 +70,7 @@ get_resource_name()
 		rustc-[1-9].[0-9]*) name=rustc ;;
 		simgear) name=flightgear ;;
 		ungoogled-chromium) name=chromium ;;
+		wesnoth-[1-9].[0-9]*) name=wesnoth ;;
 		wxwidgets[3-9].*) name=wxwidgets ;;
 
 		firefox)
