@@ -1,0 +1,31 @@
+Dependency tweaks to build SuperTuxKart on jammy.
+
+--- a/debian/control
++++ b/debian/control
+@@ -7,7 +7,7 @@
+  angelscript-dev,
+  cmake,
+  debhelper-compat (= 13),
+- glslang-dev (>= 12.0.0),
++ glslang-dev (>= 11.8.0),
+  libalut-dev,
+  libbluetooth-dev [linux-any],
+  libcurl4-gnutls-dev | libcurl4-dev,
+@@ -22,7 +22,6 @@
+  libopenal-dev,
+  libpng-dev,
+  libsdl2-dev,
+- libshaderc-dev,
+  libsimde-dev,
+  libsqlite3-dev,
+  libsquish-dev,
+--- a/debian/rules
++++ b/debian/rules
+@@ -26,6 +26,7 @@
+ 	                     -DSTK_INSTALL_DATA_DIR="share/games/supertuxkart" \
+ 	                     -DUSE_CRYPTO_OPENSSL=OFF \
+ 	                     -DUSE_SYSTEM_ANGELSCRIPT=ON \
++			-DNO_SHADERC=ON \
+ 	                     -DBUILD_RECORDER=0; \
+ 	else \
+ 	dh_auto_configure -- -DCMAKE_BUILD_TYPE="STKRelease" \
