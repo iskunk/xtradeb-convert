@@ -1,0 +1,13 @@
+Neutralize the _assert_pip_check() function so that we can use an older
+version of Python for the build.
+
+--- a/python/mach/mach/site.py
++++ b/python/mach/mach/site.py
+@@ -1366,6 +1366,7 @@ def _assert_pip_check(pthfile_lines, vir
+     If requirements aren't provided (such as when Mach is using SYSTEM, but the command
+     site is using VENV), then skip the "pthfile satisfies requirements" step.
+     """
++    return  # XtraDeb
+     if os.environ.get(
+         f"MACH_SYSTEM_ASSERTED_COMPATIBLE_WITH_{virtualenv_name.upper()}_SITE", None
+     ):
