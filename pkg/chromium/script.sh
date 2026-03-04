@@ -216,6 +216,23 @@ then
 	sed -i '/libtest_trace_processor/s/^/#xtradeb#/' $debian/*chromium-shell.install
 fi
 
+if ubuntu_dist noble
+then
+	# https://github.com/llvm/llvm-project/issues/131394
+	cat > $debian/xtradeb.tmp << 'END'
+ifeq (ppc64el,$(DEB_HOST_ARCH))
+# Avoid "Undefined temporary symbol .L_MergedGlobals.*" link errors
+export CXXFLAGS += -mllvm -enable-global-merge=FALSE
+export LDFLAGS += -Wl,-mllvm,-enable-global-merge=FALSE
+endif
+
+END
+	(cd $debian && sed -i \
+		-e '/^# disable clang plugins/{r xtradeb.tmp' -e 'N}' \
+		rules)
+	rm $debian/xtradeb.tmp
+fi
+
 ##
 ## Patch series modifications
 ##
