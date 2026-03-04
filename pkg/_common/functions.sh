@@ -63,6 +63,7 @@ get_resource_name()
 	# that if there is no match below, then the names are the same.
 	case "$name" in
 		0ad-data) name=0ad ;;
+		betterbird) name=thunderbird ;;
 		firefox-esr) name=firefox ;;
 		flightgear-data) name=flightgear ;;
 		llvm-toolchain-*) name=llvm-toolchain ;;
