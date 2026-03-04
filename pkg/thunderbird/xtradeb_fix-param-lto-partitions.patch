@@ -7,7 +7,7 @@ containing a space)
 
 --- a/security/sandbox/linux/moz.build
 +++ b/security/sandbox/linux/moz.build
-@@ -117,7 +117,7 @@ if CONFIG["CC_TYPE"] in ("clang", "gcc")
+@@ -112,7 +112,7 @@ if CONFIG["CC_TYPE"] in ("clang", "gcc")
  # forcing there to be only one partition.
  for f in CONFIG["OS_CXXFLAGS"]:
      if f.startswith("-flto") and CONFIG["CC_TYPE"] != "clang":
