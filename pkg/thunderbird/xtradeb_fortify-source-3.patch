@@ -6,7 +6,7 @@ messages during the build.
 
 --- a/build/moz.configure/toolchain.configure
 +++ b/build/moz.configure/toolchain.configure
-@@ -2681,7 +2681,7 @@ def security_hardening_cflags(
+@@ -2708,7 +2708,7 @@ def security_hardening_cflags(
          # Also, undefine it before defining it just in case a distro adds it, see Bug 1418398
          if compiler_is_gccish and optimize and not asan:
              flags.append("-U_FORTIFY_SOURCE")
