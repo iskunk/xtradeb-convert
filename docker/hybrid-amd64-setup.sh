@@ -107,18 +107,6 @@ run_cmd apt-get --error-on=any update
 #
 run_cmd apt-get -y install ed:amd64
 
-# TEMPORARY 2023-11: Some massaging is needed on riscv64 due to
-# package versions not matching those on amd64
-#
-if [ $arch = riscv64 ]
-then
-	script_dir=$(realpath $(dirname $0))
-	(cd /tmp && run_cmd $script_dir/hybrid-match-versions.sh \
-		libacl1 libattr1 libffi8 libmd0 libselinux1 libxml2 libz3-4)
-
-	(cd /tmp && run_cmd apt-get -y install ./*_fixed.deb)
-fi
-
 # Replace some essential packages
 
 essential_pkgs=$(echo \

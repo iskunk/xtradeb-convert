@@ -8,7 +8,9 @@ RUN perl -pi \
     -e 's!archive.ubuntu.com/(ubuntu)!<APT>/$1!;' \
     -e 's!security.ubuntu.com/(ubuntu)!<APT>/$1-security! if 0;' \
     -e 's!ports.ubuntu.com/(ubuntu-ports)!<APT>/$1!;' \
-    -e "s!<APT>!$APT_MIRROR!" \
+    -e "s!<APT>!$APT_MIRROR!;" \
+    -e 's!^# (deb-src) !$1 !;' \
+    -e 's!^(Types: deb)$!$1 deb-src!' \
     /etc/apt/sources.list \
     /etc/apt/sources.list.d/*.sources
 
@@ -23,6 +25,7 @@ RUN apt-get update && apt-get -y install whiptail \
     devscripts \
     dpkg-dev \
     equivs \
+    git \
     less \
     nano \
     netcat-openbsd \
@@ -33,11 +36,9 @@ RUN apt-get update && apt-get -y install whiptail \
     quilt \
     rsync \
     time \
+    tree \
     tzdata \
     wget
-
-ADD hybrid-amd64-setup.sh hybrid-match-versions.sh /tmp/
-RUN /tmp/hybrid-amd64-setup.sh && rm /tmp/hybrid-*.sh
 
 RUN perl -pi -e 's/^#?(DIR_MODE)=.*/$1=755/' /etc/adduser.conf \
     && adduser \
@@ -47,15 +48,7 @@ RUN perl -pi -e 's/^#?(DIR_MODE)=.*/$1=755/' /etc/adduser.conf \
     --disabled-password \
     build
 
-RUN test -f /etc/ccache.conf && exit 1; \
-    (echo 'cache_dir = /external/ccache'; \
-     echo 'compiler_check = %compiler% -v'; \
-     echo 'inode_cache = false'; \
-     echo 'max_size = 20G'; \
-     echo '# Workaround for https://github.com/ninja-build/ninja/issues/1330'; \
-     echo 'path = /usr/bin'; \
-     echo 'sloppiness = include_file_ctime, include_file_mtime, locale, time_macros'; \
-     echo 'temporary_dir = /external/tmp') > /etc/ccache.conf
+RUN --mount=type=bind,source=.,target=/mnt /mnt/setup.sh
 
 ENV LANG=C.UTF-8 LC_COLLATE=C SHELL=/bin/bash
 

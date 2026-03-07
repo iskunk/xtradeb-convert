@@ -37,7 +37,7 @@ endif
 endif
 
 ifneq "$(ARCH)" ""
-ifeq "$(filter amd64 arm64 armhf i386 ppc64el riscv64 s390x, $(ARCH))" ""
+ifeq "$(filter amd64 arm64 armhf i386 loong64 ppc64el riscv64 s390x, $(ARCH))" ""
 $(error invalid architecture "$(ARCH)")
 endif
 endif
@@ -73,8 +73,9 @@ run: $(build_stamp)
 			--env=APT_MIRROR=$(APT_MIRROR) \
 			--name=$(CONTAINER) \
 			--hostname=$(CONTAINER) \
-			--pids-limit -1 \
-			--user root \
+			--network=host \
+			--pids-limit=-1 \
+			--user=root \
 			--cap-add=SYS_PTRACE \
 			$(VOL_MOUNTS) \
 			$(IMAGE); \
@@ -82,12 +83,10 @@ run: $(build_stamp)
 
 build: $(build_stamp)
 
-$(build_stamp): Dockerfile
+$(build_stamp): Dockerfile hybrid-amd64-setup.sh setup.sh
 	rm -rf $(CTX)
 	mkdir $(CTX)
-	cp -p $< $(CTX)
-	cp -p hybrid-*.sh $(CTX)
-	touch $(CTX)/dummy
+	cp -p $^ $(CTX)/
 	TMPDIR=$(CTX) docker build $(platform_opt) \
 		--build-arg DISTRO_RELEASE=$(DISTRO):$(RELEASE) \
 		$(if $(APT_MIRROR),--build-arg APT_MIRROR=$(APT_MIRROR)) \
@@ -102,6 +101,7 @@ $(build_stamp): Dockerfile
 clean:
 	-docker image rm $(IMAGE)
 	rm -f $(build_stamp)
+	-chmod -R u+rw $(CTX)
 	rm -rf $(CTX)
 
 .PHONY: run build clean
