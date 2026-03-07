@@ -14,16 +14,15 @@ xd_convert() {
 # runtime. Newer Ubuntu releases already have a recent enough harfbuzz
 # package to avoid needing this script.
 
-ubuntu_dist jammy || not_applicable 'this script is needed only for jammy'
+ubuntu_dist jammy || not_applicable 'this conversion is needed only for jammy'
 
-echo \
-	"NOTE: This package has been modified to provide static" \
-	"libraries only, and support for GObject introspection and" \
-	"chafa rendering have been disabled.  It is intended solely" \
-	"for use as a build dependency." \
->> $changelog_add_file
+(tr '\n' ' ' << END; echo) | sed 's/ $//' >> $changelog_add_file
+NOTE: This package has been modified to provide static libraries only,
+and support for GObject introspection and chafa rendering has been
+disabled.  It is intended solely for use as a build dependency.
+END
 
-# There are two main changes that need to be made:
+# There are three main changes that need to be made:
 #
 # 1. Build harfbuzz as static libraries rather than shared, so that
 #    Chromium can consume it without gaining new shared-library
@@ -33,30 +32,32 @@ echo \
 # 2. Disable GObject introspection, as this is only supported in a
 #    shared-library build.
 #
-# We also disable "chafa" functionality, as newer harfbuzz releases
-# require a version that is not available in jammy, and what this
-# provides is superfluous for our needs.
+# 3. Disable "chafa" functionality, as newer harfbuzz releases require
+#    a version that is not available in jammy, and what this provides
+#    is superfluous for our needs.
 #
 
 # Remove build dependencies on introspection stuff and libchafa
 sed -ri \
-	-e '/^\s+dh-sequence-gir,$/d' \
-	-e '/^\s+gir[0-9.]+-\S+-dev,$/d' \
-	-e '/^\s+libchafa-dev,$/d' \
-	-e '/^\s+libgirepository[0-9.]+-dev,$/d' \
+	-e '/^\s+dh-sequence-gir,$/ d' \
+	-e '/^\s+gir[0-9.]+-\S+-dev,$/ d' \
+	-e '/^\s+gobject-introspection .+,$/ d' \
+	-e '/^\s+libchafa-dev,$/ d' \
+	-e '/^\s+libgirepository[0-9.]+-dev,$/ d' \
 	$debian/control
 
 # Remove all runtime library package definitions, as they are not
 # needed when only static libraries are used
 zap_control_package 'gir[\d.]+-harfbuzz-[\d.]+'	$debian/control
 zap_control_package 'libharfbuzz\d+b'		$debian/control
+zap_control_package 'libharfbuzz\d+-udeb'	$debian/control
 zap_control_package 'libharfbuzz-cairo\d+'	$debian/control
 zap_control_package 'libharfbuzz-gobject\d+'	$debian/control
 zap_control_package 'libharfbuzz-icu\d+'	$debian/control
 zap_control_package 'libharfbuzz-subset\d+'	$debian/control
 
-# Add build options to prefer static libraries, disable introspection,
-# and disable chafa support
+# Add build options to prefer static libraries, disable GObject
+# introspection, and disable chafa support
 perl -pi \
 	-e 'if (/^\s+dh_auto_configure\b/) {' \
 	-e '  /chafa=disabled/ or s/$/ -Dchafa=disabled/;' \
@@ -64,11 +65,39 @@ perl -pi \
 	-e '}' \
 	$debian/rules
 
+# Drop GObject introspection dpkg variable references
+sed -ri '/\$\{gir:(Depends|Provides)\}/ d' $debian/control
+
+# Some package builds link to HarfBuzz using a solitary "-lharfbuzz"
+# instead of querying pkg-config for the full set of flags. This is OK
+# for a shared library, but a static one will lack a reference to its
+# libgraphite2 transitive dependency, and thus the link fails with
+# missing graphite2 symbols. Rather than hack in a -lgraphite2 flag into
+# every offending build, we replace libharfbuzz.a with a linker script
+# that effectively adds that dependency under the covers.
+#
+# Reference for linker scripts:
+# https://sourceware.org/binutils/docs/ld/File-Commands.html
+cat > $debian/xtradeb.tmp << 'END'
+
+# XtraDeb: Use linker script to include libgraphite2 dependency
+# when linking the static -lharfbuzz in isolation
+	cd debian/tmp/usr/lib/$(DEB_HOST_MULTIARCH) \
+	&& mv libharfbuzz.a libharfbuzz.real.a \
+	&& (echo '/* GNU ld script'; \
+	    echo ' */'; \
+	    echo 'INPUT ( -lharfbuzz.real -lgraphite2 )' \
+	   ) > libharfbuzz.a \
+	&& perl -pi -e 's/( -lharfbuzz)(?!\S)/$$1.real/g' pkgconfig/*.pc
+END
+(cd $debian && sed -i '/dh_auto_install .* build-main/ r xtradeb.tmp' rules)
+rm $debian/xtradeb.tmp
+
 # Replace references to shared libraries with static equivalents, and
 # remove references to GObject introspection files
 perl -pi \
 	-e 's/\.so(\.\*(\[0-9\])?)?/.a/;' \
-	-e 'm!^usr/share/gir-! and $_=""' \
+	-e 'm!^usr/share/gir-! and s/^/#xtradeb#/' \
 	$debian/libharfbuzz-dev.install
 
 } # xd_convert()
@@ -76,6 +105,22 @@ perl -pi \
 ################################################################
 
 xd_check() {
+
+for deb in "$@"
+do
+	case "./$deb" in
+		*/libharfbuzz-bin_*) ;;
+		*/libharfbuzz-doc_*) ;;
+
+		*/libharfbuzz-dev_*)
+		contents=$(dpkg-deb -c "$deb")
+		grep -q '/libharfbuzz\.real\.a$' <<< $contents \
+		|| error 'libharfbuzz-dev package is missing libharfbuzz.real.a'
+		;;
+
+		*) error "extraneous binary package: $deb" ;;
+	esac
+done
 
 check_no_shared_libs "$@"
 
