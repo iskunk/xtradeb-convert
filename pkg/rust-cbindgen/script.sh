@@ -7,46 +7,45 @@
 
 xd_convert() {
 
-ubuntu_dist jammy noble || not_applicable
-
-################################################################
-##
-## Modifications to allow building on Ubuntu jammy and later
-##
-################################################################
-
 # Remove all dependencies on Rust crate packages, as most of them are not
 # available in the release we are targeting.
-sed -i -r '/^ +librust-/d' $debian/control
+sed -ri '/^\s+librust-/ d' $debian/control
+
+if ubuntu_dist jammy
+then
+	# On jammy, this has to be specified as "dh-cargo"
+	sed -ri '/^\s+dh-sequence-cargo,/ s/-sequence-/-/' $debian/control
+
+	# "dpkg-source: warning: unknown information field
+	# 'Static-Built-Using' in input data in package's
+	# section of control info file"
+	sed -i '/^Static-Built-Using:/ d' $debian/control
+fi
 
 # Don't build the librust-cbindgen development packages, because we don't
-# need them, and they will have usage-time dependencies on Rust crate
+# need them, and they will have install-time dependencies on Rust crate
 # packages that aren't available anyway.
-sed -i -r '/^Package: librust-cbindgen(\+clap)?-dev/,/^$/d' \
-	$debian/control
+zap_control_package 'librust-cbindgen(\+clap)?-dev' $debian/control
 
-cat >> $debian/xtradeb.tmp << 'END'
-
-# Added by XtraDeb
-override_dh_auto_configure:
-	test -d vendor
-	mkdir debian/cargo_registry
-	cd debian/cargo_registry && ln -s ../../vendor/* .
-	dh_auto_configure -- --buildsystem cargo
-END
-(cd $debian && \
-	sed -i '/dh \$@ --buildsystem cargo/ r xtradeb.tmp' rules)
-rm $debian/xtradeb.tmp
-
-# Add rules to generate a vendor source tree and tarball. These will be
-# used to provide cbindgen's build dependencies instead of distro-packaged
-# Rust crates. (Note that the vendor tarball is reproducible for a given
-# version of the rust-cbindgen source package)
+# Add rules to generate (and consume) a vendor source tree and tarball.
+# These will provide cbindgen's build dependencies instead of
+# distro-packaged Rust crates. (Note that the vendor tarball is
+# reproducible for a given version of the rust-cbindgen source package)
 cat >> $debian/rules << 'END'
 
 #
 # Added by XtraDeb
 #
+
+override_dh_auto_configure:
+	@if [ ! -d vendor ]; then \
+		echo 'Error: No vendor source directory found!'; \
+		echo 'Is the orig-vendor tarball generated and present?'; \
+		exit 1; \
+	fi
+	mkdir debian/cargo_registry
+	cd debian/cargo_registry && ln -s ../../vendor/* .
+	dh_auto_configure -- --buildsystem cargo
 
 CARGO ?= cargo
 
