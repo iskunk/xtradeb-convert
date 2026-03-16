@@ -1,0 +1,13 @@
+On noble, gtkmm 4.11.* is not available, only 4.10.0.
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -53,7 +53,7 @@ set(FMT_MINIMUM 8.0.1)
+ set(GIOMM_MINIMUM 2.26.0)
+ set(GLIBMM_MINIMUM 2.60.0)
+ set(GTKMM3_MINIMUM 3.24.0)
+-set(GTKMM4_MINIMUM 4.11.1)
++set(GTKMM4_MINIMUM 4.10.0)
+ set(OPENSSL_MINIMUM 1.1.0)
+ set(MBEDTLS_MINIMUM 2.7)
+ set(MINIUPNPC_MINIMUM 2.2.1)
