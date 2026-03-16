@@ -1,0 +1,15 @@
+The build doesn't need Autoconf 2.72 (on jammy and noble).
+
+This patch applies to ICU 78.2.
+
+--- a/source/configure.ac
++++ b/source/configure.ac
+@@ -8,7 +8,7 @@ AC_COPYRIGHT([ Copyright (C) 2016 and la
+ 
+ # Check for minimum autoconf version. Use exactly this version when rebuilding
+ # 'aclocal.m4' and 'configure' for merging upstream, to avoid spurious diffs.
+-AC_PREREQ([2.72])
++AC_PREREQ([2.71])
+ 
+ # Process this file with autoreconf to produce a configure script
+ AC_INIT([ICU],
