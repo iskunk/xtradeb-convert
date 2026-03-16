@@ -1,0 +1,29 @@
+On jammy, freefilesync needs a slight dependency downgrade and a somewhat
+newer C++ compiler to build.
+
+--- a/debian/control
++++ b/debian/control
+@@ -3,8 +3,9 @@ Section: utils
+ Priority: optional
+ Maintainer: Fab Stz <fabstz-it@yahoo.fr>
+ Build-Depends: debhelper-compat (= 13),
++               g++-12,
+                imagemagick,
+-               libcurl4-openssl-dev (>= 7.84),
++               libcurl4-openssl-dev (>= 7.81),
+                libgtk-3-dev,
+                libselinux1-dev,
+                libssh2-1-dev (>= 1.10),
+--- a/debian/rules
++++ b/debian/rules
+@@ -5,6 +5,10 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+ #export DEB_CFLAGS_MAINT_APPEND  = -Wall -pedantic
+ #export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+ 
++# XtraDeb
++export CC  = gcc-12
++export CXX = g++-12
++
+ DPKG_EXPORT_BUILDFLAGS = 1
+ include /usr/share/dpkg/buildflags.mk
+ 
