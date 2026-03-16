@@ -1,0 +1,33 @@
+The version of Vala in noble does not have these Regex***Flags.DEFAULT enums.
+
+--- a/src/db/DatabaseTable.vala
++++ b/src/db/DatabaseTable.vala
+@@ -57,7 +57,7 @@ public abstract class DatabaseTable {
+             re = regex_map[pattern];
+         } else {
+             try {
+-                re = new Regex(pattern, RegexCompileFlags.DEFAULT, RegexMatchFlags.DEFAULT);
++                re = new Regex(pattern, 0, 0);
+                 regex_map[pattern] = re;
+             } catch (Error err) {
+                 context.result_error("Invalid pattern: %s".printf(err.message), Sqlite.ERROR);
+@@ -66,7 +66,7 @@ public abstract class DatabaseTable {
+         }
+ 
+         try {
+-            var result = re.replace(text, -1, 0, replacement, RegexMatchFlags.DEFAULT);
++            var result = re.replace(text, -1, 0, replacement, 0);
+             context.result_text(result);
+         } catch (Error err) {
+             context.result_error("Replacement failed: %s".printf(err.message), Sqlite.ERROR);
+--- a/src/photos/PhotoMetadata.vala
++++ b/src/photos/PhotoMetadata.vala
+@@ -1046,7 +1046,7 @@ public class PhotoMetadata : MediaMetada
+         var comment = get_first_string_interpreted (COMMENT_TAGS);
+         try {
+             var re = new Regex("^charset=\\w+\\s*");
+-            return re.replace(comment, -1, 0, "", RegexMatchFlags.DEFAULT);
++            return re.replace(comment, -1, 0, "", 0);
+         } catch (Error err) {
+             return comment;
+         }
