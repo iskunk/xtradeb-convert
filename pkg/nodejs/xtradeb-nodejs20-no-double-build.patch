@@ -1,0 +1,20 @@
+Problem: When the build runs "make install", everything gets recompiled.
+
+Explanation: The "install" target depends on "all", which depends on
+$(NODE_EXE) (i.e. "node"). The $(NODE_EXE) target is declared as .PHONY
+for reasons (see comments in the makefile). It then hands off to
+out/Makefile, and...  >_<
+
+Solution: Just do the install, nothing more.
+
+--- a/Makefile
++++ b/Makefile
+@@ -187,7 +187,7 @@ config.gypi: configure configure.py src/
+ 	fi
+ 
+ .PHONY: install
+-install: all ## Installs node into $PREFIX (default=/usr/local).
++install:
+ 	$(PYTHON) tools/install.py $@ --dest-dir '$(DESTDIR)' --prefix '$(PREFIX)'
+ 
+ .PHONY: uninstall
