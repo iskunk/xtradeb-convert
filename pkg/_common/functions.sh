@@ -83,10 +83,6 @@ get_resource_name()
 			*~mt[1-9]) name=firefox-mt ;;
 		esac
 		;;
-
-		node-cjs-module-lexer | node-undici | pkg-js-tools)
-		name=nodejs
-		;;
 	esac
 
 	echo "$name"
