@@ -1,0 +1,26 @@
+Fix for https://crbug.com/456218403
+
+Submitted upstream at https://crrev.com/c/7701235
+
+  FAILED: [code=1] obj/sandbox/linux/seccomp_bpf/baseline_policy.o
+  [...]
+  In file included from ../../sandbox/linux/seccomp-bpf-helpers/baseline_policy.cc:22:
+  In file included from ../../sandbox/linux/services/syscall_wrappers.h:8:
+  In file included from /usr/include/signal.h:58:
+  /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h:219:3: error: expected identifier
+    219 |   SYS_SECCOMP = 1,              /* Seccomp triggered.  */
+        |   ^
+  ../../sandbox/linux/system_headers/linux_seccomp.h:227:39: note: expanded from macro 'SYS_SECCOMP'
+    227 | #define SYS_SECCOMP                   1
+        |                                       ^
+
+--- a/sandbox/linux/system_headers/linux_seccomp.h
++++ b/sandbox/linux/system_headers/linux_seccomp.h
+@@ -5,6 +5,7 @@
+ #ifndef SANDBOX_LINUX_SYSTEM_HEADERS_LINUX_SECCOMP_H_
+ #define SANDBOX_LINUX_SYSTEM_HEADERS_LINUX_SECCOMP_H_
+ 
++#include <signal.h>
+ #include <stdint.h>
+ #include <sys/ioctl.h>
+ 

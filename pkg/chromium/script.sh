@@ -325,6 +325,11 @@ fi
 
 new_patch xtradeb/rustfmt-path.patch
 
+if ubuntu_dist resolute
+then
+	new_patch xtradeb/seccomp-conflict.patch
+fi
+
 new_patch xtradeb/swiftshader-llvm-16.patch
 
 # Disable the loong64 patches, as Ubuntu doesn't support that architecture
