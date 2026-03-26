@@ -19,11 +19,8 @@ head -n1 $debian/changelog \
 | grep -Pq '.-0ubuntu0\.\d\d\.\d\d\.1~mt\d\) ' \
 || error "$debian: not a Mozilla Team PPA firefox source package debian/ subdirectory"
 
-################################################################
-
-# https://wiki.mozilla.org/Distribution_INI_File
-
 # Add Ubuntu and XtraDeb bookmarks
+# Reference: https://wiki.mozilla.org/Distribution_INI_File
 cat >>$debian/distribution.ini <<END
 
 [BookmarksToolbar]
@@ -39,16 +36,8 @@ item.2.icon=https://xtradeb.net/favicon.ico
 item.2.iconData=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACkUlEQVQ4jY2TX2jNYRjHP8/7vme//TlYOgodMhobWtyQuxOZ3Yhku3Eh1ERKSlyQCFdEiIiliIZyoYgVm1JbQtr2syQzjSaMcHZ2/vze93Ux/yLyvXl6+n6/z/P0rQf+A5dBA3RCVTd0hND+BCoBzB/ienT9O0TaiNILqQ0CtjpPWa6IlmfXSIyB+Rr4CJuAzX8MaLiC/dHEWG0CFuNg2DK5qJST6Qw5BS4HHQDyq9nvZrwrY5kzdEaPidkBrirFZ+v5II6kGk//xy5aC4MUEtU8ibdwwXgQUmhpI7Kl7NIlbFAWqOKI66XWlvAq3sJgZj1zcewsn0iDSTLWRpSl63j/4wJ/jKpomC5ThNgCfdqzRLbx/DsfHWKp3sKtoRSrYiU0KUFyjlBlapmUraNx+BFzlSbEoJ3joGzjuW8kBpA+zhwf8VmEfPwuZ/OeDuvBCk3KCeeUYpPtY130hmZXYIiI+x6EU0SdZayxl7iYbWO2/5ZZzHDeCrvG3OSwAaoLjoeiqPBphryngB0R7gHZWElKvaPaaaYJeA/SfZ1BB28BlHM0GkGrgDOmghodUE7AHAE/U5BxlWxnKqdVwAKfwgh4YIOGoz0w/WeIJ5gaDRGaGLGoQGjy1MkOBgBeTKE4UUUoir3hDZ6WQ4uCeA7aFSAelGykVzzNxNBmNDW2mGMhxPuTlFT0kZU8+3yeA3HN1QDiHvDQZEbqCHSenVYo1oZMrp92C9e/vKK4G1723mHGlHkkEtUMvO+h1Vru10DTvx6oqAsevgX/GnwIfmAGbdl60pkVPM3UMh9A/W70IK0pTAPkDez/BD2foD+C5tIkb0hi9Sy0C5j+1+2/4h6MegATdoPKLGJldi23/SmWf+e/AvzuCKinXVlBAAAAAElFTkSuQmCC
 END
 
-# Use thin LTO (on 64-bit builders) for better performance
-cat >> $debian/config/mozconfig.in << END
-
-# XtraDeb additions
-%%if DEB_BUILD_ARCH_BITS == 64
-%%if DEB_BUILD_ARCH != riscv64
-ac_add_options --enable-lto=thin
-%%endif
-%%endif
-END
+# Note: Modify "control.in", not "control". The latter will be regenerated
+# after changes to the former are complete.
 
 # Enable ALSA support
 x=$debian/../toolkit/moz.configure
@@ -58,26 +47,9 @@ cat >> $debian/config/mozconfig.in << END
 ac_add_options --enable-alsa
 END
 
-# Don't reduce LTO strength on arm64; the builders can handle it
-sed -i -r '/filter arm64 armhf/s/(arm64)/xtradeb-\1/' \
-	$debian/build/rules.mk
-sed -i -r '/filter aarch64 arm/s/(aarch64)/xtradeb-\1/' \
-	$debian/patches/armhf-rustc-thin-lto.patch
-patch_series_changed=yes
-
-# The armhf builders, however, can't do Rust thin LTO at all
-sed -i 's/lto = "thin"/lto = false/' $debian/build/rules.mk
-
 # Allow unsigned extensions in system dirs
 perl -pi -e '/^ac_add_options --with-unsigned-addon-scopes=app/ && !/system/ and s/$/,system/' \
 	$debian/config/mozconfig.in
-
-# Don't print keepalive messages so frequently
-sed -i -r 's/^(\s*target_timeout) = 60$/\1 = 900/' \
-	$debian/build/keepalive-wrapper.py
-
-# Don't need (fake)root to build the package
-sed -i '/^Build-Depends:/ i Rules-Requires-Root: no' $debian/control.in
 
 # Narrow the LLVM dependencies to a single version, as the alternations
 # that allow the use of multiple versions unfortunately do not ensure that
@@ -85,57 +57,25 @@ sed -i '/^Build-Depends:/ i Rules-Requires-Root: no' $debian/control.in
 grep -q '^\s*clang-20 | clang-19 | clang-18,' $debian/control \
 || error 'debian/control no longer specifies clang-{20,19,18}'
 perl -pi \
-	-e 'if (/^\s*((lib)?clang|llvm)-20(-dev)? /) {' \
+	-e 'if (/^\s*((lib)?clang|lld|llvm)-20(-dev)? /) {' \
 	-e '  s/ \|[^,]+//;' \
 	-e '  s/-\d\d/-'"$llvm_version"'/;' \
 	-e '}' \
 	$debian/control.in
 
-# The riscv64 build cannot use the default gold linker as it is
-# not available for that architecture.
-perl -pi -e '/^(\s+)libclang-(\d+)-dev,$/ and $_.="${1}lld-$2 [riscv64],\n"' \
-	$debian/control.in
-cat >> $debian/config/mozconfig.in << END
-%%if DEB_HOST_ARCH == riscv64
-# See https://bugs.launchpad.net/bugs/2138397
-ac_add_options --enable-linker=lld-$llvm_version
-%%endif
-END
-cat > $debian/xtradeb.tmp << 'END'
-ifeq (riscv64,$(DEB_BUILD_ARCH))
-max_build_time = 9999
-else
-max_build_time = 1440
-endif
-END
-(cd $debian && sed -i -e '/keepalive-wrapper.py 1440/{r xtradeb.tmp' \
-	-e 'N;s/1440/$(max_build_time)/}' build/rules.mk)
-rm $debian/xtradeb.tmp
-
 if ! grep '^LLVM_VERSIONS =' $debian/build/rules.mk | grep -qw $llvm_version
 then
-	sed -i -r "s/^(LLVM_VERSIONS =) */\\1 $llvm_version /" \
+	sed -ri "s/^(LLVM_VERSIONS =) */\\1 $llvm_version /" \
 		$debian/build/rules.mk
 fi
 
 if ! grep -Fq "rustc-$rust_version" $debian/control.in
 then
-	sed -i -r 's/^(\s+)(cargo|rustc)-/\1\2-'"$rust_version"' | \2-/' \
+	sed -ri 's/^(\s+)(cargo|rustc)-/\1\2-'"$rust_version"' | \2-/' \
 		$debian/control.in
-	sed -i -r 's/^(RUSTC_VERSIONS =)\s*/\1 '"$rust_version"' /' \
+	sed -ri 's/^(RUSTC_VERSIONS =)\s*/\1 '"$rust_version"' /' \
 		$debian/build/rules.mk
 fi
-
-# Don't build for armhf, as it is prone to failing with
-#
-#   13:03.67 rustc-LLVM ERROR: out of memory
-#   13:03.67 Allocation failed
-#   13:04.07 error: could not compile `firefox-on-glean` (lib)
-#
-sed -i -r 's/^(Architecture): any$/\1: amd64 amd64v3 arm64 ppc64el riscv64 s390x/' \
-	$debian/control.in \
-	$debian/control.langpacks \
-	$debian/control.langpacks.unavail
 
 # The cdbs package dropped the entire /usr/share/cdbs/1/class/ directory
 # in resolute, which breaks the debianization. Bundle a copy of makefile.mk
@@ -150,21 +90,6 @@ then
 		-e 's!/usr/share/cdbs/1/class/!$(_cdbs_class_path)/!' \
 		$debian/build/rules.mk
 fi
-
-################################################################
-##
-## Modifications to allow building on Ubuntu jammy and later
-##
-################################################################
-
-# Note: Modify "control.in", not "control". The latter will be regenerated
-# after changes to the former are complete.
-
-# Bump up debhelper compat level to 10 (quells warnings)
-sed -i -r '/^\s+debhelper \(>= 9\),/s/9/10/' $debian/control.in
-
-# Also needed for debhelper
-echo 10 > $debian/compat
 
 ##
 ## Patch series modifications
