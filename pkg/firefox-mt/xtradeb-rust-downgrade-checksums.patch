@@ -1,0 +1,46 @@
+Companion patch to xtradeb-rust-downgrade.patch . This gets rid of
+some Cargo file checksums so that the tooling doesn't complain about
+our edits to the Cargo.toml files.
+
+We rename the checksum files, and then create vacuous ones in their place,
+to avoid copying their entire content here.
+
+Warning: quilt(1) will not refresh this patch correctly.
+
+diff --git a/third_party/rust/naga/.cargo-checksum.json b/third_party/rust/naga/.cargo-checksum.json.old
+rename from third_party/rust/naga/.cargo-checksum.json
+rename to third_party/rust/naga/.cargo-checksum.json.old
+diff --git a/third_party/rust/wgpu-core/.cargo-checksum.json b/third_party/rust/wgpu-core/.cargo-checksum.json.old
+rename from third_party/rust/wgpu-core/.cargo-checksum.json
+rename to third_party/rust/wgpu-core/.cargo-checksum.json.old
+diff --git a/third_party/rust/wgpu-hal/.cargo-checksum.json b/third_party/rust/wgpu-hal/.cargo-checksum.json.old
+rename from third_party/rust/wgpu-hal/.cargo-checksum.json
+rename to third_party/rust/wgpu-hal/.cargo-checksum.json.old
+diff --git a/third_party/rust/wgpu-types/.cargo-checksum.json b/third_party/rust/wgpu-types/.cargo-checksum.json.old
+rename from third_party/rust/wgpu-types/.cargo-checksum.json
+rename to third_party/rust/wgpu-types/.cargo-checksum.json.old
+
+diff --git a/third_party/rust/naga/.cargo-checksum.json b/third_party/rust/naga/.cargo-checksum.json
+new file mode 100644
+--- /dev/null
++++ b/third_party/rust/naga/.cargo-checksum.json
+@@ -0,0 +1 @@
++{"files":{},"package": null}
+diff --git a/third_party/rust/wgpu-core/.cargo-checksum.json b/third_party/rust/wgpu-core/.cargo-checksum.json
+new file mode 100644
+--- /dev/null
++++ b/third_party/rust/wgpu-core/.cargo-checksum.json
+@@ -0,0 +1 @@
++{"files":{},"package": null}
+diff --git a/third_party/rust/wgpu-hal/.cargo-checksum.json b/third_party/rust/wgpu-hal/.cargo-checksum.json
+new file mode 100644
+--- /dev/null
++++ b/third_party/rust/wgpu-hal/.cargo-checksum.json
+@@ -0,0 +1 @@
++{"files":{},"package": null}
+diff --git a/third_party/rust/wgpu-types/.cargo-checksum.json b/third_party/rust/wgpu-types/.cargo-checksum.json
+new file mode 100644
+--- /dev/null
++++ b/third_party/rust/wgpu-types/.cargo-checksum.json
+@@ -0,0 +1 @@
++{"files":{},"package": null}

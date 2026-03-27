@@ -54,10 +54,10 @@ perl -pi -e '/^ac_add_options --with-unsigned-addon-scopes=app/ && !/system/ and
 # Narrow the LLVM dependencies to a single version, as the alternations
 # that allow the use of multiple versions unfortunately do not ensure that
 # the versions installed are consistent (e.g. clang-20 + llvm-19-dev).
-grep -q '^\s*clang-20 | clang-19 | clang-18,' $debian/control \
-|| error 'debian/control no longer specifies clang-{20,19,18}'
+grep -q '^\s*clang-22 | clang-21 | clang-20 | clang-19 | clang-18,' $debian/control \
+|| error 'debian/control no longer specifies clang-{22,21,20,19,18}'
 perl -pi \
-	-e 'if (/^\s*((lib)?clang|lld|llvm)-20(-dev)? /) {' \
+	-e 'if (/^\s*((lib)?clang|lld|llvm)-22(-dev)? /) {' \
 	-e '  s/ \|[^,]+//;' \
 	-e '  s/-\d\d/-'"$llvm_version"'/;' \
 	-e '}' \
@@ -95,7 +95,17 @@ fi
 ## Patch series modifications
 ##
 
-new_patch xtradeb-ppc64el-workaround-for-llvm-assembler.patch
+if ubuntu_dist resolute
+then
+	new_patch xtradeb-resolute-fixes.patch
+	new_patch xtradeb-resolute-fixes-checksums.patch
+fi
+
+if dpkg --compare-versions $rust_version lt 1.90
+then
+	new_patch xtradeb-rust-downgrade.patch
+	new_patch xtradeb-rust-downgrade-checksums.patch
+fi
 
 need_version_epoch_bump=yes
 

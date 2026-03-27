@@ -1,0 +1,68 @@
+Dial down the Rust minimum-version requirement by a couple notches.
+
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -67,7 +67,7 @@ exclude = [
+ resolver = "2"
+ 
+ [workspace.package]
+-rust-version = "1.90.0"
++rust-version = "1.88.0"
+ 
+ [workspace.dependencies]
+ # Shared across multiple UniFFI consumers.
+--- a/python/mozboot/mozboot/util.py
++++ b/python/mozboot/mozboot/util.py
+@@ -13,7 +13,7 @@ from mach.site import PythonVirtualenv
+ from mach.util import get_state_dir
+ 
+ # Keep in sync with rust-version in top-level Cargo.toml.
+-MINIMUM_RUST_VERSION = "1.90.0"
++MINIMUM_RUST_VERSION = "1.88.0"
+ 
+ 
+ def get_tools_dir(srcdir=False):
+--- a/third_party/rust/naga/Cargo.toml
++++ b/third_party/rust/naga/Cargo.toml
+@@ -11,7 +11,7 @@
+ 
+ [package]
+ edition = "2021"
+-rust-version = "1.90.0"
++rust-version = "1.88.0"
+ name = "naga"
+ version = "28.0.0"
+ authors = ["gfx-rs developers"]
+--- a/third_party/rust/wgpu-core/Cargo.toml
++++ b/third_party/rust/wgpu-core/Cargo.toml
+@@ -11,7 +11,7 @@
+ 
+ [package]
+ edition = "2021"
+-rust-version = "1.90.0"
++rust-version = "1.88.0"
+ name = "wgpu-core"
+ version = "28.0.0"
+ authors = ["gfx-rs developers"]
+--- a/third_party/rust/wgpu-hal/Cargo.toml
++++ b/third_party/rust/wgpu-hal/Cargo.toml
+@@ -11,7 +11,7 @@
+ 
+ [package]
+ edition = "2021"
+-rust-version = "1.90.0"
++rust-version = "1.88.0"
+ name = "wgpu-hal"
+ version = "28.0.0"
+ authors = ["gfx-rs developers"]
+--- a/third_party/rust/wgpu-types/Cargo.toml
++++ b/third_party/rust/wgpu-types/Cargo.toml
+@@ -11,7 +11,7 @@
+ 
+ [package]
+ edition = "2021"
+-rust-version = "1.90.0"
++rust-version = "1.88.0"
+ name = "wgpu-types"
+ version = "28.0.0"
+ authors = ["gfx-rs developers"]
