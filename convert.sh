@@ -66,7 +66,7 @@ fi
 
 resource_name=$(get_resource_name $source_name)
 
-changelog_add_file=$debian/xtradeb-changelog.tmp
+changelog_entry_file=$debian/xtradeb-changelog.tmp
 control_contact_edits=yes
 multi_dist=no
 need_version_epoch_bump=no
@@ -106,7 +106,7 @@ then
 	echo "XtraDeb conversion for Ubuntu $ubuntu_ver/$ubuntu_dist and later releases."
 else
 	echo "XtraDeb conversion for Ubuntu $ubuntu_ver/$ubuntu_dist."
-fi > $changelog_add_file
+fi > $changelog_entry_file
 
 ################
 ##
@@ -149,7 +149,7 @@ after_sum=$(get_tree_sum $debian)
 
 if [ "$after_sum" = "$before_sum" ]
 then
-	echo "No-change version tweak for Ubuntu $ubuntu_ver/$ubuntu_dist." > $changelog_add_file
+	echo "No-change version tweak for Ubuntu $ubuntu_ver/$ubuntu_dist." > $changelog_entry_file
 	control_contact_edits=no
 fi
 
@@ -184,7 +184,7 @@ do
 		--no-auto-nmu \
 		--changelog $debian/changelog \
 		"$cl_line"
-done < $changelog_add_file
+done < $changelog_entry_file
 
 sed -i '/^\w/,/^\w/{/^  \* <dummy_line>$/d}' $debian/changelog
 
@@ -195,7 +195,7 @@ debchange \
 	--changelog $debian/changelog \
 	''
 
-rm $changelog_add_file
+rm $changelog_entry_file
 
 if [ "_$need_version_epoch_bump" = _yes ]
 then

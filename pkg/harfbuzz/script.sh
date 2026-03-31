@@ -16,7 +16,7 @@ xd_convert() {
 
 ubuntu_dist jammy || not_applicable 'this conversion is needed only for jammy'
 
-(tr '\n' ' ' << END; echo) | sed 's/ $//' >> $changelog_add_file
+add_to_changelog << END
 NOTE: This package has been modified to provide static libraries only,
 and support for GObject introspection and chafa rendering has been
 disabled.  It is intended solely for use as a build dependency.

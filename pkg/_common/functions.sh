@@ -212,14 +212,14 @@ add_to_changelog()
 {
 	if [ "_${1:-}" = _--clobber ]
 	then
-		: > $changelog_add_file
+		: > $changelog_entry_file
 	fi
 	# Change-log text is read from stdin; items should be separated
 	# by a blank line
 	perl -0777 -p \
 		-e 's/\n{2,}/<<BR>>/g; s/\n/ /g; s/<<BR>>/\n/g;' \
 		-e 's/ $//gm; s/$/\n/' \
-	>> $changelog_add_file
+	>> $changelog_entry_file
 }
 
 add_to_package_description()

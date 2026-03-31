@@ -18,7 +18,7 @@ case "$source_name" in
 	# (the package still builds just fine)
 	perl -pi -e '/^ , node-marked-man/ and s/\(>= .+?\)/(>= 0.7.0)/' \
 		$debian/control
-	echo 'Downgrade the node-marked-man build-dependency.' > $changelog_add_file
+	echo 'Downgrade the node-marked-man build-dependency.' > $changelog_entry_file
 	;;
 
 	node-undici)
@@ -33,7 +33,7 @@ case "$source_name" in
 	# when building packages from lunar or mantic, no idea why
 	perl -pi -e '/^esbuild/ and s/$/ || (: XtraDeb: Oh well, we tried && touch undici-fetch.js)/' \
 		$debian/nodejs/build
-	echo 'Add missing "ms" module, and work around esbuild failure.' > $changelog_add_file
+	echo 'Add missing "ms" module, and work around esbuild failure.' > $changelog_entry_file
 	;;
 
 	node-cjs-module-lexer)
@@ -41,14 +41,14 @@ case "$source_name" in
 	perl -pi -e '/^ , node-babel-plugin-transform-modules-commonjs/ and $_.=" , node-istanbul\n"' \
 		$debian/control
 	new_patch xtradeb-node-cjs-module-lexer.patch
-	echo 'Add node-istanbul build-dependency and use alternate implementation of "node:fs/promises".' > $changelog_add_file
+	echo 'Add node-istanbul build-dependency and use alternate implementation of "node:fs/promises".' > $changelog_entry_file
 	;;
 
 	nodejs)
 	perl -pi -e 'if(/^exp-relax-check :=/){s/^/#xtradeb#/; $_.="exp-relax-check = -i\n"}' \
 		$debian/rules
 	new_patch xtradeb-nodejs.patch
-	echo 'Fix unavailable uv_available_parallelism() call, and allow test suite failures.' > $changelog_add_file
+	echo 'Fix unavailable uv_available_parallelism() call, and allow test suite failures.' > $changelog_entry_file
 	;;
 
 	*)
