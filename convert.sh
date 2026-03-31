@@ -74,11 +74,13 @@ patch_series_changed=no
 patch_series_tmp=$debian/xtradeb-series.tmp
 rm -f $patch_series_tmp
 resource_dir=$base_dir/pkg/$resource_name
+test_build_depends=
 version_suffix="xtradeb1.${ubuntu_ver/./}."
 zapped_package_list=
 
+before_sum=$(get_tree_sum $debian)
+
 # Apply debianization patch(es), if present
-have_xtradeb_patch=no
 for patch in \
 	$resource_dir/$source_name.patch \
 	$resource_dir/$source_name.$ubuntu_dist.patch
@@ -93,7 +95,6 @@ do
 
 		echo "Applying $(basename $patch)"
 		(cd $debian && patch -p2 -F0) < $patch
-		have_xtradeb_patch=yes
 	fi
 done
 
@@ -117,15 +118,14 @@ xd_convert
 control=control
 test ! -f $debian/control.in || control=control.in
 
-if [ $control_contact_edits = yes ]
-then
-	# We are now the maintainer
-	perl -pi \
-		-e '/^XSBC-Original-Maintainer:/i and $_="";' \
-		-e 's/^(Maintainer): (.+)$/$1: $ENV{DEBFULLNAME} <$ENV{DEBEMAIL}>\nXSBC-Original-Maintainer: $2/;' \
-		$debian/$control
+common_package_convert
 
-	zap_control_field Uploaders $debian/$control
+if [ -n "$test_build_depends" ]
+then
+	dep_list=$(join ', ' $test_build_depends) \
+	FIELD="XS-XtraDeb-Test-Build-Depends: $dep_list" \
+	perl -pi -e 'if (/^$/ && !$x) { print $ENV{"FIELD"}."\n"; $x=1; }' \
+		$debian/$control
 fi
 
 if [ -f $patch_series_tmp ]
@@ -138,11 +138,30 @@ fi
 if [ -f $debian/patches/series ]
 then
 	# Check that all referenced patches are present
-	for patch in $(grep -v '^#' $debian/patches/series | grep .)
+	for patch in $(grep -v '^#' $debian/patches/series | awk '{print $1}' | grep .)
 	do
 		test -f $debian/patches/$patch \
 		|| error "$patch: missing patch file"
 	done
+fi
+
+after_sum=$(get_tree_sum $debian)
+
+if [ "$after_sum" = "$before_sum" ]
+then
+	echo "No-change version tweak for Ubuntu $ubuntu_ver/$ubuntu_dist." > $changelog_add_file
+	control_contact_edits=no
+fi
+
+if [ $control_contact_edits = yes ]
+then
+	# We are now the maintainer
+	perl -pi \
+		-e '/^XSBC-Original-Maintainer:/i and $_="";' \
+		-e 's/^(Maintainer): (.+)$/$1: $ENV{DEBFULLNAME} <$ENV{DEBEMAIL}>\nXSBC-Original-Maintainer: $2/;' \
+		$debian/$control
+
+	zap_control_field Uploaders $debian/$control
 fi
 
 # Use the same urgency as the upstream release

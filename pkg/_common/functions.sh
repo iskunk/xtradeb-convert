@@ -13,6 +13,47 @@ error()
 	exit 1
 }
 
+common_package_convert()
+{
+	# Note: Refer to the control file as $debian/$control
+	# (not $debian/control, as our target may be control.in)
+
+	if ubuntu_dist jammy
+	then
+		# On jammy, this has to be specified as "dh-cargo"
+		sed -ri 's/\bdh-sequence-cargo,/dh-cargo,/' $debian/$control
+
+		# "dpkg-source: warning: unknown information field
+		# 'Static-Built-Using' in input data in package's
+		# section of control info file"
+		sed -i '/^Static-Built-Using:/ d' $debian/$control
+
+		# Update lintian files
+		local l_o
+		for l_o in \
+			$debian/*.lintian-overrides \
+			$debian/*.lintian-overrides.in
+		do
+			test -f "$l_o" || continue
+			# jammy:
+			#   $package: embedded-library $lib usr/lib/libfoo.so
+			# noble and later:
+			#   $package: embedded-library $lib [usr/lib/libfoo.so]
+			sed -ri \
+				-e 's!(embedded-library\s+)(\S+):\s+(\S+)$!\1\3 \2!' \
+				-e 's!(embedded-library\s+)(\S+)\s+\[(\S+)\]$!\1\2 \3!' \
+				-e 's!(shared-library-lacks-prerequisites)\s+\[(\S+)\]$!\1 \2!' \
+				$l_o
+		done
+
+		if sed -n '/^Source:/,/^$/ p' $debian/$control | grep -q '\bpkgconf\b'
+		then
+			# jammy lacks an i386 build of pkgconf
+			warning 'package for jammy appears to build-depend on pkgconf, use pkg-config instead'
+		fi
+	fi
+}
+
 get_resource_name()
 {
 	local name="$1"
@@ -31,7 +72,7 @@ get_resource_name()
 		wxwidgets[3-9].*) name=wxwidgets ;;
 
 		firefox)
-		case "$deb_version" in
+		case "${deb_version:-}" in
 			*~mt[1-9]) name=firefox-mt ;;
 		esac
 		;;
@@ -153,6 +194,34 @@ ubuntu_dist()
 	return 1
 }
 
+join()
+{
+	local sep=$(printf "$1")
+	shift
+	SEP=$sep perl -e 'print(join($ENV{"SEP"}, @ARGV)."\n")' "$@"
+}
+
+get_tree_sum()
+{
+	local file_list=$(find "$1/." -type f \! -name 'xtradeb-*.tmp' | sort)
+	(echo "$file_list"; echo "$file_list" | xargs -d '\n' cat) \
+	| md5sum | awk '{print $1}'
+}
+
+add_to_changelog()
+{
+	if [ "_${1:-}" = _--clobber ]
+	then
+		: > $changelog_add_file
+	fi
+	# Change-log text is read from stdin; items should be separated
+	# by a blank line
+	perl -0777 -p \
+		-e 's/\n{2,}/<<BR>>/g; s/\n/ /g; s/<<BR>>/\n/g;' \
+		-e 's/ $//gm; s/$/\n/' \
+	>> $changelog_add_file
+}
+
 add_to_package_description()
 {
 	local package_name=$1	# can be a Perl regex
@@ -257,7 +326,7 @@ zap_control_field()
 	local field_name="$1"	# can be a Perl regex
 	local file="$2"
 
-	perl -0777 -pi -e "s/^$field_name:.*(?:\\n[\\t ].+)*\\n//m" $file
+	perl -0777 -pi -e "s/^$field_name:.*(?:\\n[\\t ].+)*\\n//gm" $file
 }
 
 zap_control_package()
@@ -265,7 +334,7 @@ zap_control_package()
 	local package_name="$1"	# can be a Perl regex
 	local file="$2"
 
-	perl -0777 -pi -e "s/^\\nPackage: $package_name(?:\\n.+)*\\n//m" $file
+	perl -0777 -pi -e "s/^\\nPackage: $package_name(?:\\n.+)*\\n//gm" $file
 
 	# Also remove any Depends: references to this package
 	perl -pi -e "/^\\s+$package_name \\(= .+\\),/ and \$_ = \"\"" $file
@@ -282,11 +351,7 @@ zap_rules_target()
 # Can be overridden in script.sh
 xd_convert()
 {
-	if [ $have_xtradeb_patch = no ]
-	then
-		control_contact_edits=no
-		echo "No-change version tweak for Ubuntu $ubuntu_ver/$ubuntu_dist." > $changelog_add_file
-	fi
+	true
 }
 
 # Can be overridden in script.sh
@@ -309,7 +374,21 @@ default_check()
 {
 	$base_dir/util/can-install.sh \
 		${include_xtradeb_ppa:+xtradeb-$include_xtradeb_ppa-}$ubuntu_dist \
-		"$@"
+		"$@" \
+	|| exit
+
+	echo
+
+	if [ -n "${XTRADEB_SKIP_LINTIAN:-}" ]
+	then
+		echo 'Skipping lintian checks as requested.'
+	#
+	elif lintian --version >/dev/null 2>&1
+	then
+		(set -x; lintian --tag-display-limit 0 "$@") 2>&1 || exit
+	else
+		echo 'Skipping lintian checks as the tool is not installed.'
+	fi
 }
 
 # Can be overridden in script.sh

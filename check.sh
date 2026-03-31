@@ -45,20 +45,16 @@ do
 	esac
 done
 
-get_deb_source_name()
-{
-	local info=$(dpkg-deb --info "$1")
-	local name=$(sed -n 's/^ *Source: *// p' <<< $info)
-	test -n "$name" || name=$(sed -n 's/^ *Package: *// p' <<< $info)
-	test -n "$name" || error 'get_deb_source_name() failed'
-	echo "$name"
-}
-
 declare -A source_name_set deb_to_source_name_map
 
 for deb in "${all_deb_file_list[@]}"
 do
-	source_name=$(get_deb_source_name "$deb")
+	info=$(dpkg-deb --info "$deb")
+	source_name=$(sed -n 's/^ *Source: *// p' <<< $info)
+	test -n "$source_name" || source_name=$(sed -n 's/^ *Package: *// p' <<< $info)
+	test -n "$source_name" || error "$deb: cannot determine Source: name"
+	#deb_version=$(sed -n 's/^ *Version: *// p' <<< $info)
+
 	source_name_set[$source_name]=1
 	deb_to_source_name_map[$deb]=$source_name
 done
@@ -84,7 +80,8 @@ do
 	resource_name=$(get_resource_name $source_name)
 	script=$base_dir/pkg/$resource_name/script.sh
 
-	(test ! -f $script || . $script; xd_check "${deb_file_list[@]}")
+	(test ! -f $script || . $script
+	 xd_check "${deb_file_list[@]}") || exit
 
 	echo ' '
 done

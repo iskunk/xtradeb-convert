@@ -10,22 +10,22 @@ shift
 chdist_data=${XDG_CACHE_HOME:-$HOME/.cache}/xtradeb/caninst
 
 test -n "$UBUNTU_APT_URL"  || UBUNTU_APT_URL=https://mirrors.wikimedia.org/ubuntu
-test -n "$XTRADEB_APT_URL" || XTRADEB_APT_URL=https://ppa.launchpadcontent.net/xtradeb/@AREA@/ubuntu
+test -n "$XTRADEB_APT_URL" || XTRADEB_APT_URL=https://ppa.launchpadcontent.net/xtradeb/@PPA@/ubuntu
 
 dist_release=$release
 destin_release=
-xtradeb_area=
+xtradeb_ppa=
 
 set -o pipefail
 
 print_xtradeb_sources()
 {
-	local area="$1"
+	local ppa="$1"
 	local suite="$2"
 
 	cat <<END
 Types: deb
-URIs: $(echo "$XTRADEB_APT_URL" | sed "s,@AREA@,$area,")
+URIs: $(echo "$XTRADEB_APT_URL" | sed "s,@PPA@,$ppa,")
 Suites: $suite
 Components: main
 Architectures: amd64
@@ -65,10 +65,10 @@ END
 
 case "$release" in
 	xtradeb-*)
-	IFS=- read x xtradeb_area dist_release destin_release <<<$release
-	case "$xtradeb_area" in
+	IFS=- read x xtradeb_ppa dist_release destin_release <<<$release
+	case "$xtradeb_ppa" in
 		apps|deps|play|test) ;;
-		*) echo "error: invalid XtraDeb area \"$xtradeb_area\""; exit 1 ;;
+		*) echo "error: invalid XtraDeb PPA \"$xtradeb_ppa\""; exit 1 ;;
 	esac
 	;;
 esac
@@ -78,11 +78,11 @@ case "$dist_release" in
 	cat <<END
 
 usage: $0 RELEASE PACKAGE ...
-       $0 xtradeb-AREA-RELEASE {PACKAGE ... | --all}
-       $0 xtradeb-AREA-RELEASE-DESTRELEASE {PACKAGE ... | --all}
+       $0 xtradeb-PPA-RELEASE {PACKAGE ... | --all}
+       $0 xtradeb-PPA-RELEASE-DESTRELEASE {PACKAGE ... | --all}
 
 (DEST)RELEASE is an Ubuntu release name like "jammy", "noble", etc.
-AREA is "apps", "deps", "play", or "test"
+PPA is "apps", "deps", "play", or "test"
 PACKAGE is an existing package name, or a binary .deb file
 
 Environment variables used in first-time initialization:
@@ -132,12 +132,12 @@ then
 			|| echo "$dist_release") \
 		main universe multiverse
 
-	if [ -n "$xtradeb_area" ]
+	if [ -n "$xtradeb_ppa" ]
 	then
 		print_xtradeb_sources \
-			$xtradeb_area \
+			$xtradeb_ppa \
 			$dist_release \
-			>$chdist_data/$release/etc/apt/sources.list.d/xtradeb-$xtradeb_area-$dist_release.sources
+			>$chdist_data/$release/etc/apt/sources.list.d/xtradeb-$xtradeb_ppa-$dist_release.sources
 	fi
 
 	# Give greater preference to XtraDeb packages
@@ -148,7 +148,7 @@ Pin-Priority: 990
 END
 
 	# Don't need Translation-xx files
-	(echo; echo 'Acquire::Languages { "none"; }') \
+	(echo; echo 'Acquire::Languages "none";') \
 		>>$chdist_data/$release/etc/apt/apt.conf
 
 	# Don't need source packages
@@ -177,7 +177,7 @@ target=${destin_release:+-t $dist_release}
 
 if [ "_$1" = _--all ]
 then
-	if [ -z "$xtradeb_area" ]
+	if [ -z "$xtradeb_ppa" ]
 	then
 		echo 'error: --all is only supported for XtraDeb repos'
 		exit 1

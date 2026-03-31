@@ -11,17 +11,6 @@ xd_convert() {
 # available in the release we are targeting.
 sed -ri '/^\s+librust-/ d' $debian/control
 
-if ubuntu_dist jammy
-then
-	# On jammy, this has to be specified as "dh-cargo"
-	sed -ri '/^\s+dh-sequence-cargo,/ s/-sequence-/-/' $debian/control
-
-	# "dpkg-source: warning: unknown information field
-	# 'Static-Built-Using' in input data in package's
-	# section of control info file"
-	sed -i '/^Static-Built-Using:/ d' $debian/control
-fi
-
 # Don't build the librust-cbindgen development packages, because we don't
 # need them, and they will have install-time dependencies on Rust crate
 # packages that aren't available anyway.

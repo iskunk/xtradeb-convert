@@ -24,6 +24,17 @@ check_for_existing_config()
 $dir/hybrid-amd64-setup.sh
 
 ##
+## Enable package testing on real riscv64 hardware
+##
+
+x=/usr/share/perl5/Dpkg/Vendor/Ubuntu.pm
+
+if [ -f $x -a "_$(uname -m)" = _riscv64 ]
+then
+	sed -ri 's/^(\s+)(.*nocheck.*riscv64)/\1#xtradeb#\2/' $x
+fi
+
+##
 ## ccache
 ##
 
@@ -62,7 +73,7 @@ EDITOR=nano
 
 QUILT_DIFF_ARGS="--no-index --no-timestamps --color=auto"
 QUILT_DIFF_OPTS="-p"
-QUILT_REFRESH_ARGS="-p ab --no-index --no-timestamps"
+QUILT_REFRESH_ARGS="-p ab --sort --no-index --no-timestamps"
 QUILT_PATCH_OPTS="--reject-format=unified"
 test -n "$QUILT_PATCHES" || QUILT_PATCHES=debian/patches
 QUILT_PUSH_ARGS="--fuzz=0"

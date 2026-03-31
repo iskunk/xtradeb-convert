@@ -22,12 +22,7 @@ case "$source_name" in
 	flightgear)
 	# Download these packages from the Ubuntu repo, not our PPA,
 	# as they are very large.
-	sed -i -e '/^Standards-Version:/{' \
-		-e 'i XS-XtraDeb-Test-Build-Depends:' \
-		-e 'i \ flightgear-data-ai/resolute,' \
-		-e 'i \ flightgear-data-base/resolute,' \
-		-e '}' \
-		$debian/control
+	test_build_depends='flightgear-data-ai/resolute flightgear-data-base/resolute'
 	;;
 esac
 
