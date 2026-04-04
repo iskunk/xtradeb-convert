@@ -140,6 +140,9 @@ then
 	perl -pi -e '/^(\s+)libclang-\S+-dev,/ and $_.="${1}libstdc++-12-dev,\n"' \
 		$debian/control
 
+	# Pkg-config is better supported on jammy
+	sed -ri 's/^(\s+)pkgconf,/\1pkg-config,/' $debian/control
+
 	# Jammy does not have a sufficiently new libspa-0.2-dev to compile
 	# Chromium's PipeWire support. Typical compile error:
 	#
@@ -308,8 +311,6 @@ if ! ubuntu_dist jammy
 then
 	new_patch xtradeb/fortify-level-3.patch
 fi
-
-new_patch xtradeb/libcxx-hardening.patch
 
 if ubuntu_dist jammy
 then
