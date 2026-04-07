@@ -42,10 +42,7 @@ fi
 ## Patch series modifications
 ##
 
-if ubuntu_dist jammy
-then
-	new_patch XtraDeb-defuse-wxwidgets-lib-check.patch
-fi
+new_patch XtraDeb-defuse-wxwidgets-lib-check.patch
 
 } # xd_convert()
 
