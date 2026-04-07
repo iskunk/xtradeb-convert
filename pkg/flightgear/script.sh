@@ -15,14 +15,15 @@ xd_convert() {
 # Too much missing to support jammy
 ! ubuntu_dist jammy || not_supported
 
-# The current package comes from resolute, so only target prior releases
-ubuntu_dist noble questing || not_applicable
-
 case "$source_name" in
 	flightgear)
 	# Download these packages from the Ubuntu repo, not our PPA,
 	# as they are very large.
 	test_build_depends='flightgear-data-ai/resolute flightgear-data-base/resolute'
+	;;
+
+	flightgear-data)
+	error 'flightgear-data package should be copied, not converted'
 	;;
 esac
 
