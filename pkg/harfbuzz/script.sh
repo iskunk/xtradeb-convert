@@ -101,6 +101,16 @@ perl -pi \
 	-e 'm!^usr/share/gir-! and s/^/#xtradeb#/' \
 	$debian/libharfbuzz-dev.install
 
+# When building against a newer ICU, a newer C++ standard is needed to
+# avoid compile errors like
+#
+#   /usr/include/unicode/char16ptr.h:271:38: error: ‘enable_if_t’ in namespace ‘std’ does not name a template type
+#     271 | template<typename T, typename = std::enable_if_t<std::is_same_v<T, UChar>>>
+#         |                                      ^~~~~~~~~~~
+#
+sed -i '/^export DEB_LDFLAGS_MAINT_APPEND =/ i export DEB_CXXFLAGS_MAINT_APPEND = -std=c++17' \
+	$debian/rules
+
 } # xd_convert()
 
 ################################################################
