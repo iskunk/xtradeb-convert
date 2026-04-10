@@ -277,6 +277,12 @@ fi
 if ubuntu_dist jammy noble questing
 then
 	new_patch trixie/gn-len.patch
+fi
+
+new_patch trixie/gn-module-name.patch
+
+if ubuntu_dist jammy noble questing
+then
 	new_patch trixie/nodejs-main.patch
 fi
 
