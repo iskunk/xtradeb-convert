@@ -8,13 +8,12 @@
 
 xd_convert() {
 
-ubuntu_dist jammy noble || not_applicable
-
-################################################################
-##
-## Modifications to allow building on Ubuntu jammy and noble
-##
-################################################################
+if ubuntu_dist jammy noble
+then
+	# Downgrade this dependency
+	sed -ri '/^\s+python3-hatchling / s/>= .+\)/>= 0.15.0)/' \
+		$debian/control
+fi
 
 ##
 ## Patch series modifications
