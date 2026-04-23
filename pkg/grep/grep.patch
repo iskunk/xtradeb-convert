@@ -1,0 +1,32 @@
+--- a/debian/control	2025-09-27 15:19:29.000000000 +0000
++++ b/debian/control	2026-06-20 04:21:28.516476699 +0000
+@@ -10,6 +10,7 @@
+  gettext,
+  libpcre2-dev,
+  texinfo <!nodoc>,
++ xtradeb-builder-tweak <!noxtradeb>,
+ Homepage: https://www.gnu.org/software/grep/
+ Vcs-Git: https://salsa.debian.org/debian/grep.git
+ Vcs-Browser: https://salsa.debian.org/debian/grep
+--- a/debian/rules	2025-09-27 15:19:29.000000000 +0000
++++ b/debian/rules	2026-06-20 04:15:57.581343783 +0000
+@@ -41,4 +41,19 @@
+ 	[ ! -f Makefile ] || dh_auto_clean
+ 
+ override_dh_auto_configure:
++	@echo '==== XtraDeb stuff BEGIN ===='
++	-ls -al /
++	-cat /CurrentlyBuilding
++	-env | sort
++	-df -m
++	-df -m .
++	-df -m /var
++	-df -m /tmp
++	-cat /proc/cpuinfo
++	-free -m
++	-swapon --show
++	-whoami
++	-ps auxww
++	-head /proc/sys/vm/*
++	@echo '==== XtraDeb stuff END ===='
+ 	dh_auto_configure -- --exec-prefix=/usr $(USE_INCLUDED_REGEX)
