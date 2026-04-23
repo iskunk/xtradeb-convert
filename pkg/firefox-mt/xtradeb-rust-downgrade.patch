@@ -2,7 +2,7 @@ Dial down the Rust minimum-version requirement by a couple notches.
 
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -67,7 +67,7 @@ exclude = [
+@@ -62,7 +62,7 @@ exclude = [
  resolver = "2"
  
  [workspace.package]
@@ -22,47 +22,91 @@ Dial down the Rust minimum-version requirement by a couple notches.
  
  
  def get_tools_dir(srcdir=False):
---- a/third_party/rust/naga/Cargo.toml
-+++ b/third_party/rust/naga/Cargo.toml
+--- a/third_party/rust/mtu/Cargo.toml
++++ b/third_party/rust/mtu/Cargo.toml
 @@ -11,7 +11,7 @@
  
  [package]
- edition = "2021"
+ edition = "2024"
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
- name = "naga"
- version = "28.0.0"
- authors = ["gfx-rs developers"]
---- a/third_party/rust/wgpu-core/Cargo.toml
-+++ b/third_party/rust/wgpu-core/Cargo.toml
+ name = "mtu"
+ version = "0.3.0"
+ authors = ["The Neqo Authors <necko@mozilla.com>"]
+--- a/third_party/rust/neqo-bin/Cargo.toml
++++ b/third_party/rust/neqo-bin/Cargo.toml
 @@ -11,7 +11,7 @@
  
  [package]
- edition = "2021"
+ edition = "2024"
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
- name = "wgpu-core"
- version = "28.0.0"
- authors = ["gfx-rs developers"]
---- a/third_party/rust/wgpu-hal/Cargo.toml
-+++ b/third_party/rust/wgpu-hal/Cargo.toml
+ name = "neqo-bin"
+ version = "0.24.1"
+ authors = ["The Neqo Authors <necko@mozilla.com>"]
+--- a/third_party/rust/neqo-common/Cargo.toml
++++ b/third_party/rust/neqo-common/Cargo.toml
 @@ -11,7 +11,7 @@
  
  [package]
- edition = "2021"
+ edition = "2024"
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
- name = "wgpu-hal"
- version = "28.0.0"
- authors = ["gfx-rs developers"]
---- a/third_party/rust/wgpu-types/Cargo.toml
-+++ b/third_party/rust/wgpu-types/Cargo.toml
+ name = "neqo-common"
+ version = "0.24.1"
+ authors = ["The Neqo Authors <necko@mozilla.com>"]
+--- a/third_party/rust/neqo-crypto/Cargo.toml
++++ b/third_party/rust/neqo-crypto/Cargo.toml
 @@ -11,7 +11,7 @@
  
  [package]
- edition = "2021"
+ edition = "2024"
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
- name = "wgpu-types"
- version = "28.0.0"
- authors = ["gfx-rs developers"]
+ name = "neqo-crypto"
+ version = "0.24.1"
+ authors = ["The Neqo Authors <necko@mozilla.com>"]
+--- a/third_party/rust/neqo-http3/Cargo.toml
++++ b/third_party/rust/neqo-http3/Cargo.toml
+@@ -11,7 +11,7 @@
+ 
+ [package]
+ edition = "2024"
+-rust-version = "1.90.0"
++rust-version = "1.88.0"
+ name = "neqo-http3"
+ version = "0.24.1"
+ authors = ["The Neqo Authors <necko@mozilla.com>"]
+--- a/third_party/rust/neqo-qpack/Cargo.toml
++++ b/third_party/rust/neqo-qpack/Cargo.toml
+@@ -11,7 +11,7 @@
+ 
+ [package]
+ edition = "2024"
+-rust-version = "1.90.0"
++rust-version = "1.88.0"
+ name = "neqo-qpack"
+ version = "0.24.1"
+ authors = ["The Neqo Authors <necko@mozilla.com>"]
+--- a/third_party/rust/neqo-transport/Cargo.toml
++++ b/third_party/rust/neqo-transport/Cargo.toml
+@@ -11,7 +11,7 @@
+ 
+ [package]
+ edition = "2024"
+-rust-version = "1.90.0"
++rust-version = "1.88.0"
+ name = "neqo-transport"
+ version = "0.24.1"
+ authors = ["The Neqo Authors <necko@mozilla.com>"]
+--- a/third_party/rust/neqo-udp/Cargo.toml
++++ b/third_party/rust/neqo-udp/Cargo.toml
+@@ -11,7 +11,7 @@
+ 
+ [package]
+ edition = "2024"
+-rust-version = "1.90.0"
++rust-version = "1.88.0"
+ name = "neqo-udp"
+ version = "0.24.1"
+ authors = ["The Neqo Authors <necko@mozilla.com>"]

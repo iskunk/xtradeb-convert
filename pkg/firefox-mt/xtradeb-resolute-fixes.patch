@@ -1,21 +1,6 @@
 Resolve the following compilation errors on resolute, likely stemming from
 the newer glibc version in use:
 
-  W In file included from .../obj-x86_64-linux-gnu/dist/system_wrappers/signal.h:3:
-  E /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h:219:3: error: expected identifier
-  E   219 |   SYS_SECCOMP = 1,              /* Seccomp triggered.  */
-  E       |   ^
-  E .../security/sandbox/chromium/sandbox/linux/system_headers/linux_seccomp.h:218:39: note: expanded from macro 'SYS_SECCOMP'
-  E   218 | #define SYS_SECCOMP                   1
-  E       |                                       ^
-
-  E .../security/sandbox/chromium/sandbox/linux/seccomp-bpf/trap.cc:155:46: error: use of undeclared identifier 'SYS_SECCOMP'
-  E   155 |   if (nr != LINUX_SIGSYS || info->si_code != SYS_SECCOMP || !ctx ||
-  E       |                                              ^~~~~~~~~~~
-  E /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h:220:23: note: expanded from macro 'SYS_SECCOMP'
-  E   220 | #  define SYS_SECCOMP   SYS_SECCOMP
-  E       |                         ^~~~~~~~~~~
-
   W warning: glslopt@0.1.12: In file included from src/compiler/glsl/glcpp/glcpp-parse.y:32:
   W warning: glslopt@0.1.12: In file included from glsl-optimizer/src/mesa/main/mtypes.h:39:
   W warning: glslopt@0.1.12: In file included from glsl-optimizer/include/c11/threads.h:66:
@@ -48,7 +33,7 @@ the newer glibc version in use:
 
 --- a/Cargo.lock
 +++ b/Cargo.lock
-@@ -2867,7 +2867,6 @@ dependencies = [
+@@ -2895,7 +2895,6 @@ dependencies = [
  name = "glslopt"
  version = "0.1.12"
  source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -56,16 +41,6 @@ the newer glibc version in use:
  dependencies = [
   "cc",
  ]
---- a/security/sandbox/chromium/sandbox/linux/system_headers/linux_seccomp.h
-+++ b/security/sandbox/chromium/sandbox/linux/system_headers/linux_seccomp.h
-@@ -5,6 +5,7 @@
- #ifndef SANDBOX_LINUX_SYSTEM_HEADERS_LINUX_SECCOMP_H_
- #define SANDBOX_LINUX_SYSTEM_HEADERS_LINUX_SECCOMP_H_
- 
-+#include <signal.h>
- #include <stdint.h>
- #include <sys/ioctl.h>
- 
 --- a/third_party/rust/glslopt/glsl-optimizer/include/c11/threads_posix.h
 +++ b/third_party/rust/glslopt/glsl-optimizer/include/c11/threads_posix.h
 @@ -66,7 +66,6 @@ typedef pthread_cond_t  cnd_t;

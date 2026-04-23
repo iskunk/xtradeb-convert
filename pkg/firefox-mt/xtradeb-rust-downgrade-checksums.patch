@@ -7,40 +7,76 @@ to avoid copying their entire content here.
 
 Warning: quilt(1) will not refresh this patch correctly.
 
-diff --git a/third_party/rust/naga/.cargo-checksum.json b/third_party/rust/naga/.cargo-checksum.json.old
-rename from third_party/rust/naga/.cargo-checksum.json
-rename to third_party/rust/naga/.cargo-checksum.json.old
-diff --git a/third_party/rust/wgpu-core/.cargo-checksum.json b/third_party/rust/wgpu-core/.cargo-checksum.json.old
-rename from third_party/rust/wgpu-core/.cargo-checksum.json
-rename to third_party/rust/wgpu-core/.cargo-checksum.json.old
-diff --git a/third_party/rust/wgpu-hal/.cargo-checksum.json b/third_party/rust/wgpu-hal/.cargo-checksum.json.old
-rename from third_party/rust/wgpu-hal/.cargo-checksum.json
-rename to third_party/rust/wgpu-hal/.cargo-checksum.json.old
-diff --git a/third_party/rust/wgpu-types/.cargo-checksum.json b/third_party/rust/wgpu-types/.cargo-checksum.json.old
-rename from third_party/rust/wgpu-types/.cargo-checksum.json
-rename to third_party/rust/wgpu-types/.cargo-checksum.json.old
+diff --git a/third_party/rust/mtu/.cargo-checksum.json b/third_party/rust/mtu/.cargo-checksum.json.old
+rename from third_party/rust/mtu/.cargo-checksum.json
+rename to third_party/rust/mtu/.cargo-checksum.json.old
+diff --git a/third_party/rust/neqo-bin/.cargo-checksum.json b/third_party/rust/neqo-bin/.cargo-checksum.json.old
+rename from third_party/rust/neqo-bin/.cargo-checksum.json
+rename to third_party/rust/neqo-bin/.cargo-checksum.json.old
+diff --git a/third_party/rust/neqo-common/.cargo-checksum.json b/third_party/rust/neqo-common/.cargo-checksum.json.old
+rename from third_party/rust/neqo-common/.cargo-checksum.json
+rename to third_party/rust/neqo-common/.cargo-checksum.json.old
+diff --git a/third_party/rust/neqo-crypto/.cargo-checksum.json b/third_party/rust/neqo-crypto/.cargo-checksum.json.old
+rename from third_party/rust/neqo-crypto/.cargo-checksum.json
+rename to third_party/rust/neqo-crypto/.cargo-checksum.json.old
+diff --git a/third_party/rust/neqo-http3/.cargo-checksum.json b/third_party/rust/neqo-http3/.cargo-checksum.json.old
+rename from third_party/rust/neqo-http3/.cargo-checksum.json
+rename to third_party/rust/neqo-http3/.cargo-checksum.json.old
+diff --git a/third_party/rust/neqo-qpack/.cargo-checksum.json b/third_party/rust/neqo-qpack/.cargo-checksum.json.old
+rename from third_party/rust/neqo-qpack/.cargo-checksum.json
+rename to third_party/rust/neqo-qpack/.cargo-checksum.json.old
+diff --git a/third_party/rust/neqo-transport/.cargo-checksum.json b/third_party/rust/neqo-transport/.cargo-checksum.json.old
+rename from third_party/rust/neqo-transport/.cargo-checksum.json
+rename to third_party/rust/neqo-transport/.cargo-checksum.json.old
+diff --git a/third_party/rust/neqo-udp/.cargo-checksum.json b/third_party/rust/neqo-udp/.cargo-checksum.json.old
+rename from third_party/rust/neqo-udp/.cargo-checksum.json
+rename to third_party/rust/neqo-udp/.cargo-checksum.json.old
 
-diff --git a/third_party/rust/naga/.cargo-checksum.json b/third_party/rust/naga/.cargo-checksum.json
+diff --git a/third_party/rust/mtu/.cargo-checksum.json b/third_party/rust/mtu/.cargo-checksum.json
 new file mode 100644
 --- /dev/null
-+++ b/third_party/rust/naga/.cargo-checksum.json
++++ b/third_party/rust/mtu/.cargo-checksum.json
 @@ -0,0 +1 @@
 +{"files":{},"package": null}
-diff --git a/third_party/rust/wgpu-core/.cargo-checksum.json b/third_party/rust/wgpu-core/.cargo-checksum.json
+diff --git a/third_party/rust/neqo-bin/.cargo-checksum.json b/third_party/rust/neqo-bin/.cargo-checksum.json
 new file mode 100644
 --- /dev/null
-+++ b/third_party/rust/wgpu-core/.cargo-checksum.json
++++ b/third_party/rust/neqo-bin/.cargo-checksum.json
 @@ -0,0 +1 @@
 +{"files":{},"package": null}
-diff --git a/third_party/rust/wgpu-hal/.cargo-checksum.json b/third_party/rust/wgpu-hal/.cargo-checksum.json
+diff --git a/third_party/rust/neqo-common/.cargo-checksum.json b/third_party/rust/neqo-common/.cargo-checksum.json
 new file mode 100644
 --- /dev/null
-+++ b/third_party/rust/wgpu-hal/.cargo-checksum.json
++++ b/third_party/rust/neqo-common/.cargo-checksum.json
 @@ -0,0 +1 @@
 +{"files":{},"package": null}
-diff --git a/third_party/rust/wgpu-types/.cargo-checksum.json b/third_party/rust/wgpu-types/.cargo-checksum.json
+diff --git a/third_party/rust/neqo-crypto/.cargo-checksum.json b/third_party/rust/neqo-crypto/.cargo-checksum.json
 new file mode 100644
 --- /dev/null
-+++ b/third_party/rust/wgpu-types/.cargo-checksum.json
++++ b/third_party/rust/neqo-crypto/.cargo-checksum.json
+@@ -0,0 +1 @@
++{"files":{},"package": null}
+diff --git a/third_party/rust/neqo-http3/.cargo-checksum.json b/third_party/rust/neqo-http3/.cargo-checksum.json
+new file mode 100644
+--- /dev/null
++++ b/third_party/rust/neqo-http3/.cargo-checksum.json
+@@ -0,0 +1 @@
++{"files":{},"package": null}
+diff --git a/third_party/rust/neqo-qpack/.cargo-checksum.json b/third_party/rust/neqo-qpack/.cargo-checksum.json
+new file mode 100644
+--- /dev/null
++++ b/third_party/rust/neqo-qpack/.cargo-checksum.json
+@@ -0,0 +1 @@
++{"files":{},"package": null}
+diff --git a/third_party/rust/neqo-transport/.cargo-checksum.json b/third_party/rust/neqo-transport/.cargo-checksum.json
+new file mode 100644
+--- /dev/null
++++ b/third_party/rust/neqo-transport/.cargo-checksum.json
+@@ -0,0 +1 @@
++{"files":{},"package": null}
+diff --git a/third_party/rust/neqo-udp/.cargo-checksum.json b/third_party/rust/neqo-udp/.cargo-checksum.json
+new file mode 100644
+--- /dev/null
++++ b/third_party/rust/neqo-udp/.cargo-checksum.json
 @@ -0,0 +1 @@
 +{"files":{},"package": null}

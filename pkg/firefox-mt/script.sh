@@ -95,6 +95,8 @@ fi
 ## Patch series modifications
 ##
 
+new_patch xtradeb-mach-clobber-hang.patch
+
 if ubuntu_dist resolute
 then
 	new_patch xtradeb-resolute-fixes.patch
@@ -105,6 +107,18 @@ if dpkg --compare-versions $rust_version lt 1.90
 then
 	new_patch xtradeb-rust-downgrade.patch
 	new_patch xtradeb-rust-downgrade-checksums.patch
+fi
+
+if dpkg --compare-versions $rust_version le 1.88
+then
+	new_patch xtradeb-rust-zlib-unstable.patch
+	new_patch xtradeb-rust-zlib-unstable-checksums.patch
+
+	cat >> $debian/build/rules.mk << END
+
+# XtraDeb: Needed by xtradeb-rust-zlib-unstable.patch
+export RUSTC_BOOTSTRAP = 1
+END
 fi
 
 need_version_epoch_bump=yes

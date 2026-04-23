@@ -1,0 +1,19 @@
+"debian/rules clean" invokes "./mach clobber", which appears to hang due to
+some telemetry (!) functionality in the script. Nip that s*** in the bud.
+
+For reference, the actual hang occurs a bit further down (at the end of the
+_run() method), in the following call:
+
+  context._telemetry_init_done.wait()
+
+--- a/python/mach/mach/main.py
++++ b/python/mach/mach/main.py
+@@ -366,7 +366,7 @@ To see more help for a specific command,
+         # Glean SDK initialization was started early in mach_initialize.py
+         # via driver._telemetry_future. Retrieve the result here (non-blocking
+         # if already complete) and report invocation metrics.
+-        if self._telemetry_future is not None:
++        if False:  # Or, maybe not
+             import threading
+ 
+             context._telemetry_init_done = threading.Event()
