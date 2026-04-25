@@ -15,7 +15,7 @@ perl -pi \
 	-e '$pd=$d' \
 	$debian/initial_bookmarks.html
 
-cat >$debian/xtradeb.tmp <<END
+cat > $debian/xtradeb.tmp << END
         <DT><A HREF="https://www.ubuntu.com/" ICON="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACSklEQVQ4jX1TXWhSYRj+ZMxRN7vpZuwiRrBREchgxS6CQXTn1EULyWiFdIQQRCu6yI0Yg4KUJIOhNCSiusqLbmSMLroQ2WgRw5Oxc456NHeOOmPqMX/W4ekm/46uF76bl/d53p/n+QhRRImLjWf9Djdvm9xmZ1UyO6uSedvkdtbvcJe42LiyvisKQZedMQzWWC1Bv8cYBmuFoMveA6RpWv3z0aWNo4CslqDOx9BIMw1Wp5IzzsvrNE2rWwSi59arLoBOhZzHitLGW5Q/vYewNIc6t4NGhgOrU4HVEmT9DjchhBBpd0vD6lRyE5yyTkNcMaGyuY5m1PkYhKU5JG+e6mwil5mvZ4jopXzNZPzaCVS/b6KeoBE3jiB5ewKJ66PIeayQpSL+HOTB3znXIskFHj4hSfMY10wUXi8DAPKrD3pukHVRAAAp/LGVS1omYoTVEvx69xTybwl7Tj3qfAzx+eEeAu7KcRRDARwEX7ZV0Q80CKMfaBTWFiFLRaTtMzjMpsAZ1H2VSNsugrdoOkiPVUh8YTTdWmFtEQCw59T3gu0zAIBiKNC9gvjM9KZ1xPlh1H58QTUaQdw4gsSNk+AMagjLRjQyHA73M11KCF7LKqlEw1OdncQVE7IuCuXPH9oycjsQHl9F0nxaIeO3s4QQQoTnCwHlyPkXNhRDARRDAaTunkc1GkE1Gmk38lK+lhMZhhlK37sQ+Z+V/60ms1qC9P3pcJeVmyT9JlE+0Uv5GIYZOvJHVqLhKdFL+ToNljSPcaKX8km7Wxpl/V9ZLTo82gQ36wAAAABJRU5ErkJggg==">Ubuntu</A>
         <DT><A HREF="https://xtradeb.net/" ICON="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACkUlEQVQ4jY2TX2jNYRjHP8/7vme//TlYOgodMhobWtyQuxOZ3Yhku3Eh1ERKSlyQCFdEiIiliIZyoYgVm1JbQtr2syQzjSaMcHZ2/vze93Ux/yLyvXl6+n6/z/P0rQf+A5dBA3RCVTd0hND+BCoBzB/ienT9O0TaiNILqQ0CtjpPWa6IlmfXSIyB+Rr4CJuAzX8MaLiC/dHEWG0CFuNg2DK5qJST6Qw5BS4HHQDyq9nvZrwrY5kzdEaPidkBrirFZ+v5II6kGk//xy5aC4MUEtU8ibdwwXgQUmhpI7Kl7NIlbFAWqOKI66XWlvAq3sJgZj1zcewsn0iDSTLWRpSl63j/4wJ/jKpomC5ThNgCfdqzRLbx/DsfHWKp3sKtoRSrYiU0KUFyjlBlapmUraNx+BFzlSbEoJ3joGzjuW8kBpA+zhwf8VmEfPwuZ/OeDuvBCk3KCeeUYpPtY130hmZXYIiI+x6EU0SdZayxl7iYbWO2/5ZZzHDeCrvG3OSwAaoLjoeiqPBphryngB0R7gHZWElKvaPaaaYJeA/SfZ1BB28BlHM0GkGrgDOmghodUE7AHAE/U5BxlWxnKqdVwAKfwgh4YIOGoz0w/WeIJ5gaDRGaGLGoQGjy1MkOBgBeTKE4UUUoir3hDZ6WQ4uCeA7aFSAelGykVzzNxNBmNDW2mGMhxPuTlFT0kZU8+3yeA3HN1QDiHvDQZEbqCHSenVYo1oZMrp92C9e/vKK4G1723mHGlHkkEtUMvO+h1Vru10DTvx6oqAsevgX/GnwIfmAGbdl60pkVPM3UMh9A/W70IK0pTAPkDez/BD2foD+C5tIkb0hi9Sy0C5j+1+2/4h6MegATdoPKLGJldi23/SmWf+e/AvzuCKinXVlBAAAAAElFTkSuQmCC">XtraDeb</A>
 END
@@ -24,11 +24,9 @@ END
 (cd $debian && \
 	sed -i '/XtraDeb additions/ r xtradeb.tmp' initial_bookmarks.html)
 
-rm -f $debian/xtradeb.tmp
-
 if ubuntu_dist noble
 then
-	cat >$debian/xtradeb.tmp <<'END'
+	cat > $debian/xtradeb.tmp << 'END'
 ifneq ($(filter armhf,$(DEB_HOST_ARCH)),)
 # clang gives us "argument unused during compilation" warnings for these
 export   DEB_CFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
@@ -36,18 +34,19 @@ export DEB_CXXFLAGS_MAINT_STRIP+=-fno-stack-clash-protection
 endif
 END
 	(cd $debian && \
-		sed -i -r -e '/^export DEB_CXXFLAGS_MAINT_STRIP=-g/{r xtradeb.tmp' -e '}' rules)
+		sed -ri -e '/^export DEB_CXXFLAGS_MAINT_STRIP=-g/{r xtradeb.tmp' -e '}' rules)
 fi
 
-cat >$debian/xtradeb.tmp <<'END'
+cat > $debian/xtradeb.tmp << 'END'
 
 # final link takes >150m, don't let Launchpad kill the build prematurely
 keepalive=debian/scripts/keepalive-wrapper.py 7200
 END
 (cd $debian && \
-	sed -i -r -e '/^defines\+=host_cpu=."ppc64."/{N;r xtradeb.tmp' -e '}' rules)
-rm -f $debian/xtradeb.tmp
+	sed -ri -e '/^defines\+=host_cpu=."loong64."/{N;r xtradeb.tmp' -e '}' rules)
 perl -pi -e 's/(ninja .* chrome )/\$(keepalive) $1/' $debian/rules
+
+rm -f $debian/xtradeb.tmp
 
 # Borrow the keepalive wrapper from the Ubuntu 20.04 Firefox build
 cp -fp $resource_dir/keepalive-wrapper.py $debian/scripts/
@@ -75,21 +74,21 @@ static_libcxx=$($use_libcxx \
 	&& echo true || echo false)
 
 # rustc-web is only available in Debian (old)stable
-sed -i -r '/^\s+rustc-web(:any)? \(.+\),/s/-web//' $debian/control
+sed -ri '/^\s+rustc-web(:any)? \(.+\),/ s/-web//' $debian/control
 
 # Ubuntu provides "rustc-N.NN" packages
-sed -i -r \
+sed -ri \
 	-e 's/^(\s+rustc)(:any)? \(.+\),$/\1-'"$rust_version"'\2,/' \
 	-e 's/^(\s+rustfmt)(:any)?,$/\1-'"$rust_version"'\2,/' \
 	-e 's/^(\s+libstd-rust)(-dev) \(.+\)/\1-'"$rust_version"'\2/' \
 	$debian/control
-sed -i -r 's!^(rust_sysroot)=.*!\1=/usr/lib/rust-'"$rust_version"'!' \
+sed -ri 's!^(rust_sysroot)=.*!\1=/usr/lib/rust-'"$rust_version"'!' \
 	$debian/rules
 
 # Don't do the bindgen hack, it's not needed
-sed -i -r \
-	-e '/^defines\+=rust_bindgen_root=/s!\$\(CURDIR\)/debian/bindgen/root!!' \
-	-e '/^override_dh_auto_configure:/s/ set_up_bindgen\b//' \
+sed -ri \
+	-e '/^defines\+=rust_bindgen_root=/ s!\$\(CURDIR\)/debian/bindgen/root!!' \
+	-e '/^override_dh_auto_configure:/ s/ set_up_bindgen\b//' \
 	$debian/rules
 
 llvm_version_orig=19
@@ -99,7 +98,7 @@ grep -Eq "^\\s+clang-$llvm_version_orig(:\\w+)?,\$" $debian/control \
 
 if [ $llvm_version -ne $llvm_version_orig ]
 then
-	sed -i -r '/(clang|libc\+\+|lld|llvm)/'"s/-$llvm_version_orig/-$llvm_version/" \
+	sed -ri '/(clang|libc\+\+|lld|llvm)/'"s/-$llvm_version_orig/-$llvm_version/" \
 		$debian/control \
 		$debian/rules \
 		$debian/patches/debianization/clang-version.patch
@@ -114,8 +113,18 @@ then
 
 	perl -pi -e '/^(\s+)-Wno-unknown-pragmas / and $_.="$1'"$x"' \\\n"' \
 		$debian/rules
+fi
 
-	sed -i '/toolchain_supports_rust_thin_lto=false/d' $debian/rules
+if [ $llvm_version/$rust_version != 20/1.91 ]
+then
+	# Avoid link errors like the following, a result of Rust using an
+	# LLVM backend newer than the C++ linker:
+	#
+	#   ld.lld-20: error: ...: Unknown attribute kind (103) \
+	#   (Producer: 'LLVM21.1.2-rust-1.91.1-stable' Reader: 'LLVM 20.1.8')
+	#
+	# (the conditional above is not a general solution, obviously)
+	sed -i '/toolchain_supports_rust_thin_lto=false/ d' $debian/rules
 fi
 
 if ubuntu_dist jammy noble && $use_libcxx && ! $static_libcxx
@@ -124,7 +133,7 @@ then
 	# newer version of LLVM than is available in the official repos
 	# (note: -static-libstdc++ does apply to libc++, the option is
 	# just inappropriately named)
-	sed -i -r '/^export LDFLAGS:=/s!$! -static-libstdc++!' \
+	sed -ri '/^export LDFLAGS:=/ s/$/ -static-libstdc++/' \
 		$debian/rules
 	static_libcxx=true
 fi
@@ -132,7 +141,7 @@ fi
 if ubuntu_dist jammy
 then
 	# The libgtk-3-0t64 package is not available until noble
-	sed -i -r 's/\b(libgtk-3-0)t64\b/\1/' $debian/control
+	sed -ri 's/\b(libgtk-3-0)t64\b/\1/' $debian/control
 
 	# If we are using libstdc++, then use version 12, because 11 has
 	# issues with std::string not being constexpr
@@ -149,7 +158,7 @@ then
 	#   third_party/webrtc/modules/video_capture/linux/video_capture_pipewire.cc:329:19: error: invalid application of 'sizeof' to an incomplete type 'struct spa_meta_videotransform'
 	#        SPA_POD_Int(sizeof(struct spa_meta_videotransform)))));
 	#                    ^     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	sed -i '/\brtc_use_pipewire=true\b/d' $debian/rules
+	sed -i '/\brtc_use_pipewire=true\b/ d' $debian/rules
 
 	# Fix V4L breakage on arm64/armhf due to older kernel headers:
 	#
@@ -199,7 +208,7 @@ then
 		$debian/rules
 fi
 
-if ubuntu_dist jammy noble questing
+if true
 then
 	# Prevent the linker from adding a spurious run-time dependency on
 	# libtest_trace_processor.so to the chromium-shell binary. This is
@@ -209,14 +218,14 @@ then
 		-e 'if (m!gn gen out/Release! && !$done) {' \
 		-e '  $_ .= <<END;' \
 		-e '	# Avoid chromium-shell -> libtest_trace_processor.so dependency' \
-		-e '	sed -i \x{27}/^  solibs =/s! \\./libtest_trace_processor\\.so!!\x{27} out/Release/obj/content/shell/content_shell.ninja' \
+		-e '	sed -i \x{27}/^  solibs =/ s! \\./libtest_trace_processor\\.so!!\x{27} out/Release/obj/content/shell/content_shell.ninja' \
 		-e 'END' \
 		-e '  $done = 1;' \
 		-e '}' \
 		$debian/rules
 
 	# Zap Debian's workaround (ship the library) as we don't need it
-	sed -i '/libtest_trace_processor/s/^/#xtradeb#/' $debian/*chromium-shell.install
+	sed -i '/libtest_trace_processor/ d' $debian/*chromium-shell.install
 fi
 
 if ubuntu_dist noble
