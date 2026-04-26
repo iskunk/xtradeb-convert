@@ -77,6 +77,24 @@ then
 		$debian/build/rules.mk
 fi
 
+if ubuntu_dist noble
+then
+	# https://github.com/llvm/llvm-project/issues/131394
+	cat > $debian/xtradeb.tmp << 'END'
+ifeq (ppc64el,$(DEB_HOST_ARCH))
+# Avoid "Undefined temporary symbol .L_MergedGlobals.*" link errors
+CXXFLAGS += -mllvm -enable-global-merge=FALSE
+LDFLAGS += -Wl,-mllvm,-enable-global-merge=FALSE
+endif
+
+END
+	(cd $debian && sed -i \
+		-e '/^# enable the crash reporter/{r xtradeb.tmp' \
+		-e 'N}' \
+		build/rules.mk)
+	rm $debian/xtradeb.tmp
+fi
+
 # The cdbs package dropped the entire /usr/share/cdbs/1/class/ directory
 # in resolute, which breaks the debianization. Bundle a copy of makefile.mk
 # and its dependencies to allow the build to proceed.
