@@ -330,6 +330,15 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/libdav1d-fields.patch
+fi
+
+if ubuntu_dist noble
+then
+	new_patch xtradeb/mksnapshot-arm64-fix.patch
+fi
+
+if ubuntu_dist jammy
+then
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
 	new_patch xtradeb/rust-allocator-types.patch
 fi

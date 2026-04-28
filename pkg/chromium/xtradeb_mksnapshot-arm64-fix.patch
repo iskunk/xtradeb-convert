@@ -1,0 +1,21 @@
+Fix a bizarre error that occurs in the arm64 build, on noble only:
+
+  FAILED: gen/v8/embedded.S snapshot_blob.bin
+  python3 ../../v8/tools/run.py ./mksnapshot --turbo_instruction_scheduling --turbo-always-optimize-spills --target_os=linux --target_arch=arm64 --embedded_src gen/v8/embedded.S --predictable --no-use-ic --turbo-elide-frames --embedded_variant Default --random-seed 314159265 --startup_blob snapshot_blob.bin --no-native-code-counters --concurrent-builtin-generation --concurrent-turbofan-max-threads=0
+  Return code is -5
+  ninja: build stopped: subcommand failed.
+
+--- a/v8/src/builtins/arm64/builtins-arm64.cc
++++ b/v8/src/builtins/arm64/builtins-arm64.cc
+@@ -3579,6 +3579,11 @@ class RegisterAllocator {
+     DCHECK_NE(*reg, no_reg);
+     available_.Combine(*reg);
+     *reg = no_reg;
++
++    // XtraDeb workaround: bail out if register is not found
++    if (find(allocated_registers_.begin(), allocated_registers_.end(), reg) == allocated_registers_.end())
++      return;
++
+     allocated_registers_.erase(
+       find(allocated_registers_.begin(), allocated_registers_.end(), reg));
+   }
