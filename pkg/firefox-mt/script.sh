@@ -121,6 +121,11 @@ then
 	new_patch xtradeb-resolute-fixes-checksums.patch
 fi
 
+if ubuntu_dist jammy noble
+then
+	new_patch xtradeb-riscv-no-unistd64.patch
+fi
+
 if dpkg --compare-versions $rust_version lt 1.90
 then
 	new_patch xtradeb-rust-downgrade.patch
