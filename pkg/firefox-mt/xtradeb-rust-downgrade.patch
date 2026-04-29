@@ -2,111 +2,71 @@ Dial down the Rust minimum-version requirement by a couple notches.
 
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -62,7 +62,7 @@ exclude = [
- resolver = "2"
- 
+@@ -64,3 +64,3 @@ resolver = "2"
  [workspace.package]
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
  
- [workspace.dependencies]
- # Shared across multiple UniFFI consumers.
 --- a/python/mozboot/mozboot/util.py
 +++ b/python/mozboot/mozboot/util.py
-@@ -13,7 +13,7 @@ from mach.site import PythonVirtualenv
- from mach.util import get_state_dir
- 
+@@ -15,3 +15,3 @@ from mach.util import get_state_dir
  # Keep in sync with rust-version in top-level Cargo.toml.
 -MINIMUM_RUST_VERSION = "1.90.0"
 +MINIMUM_RUST_VERSION = "1.88.0"
  
- 
- def get_tools_dir(srcdir=False):
 --- a/third_party/rust/mtu/Cargo.toml
 +++ b/third_party/rust/mtu/Cargo.toml
-@@ -11,7 +11,7 @@
- 
- [package]
+@@ -13,3 +13,3 @@
  edition = "2024"
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
  name = "mtu"
- version = "0.3.0"
- authors = ["The Neqo Authors <necko@mozilla.com>"]
 --- a/third_party/rust/neqo-bin/Cargo.toml
 +++ b/third_party/rust/neqo-bin/Cargo.toml
-@@ -11,7 +11,7 @@
- 
- [package]
+@@ -13,3 +13,3 @@
  edition = "2024"
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
  name = "neqo-bin"
- version = "0.24.1"
- authors = ["The Neqo Authors <necko@mozilla.com>"]
 --- a/third_party/rust/neqo-common/Cargo.toml
 +++ b/third_party/rust/neqo-common/Cargo.toml
-@@ -11,7 +11,7 @@
- 
- [package]
+@@ -13,3 +13,3 @@
  edition = "2024"
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
  name = "neqo-common"
- version = "0.24.1"
- authors = ["The Neqo Authors <necko@mozilla.com>"]
 --- a/third_party/rust/neqo-crypto/Cargo.toml
 +++ b/third_party/rust/neqo-crypto/Cargo.toml
-@@ -11,7 +11,7 @@
- 
- [package]
+@@ -13,3 +13,3 @@
  edition = "2024"
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
  name = "neqo-crypto"
- version = "0.24.1"
- authors = ["The Neqo Authors <necko@mozilla.com>"]
 --- a/third_party/rust/neqo-http3/Cargo.toml
 +++ b/third_party/rust/neqo-http3/Cargo.toml
-@@ -11,7 +11,7 @@
- 
- [package]
+@@ -13,3 +13,3 @@
  edition = "2024"
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
  name = "neqo-http3"
- version = "0.24.1"
- authors = ["The Neqo Authors <necko@mozilla.com>"]
 --- a/third_party/rust/neqo-qpack/Cargo.toml
 +++ b/third_party/rust/neqo-qpack/Cargo.toml
-@@ -11,7 +11,7 @@
- 
- [package]
+@@ -13,3 +13,3 @@
  edition = "2024"
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
  name = "neqo-qpack"
- version = "0.24.1"
- authors = ["The Neqo Authors <necko@mozilla.com>"]
 --- a/third_party/rust/neqo-transport/Cargo.toml
 +++ b/third_party/rust/neqo-transport/Cargo.toml
-@@ -11,7 +11,7 @@
- 
- [package]
+@@ -13,3 +13,3 @@
  edition = "2024"
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
  name = "neqo-transport"
- version = "0.24.1"
- authors = ["The Neqo Authors <necko@mozilla.com>"]
 --- a/third_party/rust/neqo-udp/Cargo.toml
 +++ b/third_party/rust/neqo-udp/Cargo.toml
-@@ -11,7 +11,7 @@
- 
- [package]
+@@ -13,3 +13,3 @@
  edition = "2024"
 -rust-version = "1.90.0"
 +rust-version = "1.88.0"
  name = "neqo-udp"
- version = "0.24.1"
- authors = ["The Neqo Authors <necko@mozilla.com>"]
