@@ -261,7 +261,6 @@ fi
 
 if ubuntu_dist jammy noble
 then
-	new_patch bookworm/eslint.patch
 	new_patch bookworm/gn-absl.patch
 	new_patch bookworm/gn-funcs.patch
 	new_patch bookworm/gn-hpp11.patch
@@ -298,6 +297,11 @@ fi
 if dpkg --compare-versions $rust_version lt 1.87
 then
 	new_patch trixie/rust-is-multiple-of.patch
+fi
+
+if dpkg --compare-versions $rust_version le 1.91
+then
+	new_patch rust-1.85/file_as_c_str.patch
 fi
 
 if dpkg --compare-versions $rust_version lt 1.89

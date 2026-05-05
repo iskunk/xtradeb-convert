@@ -5,6 +5,43 @@ Fix a bizarre error that occurs in the arm64 build, on noble only:
   Return code is -5
   ninja: build stopped: subcommand failed.
 
+Debugger backtrace (with 147.0.7727.116):
+
+  #0  0x0000b95643b96698 in __clang_trap_msg$libc++$/usr/bin/../include/c++/v1/__vector/vector.h:1148: assertion __position != end() failed: vector::erase(iterator) called with a non-dereferenceable iterator
+   () at /usr/bin/../include/c++/v1/__vector/vector.h:1147
+  #1  std::__1::vector<v8::internal::Register*, std::__1::allocator<v8::internal::Register*> >::erase[abi:sn200100](std::__1::__wrap_iter<v8::internal::Register* const*>) (this=0xffffda5785c0, __position=...)
+      at /usr/bin/../include/c++/v1/__vector/vector.h:1147
+  #2  0x0000b95643b964fc in v8::internal::(anonymous namespace)::RegisterAllocator::Free (this=0xffffda5785c0, reg=0xffffda5783dc)
+      at ../../v8/src/builtins/arm64/builtins-arm64.cc:3582
+  #3  0x0000b95643b8ea4c in v8::internal::(anonymous namespace)::JSToWasmWrapperHelper (masm=0xffffda578880, mode=v8::internal::wasm::kNoPromise)
+      at ../../v8/src/builtins/arm64/builtins-arm64.cc:4257
+  #4  0x0000b95643b8e3a4 in v8::internal::Builtins::Generate_JSToWasmWrapperAsm (
+      masm=0xffffda578880) at ../../v8/src/builtins/arm64/builtins-arm64.cc:4412
+  #5  0x0000b956438d84c8 in v8::internal::(anonymous namespace)::BuildWithMacroAssembler (isolate=0x3800120000,
+      builtin=v8::internal::Builtin::kJSToWasmWrapperAsm,
+      generator=0xb95643b8e384 <v8::internal::Builtins::Generate_JSToWasmWrapperAsm(v8::internal::MacroAssembler*)>, s_name=0xb9563e018cc9 "JSToWasmWrapperAsm")
+      at ../../v8/src/builtins/setup-builtins-internal.cc:190
+  #6  0x0000b95643885e44 in v8::internal::SetupIsolateDelegate::SetupBuiltinsInternal (isolate=0x3800120000, compute_builtins_effects=true)
+      at ../../v8/src/builtins/setup-builtins-internal.cc:562
+  #7  0x0000b95641223834 in v8::internal::SetupIsolateDelegate::SetupBuiltins (
+      this=0x3800016990, isolate=0x3800120000, compile_builtins=true)
+      at ../../v8/src/init/setup-isolate-full.cc:29
+  #8  0x0000b9563ebd8c54 in v8::internal::Isolate::Init (this=0x3800120000,
+      startup_snapshot_data=0x0, read_only_snapshot_data=0x0,
+      shared_heap_snapshot_data=0x0, can_rehash=false)
+      at ../../v8/src/execution/isolate.cc:6097
+  #9  0x0000b9563ebd77d4 in v8::internal::Isolate::InitWithoutSnapshot (
+      this=0x3800120000) at ../../v8/src/execution/isolate.cc:5556
+  #10 0x0000b95640307e1c in v8::internal::SnapshotCreatorImpl::InitInternal (
+      this=0x380002c900, blob=0x0) at ../../v8/src/snapshot/snapshot.cc:862
+  #11 0x0000b956403084e4 in v8::internal::SnapshotCreatorImpl::SnapshotCreatorImpl (this=0x380002c900, isolate=0x3800120000, params=...)
+      at ../../v8/src/snapshot/snapshot.cc:923
+  #12 0x0000b9563e57cd34 in v8::SnapshotCreator::SnapshotCreator (
+      this=0xffffda5e1768, isolate=0x3800120000, params=...)
+      at ../../v8/src/api/api.cc:395
+  #13 0x0000b9563e544788 in main (argc=1, argv=0xffffda5fe118)
+      at ../../v8/src/snapshot/mksnapshot.cc:300
+
 --- a/v8/src/builtins/arm64/builtins-arm64.cc
 +++ b/v8/src/builtins/arm64/builtins-arm64.cc
 @@ -3579,6 +3579,11 @@ class RegisterAllocator {
