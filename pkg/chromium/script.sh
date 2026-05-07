@@ -128,7 +128,7 @@ then
 fi
 
 # This package will land in Ubuntu sometime after resolute
-sed -ri 's/^\s+esbuild-wasm,/ d' $debian/control
+sed -ri '/^\s+esbuild-wasm,/ d' $debian/control
 
 if ubuntu_dist jammy noble && $use_libcxx && ! $static_libcxx
 then
