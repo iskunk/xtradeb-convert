@@ -127,6 +127,9 @@ then
 	sed -i '/toolchain_supports_rust_thin_lto=false/ d' $debian/rules
 fi
 
+# This package will land in Ubuntu sometime after resolute
+sed -ri 's/^\s+esbuild-wasm,/ d' $debian/control
+
 if ubuntu_dist jammy noble && $use_libcxx && ! $static_libcxx
 then
 	# Statically link the libc++ runtime libraries, as we are using a
