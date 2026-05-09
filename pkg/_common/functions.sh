@@ -73,6 +73,7 @@ get_resource_name()
 		ungoogled-chromium) name=chromium ;;
 		wesnoth-[1-9].[0-9]*) name=wesnoth ;;
 		wxwidgets[3-9].*) name=wxwidgets ;;
+		zen-browser) name=firefox ;;
 
 		firefox)
 		case "${deb_version:-}" in

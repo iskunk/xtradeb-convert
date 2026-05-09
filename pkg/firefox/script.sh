@@ -18,7 +18,7 @@ is_esr=$(grep -qx 'Source: firefox-esr' $debian/control && echo true || echo fal
 test ! -f $debian/distribution.ini \
 || error 'package already has distribution.ini file'
 
-cat >$debian/distribution.ini <<END
+cat > $debian/distribution.ini << END
 # XtraDeb addition
 
 [Global]
@@ -43,24 +43,24 @@ item.2.icon=https://xtradeb.net/favicon.ico
 item.2.iconData=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACkUlEQVQ4jY2TX2jNYRjHP8/7vme//TlYOgodMhobWtyQuxOZ3Yhku3Eh1ERKSlyQCFdEiIiliIZyoYgVm1JbQtr2syQzjSaMcHZ2/vze93Ux/yLyvXl6+n6/z/P0rQf+A5dBA3RCVTd0hND+BCoBzB/ienT9O0TaiNILqQ0CtjpPWa6IlmfXSIyB+Rr4CJuAzX8MaLiC/dHEWG0CFuNg2DK5qJST6Qw5BS4HHQDyq9nvZrwrY5kzdEaPidkBrirFZ+v5II6kGk//xy5aC4MUEtU8ibdwwXgQUmhpI7Kl7NIlbFAWqOKI66XWlvAq3sJgZj1zcewsn0iDSTLWRpSl63j/4wJ/jKpomC5ThNgCfdqzRLbx/DsfHWKp3sKtoRSrYiU0KUFyjlBlapmUraNx+BFzlSbEoJ3joGzjuW8kBpA+zhwf8VmEfPwuZ/OeDuvBCk3KCeeUYpPtY130hmZXYIiI+x6EU0SdZayxl7iYbWO2/5ZZzHDeCrvG3OSwAaoLjoeiqPBphryngB0R7gHZWElKvaPaaaYJeA/SfZ1BB28BlHM0GkGrgDOmghodUE7AHAE/U5BxlWxnKqdVwAKfwgh4YIOGoz0w/WeIJ5gaDRGaGLGoQGjy1MkOBgBeTKE4UUUoir3hDZ6WQ4uCeA7aFSAelGykVzzNxNBmNDW2mGMhxPuTlFT0kZU8+3yeA3HN1QDiHvDQZEbqCHSenVYo1oZMrp92C9e/vKK4G1723mHGlHkkEtUMvO+h1Vru10DTvx6oqAsevgX/GnwIfmAGbdl60pkVPM3UMh9A/W70IK0pTAPkDez/BD2foD+C5tIkb0hi9Sy0C5j+1+2/4h6MegATdoPKLGJldi23/SmWf+e/AvzuCKinXVlBAAAAAElFTkSuQmCC
 END
 
-cat >>$debian/browser.install.in <<END
+cat >> $debian/browser.install.in << END
 
 # XtraDeb addition
 debian/distribution.ini usr/share/@browser@/distribution
 END
 
-################################################################
-##
-## Modifications to allow building on Ubuntu jammy and later
-##
-################################################################
+# Don't need (fake)root to build the package
+sed -i '/^Build-Depends:/ i Rules-Requires-Root: no' $debian/control.in
 
-rm -f $debian/rules.add
+# Launchpad's amd64 and ppc64el builders don't have enough (virtual) memory
+# to build Firefox, so use our builder-tweak package to add more swap.
+sed -ri 's/^(\s+)libx11-dev,$/\1xtradeb-builder-tweak <!noxtradeb>,\n\0/' \
+	$debian/control.in
 
 # Submitted upstream at
 # https://salsa.debian.org/mozilla-team/firefox/-/merge_requests/12 (ESR)
 # https://salsa.debian.org/mozilla-team/firefox/-/merge_requests/13 (reg.)
-cat >>$debian/make.mk <<END
+cat >> $debian/make.mk << END
 
 # XtraDeb additions
 
@@ -68,104 +68,107 @@ cat >>$debian/make.mk <<END
 export DEB_BUILD_MAINT_OPTIONS += optimize=-lto
 END
 
-cat >>$debian/browser.mozconfig.in <<END
+cat >> $debian/browser.mozconfig.in << END
 
 # XtraDeb additions
+%if DEB_HOST_ARCH != armhf
+%if DEB_HOST_ARCH != i386
+ac_add_options --enable-rust-simd
+%endif
+%endif
+%if DEB_BUILD_ARCH != armhf
+%if DEB_HOST_ARCH != riscv64
+# armhf: Causes OOM failures
+# riscv64: Causes "relocation R_RISCV_JAL out of range" link errors
 ac_add_options --enable-lto=thin
+%endif
+%endif
 END
 
-if ubuntu_dist jammy
+# Make DEB_BUILD_ARCH usable in preprocessor inputs
+sed -i '/^\$(PREPROCESSED_FILES): VARS =/ s/$/  DEB_BUILD_ARCH/' \
+	$debian/rules
+
+# Even thin LTO is too much for armhf:
+#
+#   error: failed to mmap file '.../armv7-unknown-linux-gnueabihf/.../libstyle-<mumble>.rlib': Cannot allocate memory (os error 12)
+#   error: could not compile `gkrust` (lib) due to 1 previous error
+#
+sed -ri \
+	-e 's/^# Use thinLTO (on armhf)/# Disable LTO \1/' \
+	-e 's/^(export DEBIAN_RUST_LTO=-Clto)=thin/\1=off/' \
+	$debian/rules
+
+# Use lld for faster linking
+perl -pi -e '/^(\s+)clang,/ and $_.="${1}lld,\n"' \
+	$debian/control.in
+
+sed -ri \
+	-e 's/^(\s+clang),/\1-'"$llvm_version"',/' \
+	-e 's/^(\s+libclang)-dev,/\1-'"$llvm_version"'-dev,/' \
+	-e 's/^(\s+libclang-rt)-(dev-wasm32),/\1-'"$llvm_version"'-\2,/' \
+	-e 's/^(\s+libc\+\+)-(dev-wasm32),/\1-'"$llvm_version"'-\2,/' \
+	-e 's/^(\s+lld),/\1-'"$llvm_version"',/' \
+	-e 's/^(\s+llvm)-dev,/\1-'"$llvm_version"'-dev,/' \
+	$debian/control.in
+
+sed -ri \
+	-e "s!^(CC :=) clang.*!\\1 clang-$llvm_version!" \
+	-e "s!^(CXX :=) clang\+\+.*!\\1 clang++-$llvm_version!" \
+	$debian/rules
+
+if ubuntu_dist noble
 then
-	# Use Clang/LLVM 15 specifically (instead of jammy's default of 14)
-	# to avoid incompatibilities with Rust 1.80 or newer:
-	#
-	#   /usr/bin/ld: error: LLVM gold plugin has failed to create
-	#   LTO module: Opaque pointers are only supported in
-	#   -opaque-pointers mode (Producer: 'LLVM18.1.7-rust-1.80.1-stable'
-	#   Reader: 'LLVM 14.0.0')
-	sed -i -r \
-		-e 's/^(\s+clang),/\1-15,/' \
-		-e 's/^(\s+libclang)-dev,/\1-15-dev,/' \
-		-e 's/^(\s+libclang-rt)-(dev-wasm32),/\1-15-\2,/' \
-		-e 's/^(\s+libc\+\+)-(dev-wasm32),/\1-15-\2,/' \
-		-e 's/^(\s+lld),/\1-15,/' \
-		-e 's/^(\s+llvm)-dev,/\1-15-dev,/' \
-		$debian/control.in
+	# https://github.com/llvm/llvm-project/issues/131394
+	cat > $debian/xtradeb.tmp << 'END'
 
-	cat >>$debian/rules.add <<'END'
-
-export CC  = clang-15
-export CXX = clang++-15
+ifeq (ppc64el,$(DEB_HOST_ARCH))
+# Avoid "Undefined temporary symbol .L_MergedGlobals.*" link errors
+CXXFLAGS += -mllvm -enable-global-merge=FALSE
+LDFLAGS += -Wl,-mllvm,-enable-global-merge=FALSE
+endif
 END
+	(cd $debian && sed -i '/call lazy,LDFLAGS,/ r xtradeb.tmp' rules)
+	rm $debian/xtradeb.tmp
 fi
 
+cat >> $debian/browser.mozconfig.in << END
+ac_add_options --enable-linker=lld-$llvm_version
+END
+
 # Ubuntu provides version-in-name cargo/rustc packages
-sed -i -r 's/^(\s+(cargo|rustc)) \(>= (@RUST_VERSION@)\),/\1-\3,/' \
+sed -ri 's/^(\s+(cargo|rustc)) \(>= (@RUST_VERSION@)\),/\1-\3,/' \
 	$debian/control.in
 
-rust_version=$( \
-	ubuntu_dist plucky && echo 1.84 || \
-	(! $is_esr && echo 1.82) || \
-	echo 1.80 \
-)
-
-sed -i -r 's/^(%define RUST_VERSION) .*/\1 '"$rust_version/" \
+sed -ri 's/^(%define RUST_VERSION) .*/\1 '"$rust_version"'/' \
 	$debian/control.in
 
-cat >>$debian/rules.add <<END
-
-export CARGO ?= cargo-$rust_version
-export RUSTC ?= rustc-$rust_version
+cat >> $debian/browser.mozconfig.in << END
+ac_add_options CARGO=cargo-$rust_version
+ac_add_options RUSTC=rustc-$rust_version
 END
 
 # DIST needs to be set properly
 sed -i 's/^DIST = unknown/DIST = $(DEB_DISTRIBUTION)/' \
 	$debian/upstream.mk
 
-if ubuntu_dist jammy
-then
-	# Hook in our vendored copy of cbindgen, as the distro-provided
-	# package version in jammy is too old
-	perl -pi \
-		-e '/^RUSTFLAGS =/ and $_ .= <<END;' \
-		-e '' \
-		-e '# XtraDeb' \
-		-e 'CBINDGEN = \$(CURDIR)/cbindgen/target/release/cbindgen' \
-		-e 'END' \
-		\
-		-e '/^EXPORTS :=/ and $_ .= "EXPORTS += CBINDGEN\n";' \
-		-e 'm!^stamps/configure-\$\(PRODUCT\)::! and s/$/  \$(CBINDGEN)/;' \
-		\
-		-e 'm!rm -rf debian/objdir! and $_ .= <<END;' \
-		-e '' \
-		-e '	# XtraDeb' \
-		-e '	rm -rf cbindgen/.cargo/.package-cache cbindgen/target' \
-		-e 'END' \
-		$debian/rules
-
-	cat >>$debian/rules.add <<'END'
-
-# Build our vendored copy of cbindgen
-$(CBINDGEN): cbindgen/Cargo.toml
-	cd cbindgen && RUST_BACKTRACE=full $(CARGO) build --release
-END
-
-	sed -i -r '/^\s+cbindgen .+,$/s/^/%%xtradeb%%/' $debian/control.in
-fi
-
 # Extend distribution-release-specific conditionals with Ubuntu names
 # (note: line continuations are not supported by the preprocessor)
 
 # --without-wasm-sandboxed-libraries
-sed -i '/^%if DIST == bullseye/s/$/  || DIST == jammy/' \
+sed -i '/^%if DIST == bullseye/ s/$/  || DIST == jammy/' \
 	$debian/browser.mozconfig.in
 
 # WebAssembly library dependencies
-sed -i '/^%if DIST != bullseye/s/$/  \&\& DIST != jammy/' \
+sed -i '/^%if DIST != bullseye/ s/$/  \&\& DIST != jammy/' \
 	$debian/control.in
 
+## SYSTEM_LIBS += nspr vpx
+#sed -ri 's/(filter bullseye),/\1  jammy,/' \
+#	$debian/rules
+
 # SYSTEM_LIBS += nss
-sed -i -r 's/(filter bullseye bookworm),/\1  jammy noble plucky,/' \
+sed -ri 's/(filter bullseye bookworm trixie),/\1  jammy noble questing resolute,/' \
 	$debian/rules
 
 ## This conditional doesn't handle USE_SYSTEM_NSS=0 properly
@@ -173,39 +176,133 @@ sed -i -r 's/(filter bullseye bookworm),/\1  jammy noble plucky,/' \
 #	$debian/browser.install.in \
 #	$debian/browser.lintian-overrides.in
 
-if [ -f $debian/rules.add ]
-then
-	(echo
-	 echo '# XtraDeb additions'
-	 cat $debian/rules.add
-	) >>$debian/rules
+# Use a keepalive wrapper, as some link operations take a long time
+cp $base_dir/pkg/chromium/keepalive-wrapper.py $debian/
+sed -ri 's!^(\s+\+)(dh_auto_build)!\1debian/keepalive-wrapper.py 3600 \2!' \
+	$debian/rules
 
-	rm $debian/rules.add
+news=$resource_dir/NEWS.XtraDeb.html
+if [ -f $news ]
+then
+	# Show a post-upgrade notice to the user
+
+	cp $news $debian/
+
+	test ! -e $debian/policies.json \
+	|| error 'debian/policies.json file is already present'
+
+	# The startup.homepage_override_url pref does not appear to be
+	# usable; only a policy setting has the desired effect.
+	#
+	# For documentation on Firefox policies, see
+	# https://mozilla.github.io/policy-templates/
+
+	cat > $debian/policies.json << END
+{
+  "policies": {
+    "OverridePostUpdatePage": "file:///usr/share/doc/firefox/NEWS.XtraDeb.html"
+  }
+}
+END
+	# Note: usr/lib/@browser@/distribution is a symlink to
+	# usr/share/@browser@/distribution; see browser.links.in
+	cat >> $debian/browser.install.in << END
+
+debian/NEWS.XtraDeb.html usr/share/doc/@browser@
+debian/policies.json usr/share/@browser@/distribution
+END
 fi
+
+if false # ! $is_esr
+then
+	# Transition from firefox-mt
+
+	for dh_type in conffiles maintscript
+	do
+		test \
+			! -e $debian/browser.$dh_type -a \
+			! -e $debian/browser.$dh_type.in \
+		|| error "debian/browser.$dh_type* file is already present"
+	done
+
+	# Remove obsolete config files
+	cat > $debian/browser.conffiles.in << END
+remove-on-upgrade /etc/apport/blacklist.d/@browser@
+remove-on-upgrade /etc/apport/native-origins.d/@browser@
+remove-on-upgrade /etc/@browser@/syspref.js
+END
+
+	# A few paths change from directories to symlinks, and we need
+	# to handle those specially if we want the correct result
+	for subdir in \
+		browser/chrome \
+		browser/defaults \
+		distribution
+	do
+		cat >> $debian/browser.maintscript.in << END
+dir_to_symlink /usr/lib/@browser@/$subdir /usr/share/@browser@/$subdir 1:139.0~ @browser@
+END
+	done
+fi
+
+# When we regenerate files below, avoid creating anything outside of the
+# debian/ tree (specifically, the stamps/ directory and/or files therein)
+sed -i \
+	-e '/mkdir -p stamps/ i ifndef XTRADEB_CONVERT' \
+	-e '/if.*wildcard.*touch/ a endif # XTRADEB_CONVERT' \
+	$debian/rules
 
 ##
 ## Patch series modifications
 ##
 
+if ! $is_esr
+then
+	new_patch xtradeb/ffmpeg-vulkan-armhf.patch
+fi
+
 # https://bugs.launchpad.net/bugs/2033572
-if ubuntu_dist noble plucky
+if ubuntu_dist resolute
 then
 	new_patch xtradeb/fix-libc++-wasm-link-error.patch
 fi
 
 new_patch xtradeb/fix-param-lto-partitions.patch
 
-if ubuntu_dist jammy
+if $is_esr
 then
-	true	# jammy uses _FORTIFY_SOURCE=2
-elif $is_esr
-then
-	new_patch xtradeb/fortify-source-3-esr.patch
+	new_patch xtradeb/fortify-source-esr.patch
+	new_patch xtradeb/python-314-update.patch
 else
-	new_patch xtradeb/fortify-source-3.patch
+	new_patch xtradeb/fortify-source.patch
+	new_patch xtradeb/jit-simulator-riscv64.patch
+fi
+
+if ubuntu_dist resolute
+then
+	if $is_esr
+	then
+		new_patch xtradeb/libyuv-rvv-support-esr.patch
+		new_patch xtradeb/resolute-fixes-esr.patch
+		new_patch xtradeb/resolute-fixes-checksums.patch
+	else
+		new_patch xtradeb/libyuv-rvv-support.patch
+	fi
 fi
 
 if ! $is_esr
+then
+	new_patch xtradeb/ppc64el-workaround-for-llvm-assembler.patch
+
+	if ubuntu_dist jammy noble
+	then
+		new_patch xtradeb/riscv-no-unistd64.patch
+	fi
+
+	new_patch xtradeb/xsimd-ppc64el.patch
+fi
+
+if [ $source_name = firefox ]
 then
 	need_version_epoch_bump=yes
 fi
@@ -229,14 +326,13 @@ do
 done
 if [ -f $debian/../browser/config/mozconfig -a "_$(basename $debian)" = _debian ]
 then
-	# Regenerate files
-	(unset MAKEFLAGS; cd $debian/.. && set -x && debian/rules $files_to_regen TESTDIR=) \
+	(unset MAKEFLAGS; cd $debian/.. && set -x && debian/rules $files_to_regen TESTDIR= XTRADEB_CONVERT=1) \
 	|| error 'failed to regenerate debianization files'
 	rm -r  $debian/.mozbuild
 	rm -rf $debian/objdir	# firefox-esr has this, but not firefox
 	echo
 else
-	cat <<END
+	cat << END
 
 Note: Please run
 

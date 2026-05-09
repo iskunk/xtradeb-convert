@@ -1,0 +1,24 @@
+Fix this compile error in the riscv64 build on jammy and noble:
+
+  gmake[6]: Entering directory '/<<PKGBUILDDIR>>/obj-riscv64-linux-gnu/third_party/libwebrtc/rtc_base/platform_thread_types_gn'
+  third_party/libwebrtc/rtc_base/platform_thread_types_gn
+  E /<<PKGBUILDDIR>>/third_party/libwebrtc/rtc_base/platform_thread_types.cc:20:10: fatal error: 'asm/unistd_64.h' file not found
+  E    20 | #include <asm/unistd_64.h>
+  E       |          ^~~~~~~~~~~~~~~~~
+  E 1 error generated.
+  E gmake[6]: *** [/<<PKGBUILDDIR>>/config/rules.mk:668: Unified_cpp_form_thread_types_gn0.o] Error 1
+
+This header does not appear on riscv64, in the linux-libc-dev package,
+until at least questing.
+
+--- a/third_party/libwebrtc/rtc_base/platform_thread_types.cc
++++ b/third_party/libwebrtc/rtc_base/platform_thread_types.cc
+@@ -16,7 +16,7 @@
+ #include <sys/prctl.h>
+ #include <sys/syscall.h>
+ 
+-#if !defined(WEBRTC_ARCH_ARM) && !defined(WEBRTC_ARCH_ARM64)
++#if !defined(WEBRTC_ARCH_ARM) && !defined(WEBRTC_ARCH_ARM64) && !defined(__riscv)
+ #include <asm/unistd_64.h>
+ #endif
+ #endif
