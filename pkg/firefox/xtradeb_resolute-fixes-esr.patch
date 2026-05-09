@@ -1,0 +1,80 @@
+Resolve the following compilation errors on resolute, likely stemming from
+the newer glibc version in use:
+
+  In file included from Unified_cpp_sandbox_linux2.cpp:47:
+  In file included from /external/tmp/thunderbird/thunderbird-140.9.0esr/security/sandbox/chromium/sandbox/linux/bpf_dsl/policy_compiler.cc:22:
+  In file included from /external/tmp/thunderbird/thunderbird-140.9.0esr/security/sandbox/chromium/sandbox/linux/seccomp-bpf/syscall.h:8:
+  In file included from /external/tmp/thunderbird/thunderbird-140.9.0esr/obj-thunderbird/dist/system_wrappers/signal.h:3:
+  In file included from /usr/include/signal.h:58:
+  /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h:219:3: error: expected identifier
+    219 |   SYS_SECCOMP = 1,              /* Seccomp triggered.  */
+        |   ^
+  .../security/sandbox/chromium/sandbox/linux/system_headers/linux_seccomp.h:107:39: note: expanded from macro 'SYS_SECCOMP'
+    107 | #define SYS_SECCOMP                   1
+        |                                       ^
+
+  warning: glslopt@0.1.11: In file included from src/compiler/glsl/glcpp/glcpp-parse.y:32:
+  warning: glslopt@0.1.11: In file included from glsl-optimizer/src/mesa/main/mtypes.h:39:
+  warning: glslopt@0.1.11: In file included from glsl-optimizer/include/c11/threads.h:66:
+  warning: glslopt@0.1.11: glsl-optimizer/include/c11/threads_posix.h:69:25: error: typedef redefinition with different types ('pthread_once_t' (aka 'int') vs '__once_flag')
+  warning: glslopt@0.1.11:    69 | typedef pthread_once_t  once_flag;
+  warning: glslopt@0.1.11:       |                         ^
+  warning: glslopt@0.1.11: /usr/include/x86_64-linux-gnu/bits/types/once_flag.h:24:21: note: previous definition is here
+  warning: glslopt@0.1.11:    24 | typedef __once_flag once_flag;
+  warning: glslopt@0.1.11:       |                     ^
+
+  warning: glslopt@0.1.11: In file included from src/compiler/glsl/glcpp/glcpp-parse.y:32:
+  warning: glslopt@0.1.11: In file included from glsl-optimizer/src/mesa/main/mtypes.h:39:
+  warning: glslopt@0.1.11: In file included from glsl-optimizer/include/c11/threads.h:66:
+  warning: glslopt@0.1.11: glsl-optimizer/include/c11/threads_posix.h:94:1: error: static declaration of 'call_once' follows non-static declaration
+  warning: glslopt@0.1.11:    94 | call_once(once_flag *flag, void (*func)(void))
+  warning: glslopt@0.1.11:       | ^
+  warning: glslopt@0.1.11: /usr/include/stdlib.h:1195:13: note: previous declaration is here
+  warning: glslopt@0.1.11:  1195 | extern void call_once (once_flag *__flag, void (*__func)(void));
+  warning: glslopt@0.1.11:       |             ^
+
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -2772,7 +2772,6 @@ dependencies = [
+ name = "glslopt"
+ version = "0.1.11"
+ source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "913662ae8335df058d56e00f11340b20fa82e03e0276587797ef325ab01e50d4"
+ dependencies = [
+  "cc",
+ ]
+--- a/security/sandbox/chromium/sandbox/linux/system_headers/linux_seccomp.h
++++ b/security/sandbox/chromium/sandbox/linux/system_headers/linux_seccomp.h
+@@ -5,6 +5,8 @@
+ #ifndef SANDBOX_LINUX_SYSTEM_HEADERS_LINUX_SECCOMP_H_
+ #define SANDBOX_LINUX_SYSTEM_HEADERS_LINUX_SECCOMP_H_
+ 
++#include <signal.h>
++
+ // The Seccomp2 kernel ABI is not part of older versions of glibc.
+ // As we can't break compilation with these versions of the library,
+ // we explicitly define all missing symbols.
+--- a/third_party/rust/glslopt/glsl-optimizer/include/c11/threads_posix.h
++++ b/third_party/rust/glslopt/glsl-optimizer/include/c11/threads_posix.h
+@@ -66,7 +66,6 @@ typedef pthread_cond_t  cnd_t;
+ typedef pthread_t       thrd_t;
+ typedef pthread_key_t   tss_t;
+ typedef pthread_mutex_t mtx_t;
+-typedef pthread_once_t  once_flag;
+ 
+ 
+ /*
+@@ -90,11 +89,13 @@ impl_thrd_routine(void *p)
+ 
+ /*--------------- 7.25.2 Initialization functions ---------------*/
+ // 7.25.2.1
++#if 0
+ static inline void
+ call_once(once_flag *flag, void (*func)(void))
+ {
+     pthread_once(flag, func);
+ }
++#endif
+ 
+ 
+ /*------------- 7.25.3 Condition variable functions -------------*/

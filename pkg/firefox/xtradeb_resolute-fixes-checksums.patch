@@ -1,0 +1,16 @@
+Companion patch to xtradeb/resolute-fixes.patch . This gets rid of
+a Cargo checksum file so that the tooling doesn't complain about our
+edits to glslopt source files.
+
+Warning: quilt(1) will not refresh this patch correctly.
+
+diff --git a/third_party/rust/glslopt/.cargo-checksum.json b/third_party/rust/glslopt/.cargo-checksum.json.old
+rename from third_party/rust/glslopt/.cargo-checksum.json
+rename to third_party/rust/glslopt/.cargo-checksum.json.old
+
+diff --git a/third_party/rust/glslopt/.cargo-checksum.json b/third_party/rust/glslopt/.cargo-checksum.json
+new file mode 100644
+--- /dev/null
++++ b/third_party/rust/glslopt/.cargo-checksum.json
+@@ -0,0 +1 @@
++{"files":{},"package": null}
