@@ -1,0 +1,51 @@
+This issue was fixed in https://bugs.launchpad.net/bugs/2152147
+but the fix hasn't been released yet. At configure time:
+
+  [...]
+  checking nasm version... 2.16.01
+  checking for the wasm C compiler... clang-22
+  checking whether the wasm C compiler can be used... yes
+  checking the wasm C compiler version... 22.1.6
+  checking the wasm C compiler works... yes
+  checking the wasm C compiler can find wasi headers...
+  DEBUG: Creating `/tmp/conftestXXXX.c` with content:
+  DEBUG: | #include <string.h>
+  DEBUG: | int
+  DEBUG: | main(void)
+  DEBUG: | {
+  DEBUG: |
+  DEBUG: |   ;
+  DEBUG: |   return 0;
+  DEBUG: | }
+  DEBUG: Executing: `clang-22 --target=wasm32-wasip1 /tmp/conftestXXXX.c -c`
+  DEBUG: The command returned non-zero exit status 1.
+  DEBUG: Its error output was:
+  DEBUG: | In file included from /tmp/conftestXXXX.c:1:
+  DEBUG: | /usr/include/string.h:26:10: fatal error: 'bits/libc-header-start.h' file not found
+  DEBUG: |    26 | #include <bits/libc-header-start.h>
+  DEBUG: |       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~
+  DEBUG: | 1 error generated.
+  ERROR: Cannot find wasi headers or problem with the wasm compiler. Please fix the problem. Or build with --without-wasm-sandboxed-libraries.
+  make[3]: *** [debian/rules:234: stamps/configure-browser] Error 1
+  make[3]: Leaving directory '/tmp/firefox-159.0.1'
+  make[2]: *** [debian/rules:341: build] Error 2
+  make[2]: Leaving directory '/tmp/firefox-159.0.1'
+  make[1]: *** [debian/rules:341: install] Error 2
+  make[1]: Leaving directory '/tmp/firefox-159.0.1'
+  make: *** [debian/rules:341: binary] Error 2
+
+Note: Patch is generated with "quilt refresh -U1"
+
+--- a/build/moz.configure/toolchain.configure
++++ b/build/moz.configure/toolchain.configure
+@@ -698,3 +698,4 @@ def check_compiler(
+         # The wasm32-wasi target was renamed to wasm32-wasip1 in LLVM 22.1.
+-        toolchain = "wasm32-wasip1"
++        toolchain = "wasm32-wasi"  # (XtraDeb: Not in all releases...)
++        flags.append("-Wno-deprecated")  # also need this, due to -Werror
+     else:
+@@ -1662,3 +1663,3 @@ def compiler(
+ 
+-        if info.flags:
++        if False and info.flags:  # XtraDeb: Allow -Wno-deprecated
+             raise FatalCheckError("Unknown compiler or compiler not supported.")
