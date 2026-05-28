@@ -144,8 +144,8 @@ sed -ri 's/^(%define RUST_VERSION) .*/\1 '"$rust_version"'/' \
 	$debian/control.in
 
 cat >> $debian/browser.mozconfig.in << END
-ac_add_options CARGO=cargo-$rust_version
-ac_add_options RUSTC=rustc-$rust_version
+test -n "\$CARGO" || ac_add_options CARGO=cargo-$rust_version
+test -n "\$RUSTC" || ac_add_options RUSTC=rustc-$rust_version
 END
 
 # DIST needs to be set properly
@@ -312,6 +312,8 @@ fi
 ################################################################
 
 xd_convert_post() {
+
+rm -f $debian/l10n/browser-l10n.control
 
 # Regenerate files
 files_to_regen=
