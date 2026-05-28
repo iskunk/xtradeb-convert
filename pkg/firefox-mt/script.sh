@@ -113,6 +113,11 @@ fi
 ## Patch series modifications
 ##
 
+if ubuntu_dist resolute
+then
+	new_patch xtradeb-libyuv-rvv-support.patch
+fi
+
 new_patch xtradeb-mach-clobber-hang.patch
 
 if ubuntu_dist resolute
