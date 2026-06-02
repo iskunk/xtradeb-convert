@@ -42,6 +42,69 @@ Debugger backtrace (with 147.0.7727.116):
   #13 0x0000b9563e544788 in main (argc=1, argv=0xffffda5fe118)
       at ../../v8/src/snapshot/mksnapshot.cc:300
 
+A second, similar failure mode occurs when v8_enable_drumbrake=true;
+note the "reg_size=0" (with 148.0.7778.215):
+
+  #0  v8::internal::MacroAssembler::CountSetHalfWords(unsigned long, unsigned int)::$_0::operator()() const (this=0xffffc795aa17)
+      at ./../../v8/src/codegen/arm64/macro-assembler-arm64.cc:677
+  #1  0x0000b0071b8c01e8 in v8::internal::MacroAssembler::CountSetHalfWords (
+      imm=18444210798919155711, reg_size=0)
+      at ./../../v8/src/codegen/arm64/macro-assembler-arm64.cc:677
+  #2  0x0000b0071b8c0f84 in v8::internal::MacroAssembler::IsImmMovz (
+      imm=18444210798919155711, reg_size=0)
+      at ./../../v8/src/codegen/arm64/macro-assembler-arm64.cc:684
+  #3  0x0000b0071b8bff4c in v8::internal::MacroAssembler::TryOneInstrMoveImmediate (this=0xffffc795d7a0, dst=..., imm=-2533274790395905)
+      at ./../../v8/src/codegen/arm64/macro-assembler-arm64.cc:759
+  #4  0x0000b0071b8bfcfc in v8::internal::MacroAssembler::MoveImmediateForShiftedOp (this=0xffffc795d7a0, dst=..., imm=-2533274790395905,
+      mode=v8::internal::kAnyShift)
+      at ./../../v8/src/codegen/arm64/macro-assembler-arm64.cc:782
+  #5  0x0000b0071b8bf16c in v8::internal::MacroAssembler::LogicalMacro (
+      this=0xffffc795d7a0, rd=..., rn=..., operand=..., op=0)
+      at ./../../v8/src/codegen/arm64/macro-assembler-arm64.cc:271
+  #6  0x0000b0071a9d6834 in v8::internal::MacroAssembler::And (
+      this=0xffffc795d7a0, rd=..., rn=..., operand=...)
+      at ../../v8/src/codegen/arm64/macro-assembler-arm64-inl.h:48
+  #7  0x0000b0071b8d840c in v8::internal::MacroAssembler::ResolveTrustedPointerHandle (this=0xffffc795d7a0, destination=..., handle=..., tag_range=...)
+      at ./../../v8/src/codegen/arm64/macro-assembler-arm64.cc:4042
+  #8  0x0000b0071b8d89e0 in v8::internal::MacroAssembler::ResolveIndirectPointerHandle (this=0xffffc795d7a0, destination=..., handle=..., tag_range=...)
+      at ./../../v8/src/codegen/arm64/macro-assembler-arm64.cc:4023
+  #9  0x0000b0071b8d79d8 in v8::internal::MacroAssembler::LoadIndirectPointerField (this=0xffffc795d7a0, destination=..., field_operand=..., tag_range=...)
+      at ./../../v8/src/codegen/arm64/macro-assembler-arm64.cc:3991
+  #10 0x0000b0071b8d7888 in v8::internal::MacroAssembler::LoadTrustedPointerField
+      (this=0xffffc795d7a0, destination=..., field_operand=...,
+      tag=v8::internal::kWasmTrustedInstanceDataIndirectPointerTag)
+      at ./../../v8/src/codegen/arm64/macro-assembler-arm64.cc:3889
+  #11 0x0000b0071e360fac in v8::internal::(anonymous namespace)::PrepareForJsToWasmConversionBuiltinCall (masm=0xffffc795d7a0, current_param_slot=...,
+      valuetypes_array_ptr=..., wasm_instance=..., function_data=...)
+      at ./../../v8/src/wasm/interpreter/arm64/interpreter-builtins-arm64.cc:52
+  #12 0x0000b0071e35e244 in v8::internal::Builtins::Generate_GenericJSToWasmInterpreterWrapper (masm=0xffffc795d7a0)
+      at ./../../v8/src/wasm/interpreter/arm64/interpreter-builtins-arm64.cc:636
+  #13 0x0000b0071e0a2afc in v8::internal::(anonymous namespace)::BuildWithMacroAssembler (isolate=0x3000120000,
+      builtin=v8::internal::Builtin::kGenericJSToWasmInterpreterWrapper,
+      generator=0xb0071e35d258 <v8::internal::Builtins::Generate_GenericJSToWasmInterpreterWrapper(v8::internal::MacroAssembler*)>,
+      s_name=0xb007184dba7d "GenericJSToWasmInterpreterWrapper")
+      at ./../../v8/src/builtins/setup-builtins-internal.cc:190
+  #14 0x0000b0071e04e63c in v8::internal::SetupIsolateDelegate::SetupBuiltinsInternal (isolate=0x3000120000, compute_builtins_effects=true)
+      at ./../../v8/src/builtins/setup-builtins-internal.cc:562
+  #15 0x0000b0071b907658 in v8::internal::SetupIsolateDelegate::SetupBuiltins (
+      this=0x300001aa20, isolate=0x3000120000, compile_builtins=true)
+      at ./../../v8/src/init/setup-isolate-full.cc:29
+  #16 0x0000b007190b81cc in v8::internal::Isolate::Init (this=0x3000120000,
+      startup_snapshot_data=0x0, read_only_snapshot_data=0x0,
+      shared_heap_snapshot_data=0x0, can_rehash=false)
+      at ./../../v8/src/execution/isolate.cc:6256
+  #17 0x0000b007190b6d4c in v8::internal::Isolate::InitWithoutSnapshot (
+      this=0x3000120000) at ./../../v8/src/execution/isolate.cc:5688
+  #18 0x0000b0071a7fc418 in v8::internal::SnapshotCreatorImpl::InitInternal (
+      this=0x3000040ba0, blob=0x0) at ./../../v8/src/snapshot/snapshot.cc:862
+  #19 0x0000b0071a7fcae0 in v8::internal::SnapshotCreatorImpl::SnapshotCreatorImpl (this=0x3000040ba0, isolate=0x3000120000, params=...)
+      at ./../../v8/src/snapshot/snapshot.cc:923
+  #20 0x0000b00718a562a4 in v8::SnapshotCreator::SnapshotCreator (
+      this=0xffffc79c7f88, isolate=0x3000120000, params=...)
+      at ./../../v8/src/api/api.cc:397
+  #21 0x0000b00718a1ee2c in main (argc=1, argv=0xffffc79e5358)
+      at ./../../v8/src/snapshot/mksnapshot.cc:303
+
 --- a/v8/src/builtins/arm64/builtins-arm64.cc
 +++ b/v8/src/builtins/arm64/builtins-arm64.cc
 @@ -3579,6 +3579,11 @@ class RegisterAllocator {
@@ -56,3 +119,15 @@ Debugger backtrace (with 147.0.7727.116):
      allocated_registers_.erase(
        find(allocated_registers_.begin(), allocated_registers_.end(), reg));
    }
+--- a/v8/src/codegen/arm64/macro-assembler-arm64.cc
++++ b/v8/src/codegen/arm64/macro-assembler-arm64.cc
+@@ -672,6 +672,9 @@ unsigned MacroAssembler::CountSetHalfWor
+       return HALFWORD(0) + HALFWORD(1);
+     case 4:
+       return HALFWORD(0) + HALFWORD(1) + HALFWORD(2) + HALFWORD(3);
++
++    // XtraDeb workaround: register size is sometimes zero (?)
++    case 0: return 0;
+   }
+ #undef HALFWORD
+   UNREACHABLE();
