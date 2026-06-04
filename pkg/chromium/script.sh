@@ -252,6 +252,11 @@ fi
 ## Patch series modifications
 ##
 
+if ubuntu_dist jammy noble
+then
+	new_patch bookworm/bindgen.patch
+fi
+
 if ubuntu_dist jammy
 then
 	new_patch bookworm/dav1d-extern.patch
@@ -265,6 +270,7 @@ fi
 if ubuntu_dist jammy noble
 then
 	new_patch bookworm/gn-absl.patch
+	new_patch bookworm/gn-allowlist.patch
 	new_patch bookworm/gn-funcs.patch
 	new_patch bookworm/gn-hpp11.patch
 	new_patch bookworm/gn-path-exists2.patch
@@ -305,6 +311,7 @@ fi
 if dpkg --compare-versions $rust_version le 1.91
 then
 	new_patch rust-1.85/file_as_c_str.patch
+	new_patch rust-1.85/mojo-features.patch
 fi
 
 if dpkg --compare-versions $rust_version lt 1.89
