@@ -259,6 +259,7 @@ fi
 
 if ubuntu_dist jammy
 then
+	new_patch bookworm/dav1d-drop-hdr.patch
 	new_patch bookworm/dav1d-extern.patch
 fi
 
