@@ -64,6 +64,18 @@ then
 	error 'package is already converted'
 fi
 
+upstream_version=${deb_version%-*}
+
+# Date/timestamp of the first packaged version of the upstream release
+dpkg-parsechangelog \
+	--file $debian/changelog \
+	--from "$upstream_version" \
+	--format rfc822 \
+> $debian/xtradeb.tmp 2>/dev/null
+vendor_date=$(sed -n 's/^Date: *// p' $debian/xtradeb.tmp | tail -n1)
+vendor_timestamp=$(sed -n 's/^Timestamp: *// p' $debian/xtradeb.tmp | tail -n1)
+rm $debian/xtradeb.tmp
+
 resource_name=$(get_resource_name $source_name)
 
 changelog_entry_file=$debian/xtradeb-changelog.tmp
@@ -113,6 +125,13 @@ fi > $changelog_entry_file
 xd_convert
 ##
 ################
+
+if [ "_$ubuntu_dist" = _VENDOR ]
+then
+	xd_convert_post
+	echo 'Package converted for vendor-source preparation.'
+	exit 0
+fi
 
 # Some packages (e.g. Firefox) use a generated control file
 control=control

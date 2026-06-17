@@ -89,6 +89,21 @@ set_ubuntu_dist()
 {
 	local dist="$1"
 
+	if [ "_$dist" = _VENDOR ]
+	then
+		# Special case for when we only need
+		# to prepare a vendor-source tarball
+		ubuntu_dist=$dist
+		ubuntu_ver=99.99
+		ubuntu_is_lts=false
+		ubuntu_support_end=2099-12-31
+		llvm_version=99
+		rust_version=9.99
+		dist_span_all=
+		dist_span_lts=
+		return 0
+	fi
+
 	local rel_table=$(grep -v '^#' $base_dir/pkg/_common/ubuntu.txt | grep '\S')
 
 	ubuntu_dist=
