@@ -1,0 +1,20 @@
+An errant preprocessor conditional breaks the riscv64 build:
+
+  In file included from /<<PKGBUILDDIR>>/obj-riscv64-linux-gnu/js/src/jit/Unified_cpp_js_src_jit17.cpp:2:
+  In file included from /<<PKGBUILDDIR>>/js/src/jit/riscv64/constant/Base-constant-riscv.cpp:16:
+  /<<PKGBUILDDIR>>/js/src/jit/riscv64/Simulator-riscv64.h:32:4: error: "simulator disabled"
+     32 | #  error "simulator disabled"
+        |    ^
+
+--- a/js/src/jit/riscv64/constant/Base-constant-riscv.cpp
++++ b/js/src/jit/riscv64/constant/Base-constant-riscv.cpp
+@@ -13,7 +13,9 @@
+ #include "jit/riscv64/constant/Constant-riscv-v.h"
+ #include "jit/riscv64/constant/Constant-riscv-zicsr.h"
+ #include "jit/riscv64/constant/Constant-riscv-zifencei.h"
++#ifdef JS_SIMULATOR_RISCV64
+ #include "jit/riscv64/Simulator-riscv64.h"
++#endif
+ namespace js {
+ namespace jit {
+ 

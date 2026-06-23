@@ -44,6 +44,8 @@ x=$debian/../toolkit/moz.configure
 test ! -f $x || grep -q .--enable-alsa $x \
 || error 'ALSA support appears to be missing'
 cat >> $debian/config/mozconfig.in << END
+
+# XtraDeb additions
 ac_add_options --enable-alsa
 END
 
@@ -113,6 +115,9 @@ fi
 ## Patch series modifications
 ##
 
+new_patch xtradeb-ffmpeg-vulkan-armhf.patch
+new_patch xtradeb-jit-simulator-riscv64.patch
+
 if ubuntu_dist resolute
 then
 	new_patch xtradeb-libyuv-rvv-support.patch
@@ -124,6 +129,8 @@ if ubuntu_dist jammy noble
 then
 	new_patch xtradeb-riscv-no-unistd64.patch
 fi
+
+new_patch xtradeb-xsimd-ppc64el.patch
 
 need_version_epoch_bump=yes
 
