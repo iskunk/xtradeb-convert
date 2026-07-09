@@ -276,6 +276,7 @@ then
 	new_patch bookworm/gn-hpp11.patch
 	new_patch bookworm/gn-path-exists2.patch
 	new_patch bookworm/node-esm-dirname.patch
+	new_patch bookworm/node18-compat.patch
 	new_patch bookworm/node18-import.patch
 
 	# Contingent on the version of rust-bindgen
@@ -292,6 +293,11 @@ then
 	new_patch trixie/adler1.patch
 fi
 
+if ubuntu_dist jammy noble
+then
+	new_patch trixie/bindgen-boringssl.patch
+fi
+
 if ubuntu_dist jammy noble questing
 then
 	new_patch trixie/gn-len.patch
@@ -301,6 +307,7 @@ new_patch trixie/gn-module-name.patch
 
 if ubuntu_dist jammy noble questing
 then
+	new_patch trixie/node20-compat.patch
 	new_patch trixie/nodejs-main.patch
 fi
 
