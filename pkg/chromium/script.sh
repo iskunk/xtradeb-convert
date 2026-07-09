@@ -293,7 +293,7 @@ then
 	new_patch trixie/adler1.patch
 fi
 
-if ubuntu_dist jammy noble
+if ubuntu_dist jammy noble questing
 then
 	new_patch trixie/bindgen-boringssl.patch
 fi
