@@ -21,7 +21,7 @@ common_package_convert()
 	if ubuntu_dist jammy
 	then
 		# On jammy, this has to be specified as "dh-cargo"
-		sed -ri 's/\bdh-sequence-cargo,/dh-cargo,/' $debian/$control
+		sed -ri 's/\bdh-sequence-cargo\b/dh-cargo/' $debian/$control
 
 		# "dpkg-source: warning: unknown information field
 		# 'Static-Built-Using' in input data in package's
