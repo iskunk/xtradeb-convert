@@ -8,7 +8,7 @@
 
 xd_convert() {
 
-ubuntu_dist jammy || not_applicable
+ubuntu_dist jammy VENDOR || not_applicable
 
 ################################################################
 ##

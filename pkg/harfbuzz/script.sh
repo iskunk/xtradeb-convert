@@ -14,7 +14,8 @@ xd_convert() {
 # runtime. Newer Ubuntu releases already have a recent enough harfbuzz
 # package to avoid needing this script.
 
-ubuntu_dist jammy || not_applicable 'this conversion is needed only for jammy'
+ubuntu_dist jammy VENDOR \
+|| not_applicable 'this conversion is needed only for jammy'
 
 add_to_changelog << END
 NOTE: This package has been modified to provide static libraries only,
