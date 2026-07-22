@@ -57,6 +57,7 @@ perl -pi -e '/^ac_add_options --with-unsigned-addon-scopes=app/ && !/system/ and
 # that allow the use of multiple versions unfortunately do not ensure that
 # the versions installed are consistent (e.g. clang-20 + llvm-19-dev).
 grep -P '^\s+clang-\d\d \| ' $debian/control | grep -qw clang-$llvm_version \
+|| test $ubuntu_dist = VENDOR \
 || error "debian/control does not specify clang-$llvm_version et al."
 perl -pi \
 	-e 'if (/^\s*((lib)?clang|lld|llvm)-\d\d(-dev)? /) {' \
