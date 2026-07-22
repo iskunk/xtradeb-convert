@@ -56,10 +56,10 @@ perl -pi -e '/^ac_add_options --with-unsigned-addon-scopes=app/ && !/system/ and
 # Narrow the LLVM dependencies to a single version, as the alternations
 # that allow the use of multiple versions unfortunately do not ensure that
 # the versions installed are consistent (e.g. clang-20 + llvm-19-dev).
-grep -q '^\s*clang-22 | clang-21 | clang-20 | clang-19 | clang-18,' $debian/control \
-|| error 'debian/control no longer specifies clang-{22,21,20,19,18}'
+grep -P '^\s+clang-\d\d \| ' $debian/control | grep -qw clang-$llvm_version \
+|| error "debian/control does not specify clang-$llvm_version et al."
 perl -pi \
-	-e 'if (/^\s*((lib)?clang|lld|llvm)-22(-dev)? /) {' \
+	-e 'if (/^\s*((lib)?clang|lld|llvm)-\d\d(-dev)? /) {' \
 	-e '  s/ \|[^,]+//;' \
 	-e '  s/-\d\d/-'"$llvm_version"'/;' \
 	-e '}' \
@@ -115,9 +115,6 @@ fi
 ## Patch series modifications
 ##
 
-new_patch xtradeb-ffmpeg-vulkan-armhf.patch
-new_patch xtradeb-jit-simulator-riscv64.patch
-
 if ubuntu_dist resolute
 then
 	new_patch xtradeb-libyuv-rvv-support.patch
@@ -129,8 +126,6 @@ if ubuntu_dist jammy noble
 then
 	new_patch xtradeb-riscv-no-unistd64.patch
 fi
-
-new_patch xtradeb-xsimd-ppc64el.patch
 
 need_version_epoch_bump=yes
 
