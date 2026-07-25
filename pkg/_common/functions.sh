@@ -66,6 +66,8 @@ get_resource_name()
 		betterbird) name=thunderbird ;;
 		firefox-esr) name=firefox ;;
 		flightgear-data) name=flightgear ;;
+		fzssh) name=filezilla ;;
+		libfilezilla) name=filezilla ;;
 		llvm-toolchain-*) name=llvm-toolchain ;;
 		qt6-base) name=qt6 ;;
 		rustc-[1-9].[0-9]*) name=rustc ;;
