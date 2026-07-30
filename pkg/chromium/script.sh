@@ -24,8 +24,15 @@ END
 (cd $debian && \
 	sed -i '/XtraDeb additions/ r xtradeb.tmp' initial_bookmarks.html)
 
-if ubuntu_dist noble
+if ubuntu_dist jammy
 then
+	# "dpkg-buildflags: warning: unknown hardening feature in
+	# DEB_BUILD_MAINT_OPTIONS variable: stackclash"
+	sed -i \
+		-e '/^# avoid .argument unused during compilation./ d' \
+		-e '/^arg_hardening =/ s/,-stackclash//' \
+		$debian/rules
+else
 	cat > $debian/xtradeb.tmp << 'END'
 ifneq ($(filter armhf,$(DEB_HOST_ARCH)),)
 # clang gives us "argument unused during compilation" warnings for these
@@ -38,6 +45,11 @@ END
 fi
 
 cat > $debian/xtradeb.tmp << 'END'
+
+ifeq (amd64v3,$(DEB_HOST_ARCH_VARIANT))
+# avoid compile failures in third_party/skia/
+defines+=allow_avx512=false
+endif
 
 # final link takes >150m, don't let Launchpad kill the build prematurely
 keepalive=debian/scripts/keepalive-wrapper.py 7200
@@ -252,20 +264,10 @@ fi
 ## Patch series modifications
 ##
 
-if ubuntu_dist jammy noble
-then
-	new_patch bookworm/bindgen.patch
-fi
-
 if ubuntu_dist jammy
 then
 	new_patch bookworm/dav1d-drop-hdr.patch
 	new_patch bookworm/dav1d-extern.patch
-fi
-
-if dpkg --compare-versions $rust_version le 1.82
-then
-	new_patch bookworm/derivre-create.patch
 fi
 
 if ubuntu_dist jammy noble
@@ -275,27 +277,6 @@ then
 	new_patch bookworm/gn-funcs.patch
 	new_patch bookworm/gn-hpp11.patch
 	new_patch bookworm/gn-path-exists2.patch
-	new_patch bookworm/node-esm-dirname.patch
-	new_patch bookworm/node18-compat.patch
-	new_patch bookworm/node18-import.patch
-
-	# Contingent on the version of rust-bindgen
-	new_patch bookworm/rust-unsafe-extern.patch
-fi
-
-if dpkg --compare-versions $rust_version le 1.82
-then
-	new_patch bookworm/rust-visibility.patch
-fi
-
-if dpkg --compare-versions $rust_version le 1.85
-then
-	new_patch trixie/adler1.patch
-fi
-
-if ubuntu_dist jammy noble questing
-then
-	new_patch trixie/bindgen-boringssl.patch
 fi
 
 if ubuntu_dist jammy noble questing
@@ -305,33 +286,15 @@ fi
 
 new_patch trixie/gn-module-name.patch
 
-if ubuntu_dist jammy noble questing
-then
-	new_patch trixie/node20-compat.patch
-	new_patch trixie/nodejs-main.patch
-fi
-
-if dpkg --compare-versions $rust_version lt 1.87
-then
-	new_patch trixie/rust-is-multiple-of.patch
-fi
-
 if dpkg --compare-versions $rust_version le 1.91
 then
 	new_patch rust-1.85/file_as_c_str.patch
 	new_patch rust-1.85/mojo-features.patch
 fi
 
-if dpkg --compare-versions $rust_version lt 1.89
-then
-	new_patch rust-1.85/jxl-features.patch
-	new_patch rust-1.85/jxl-simd-avx512.patch
-fi
-
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/av1-vaapi.patch
-	new_patch xtradeb/bindgen-no-c++23.patch
 fi
 
 if [ $llvm_version -lt 20 ]
@@ -362,12 +325,6 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
-	new_patch xtradeb/rust-allocator-types.patch
-fi
-
-if dpkg --compare-versions $rust_version lt 1.90
-then
-	new_patch xtradeb/rust-alloc-error-handler.patch
 fi
 
 new_patch xtradeb/rustfmt-path.patch

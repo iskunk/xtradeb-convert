@@ -65,7 +65,7 @@ Fortunately, these are easy to work around.
          let frame_size_limit = match config.image_size_limit {
 --- a/third_party/webrtc/modules/video_coding/codecs/av1/dav1d_decoder.cc
 +++ b/third_party/webrtc/modules/video_coding/codecs/av1/dav1d_decoder.cc
-@@ -98,8 +98,10 @@ bool Dav1dDecoder::Configure(const Setti
+@@ -99,8 +99,10 @@ bool Dav1dDecoder::Configure(const Setti
    Dav1dSettings s;
    dav1d_default_settings(&s);
  
@@ -75,4 +75,4 @@ Fortunately, these are easy to work around.
 +#endif
    s.all_layers = 0;       // Don't output a frame for every spatial layer.
    // Limit max frame size to avoid OOM'ing fuzzers. crbug.com/325284120.
-   s.frame_size_limit = 16384 * 16384;
+   s.frame_size_limit = kMaxFrameSizePixels;
