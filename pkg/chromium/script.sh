@@ -48,6 +48,7 @@ cat > $debian/xtradeb.tmp << 'END'
 
 ifeq (amd64v3,$(DEB_HOST_ARCH_VARIANT))
 # avoid compile failures in third_party/skia/
+# (see https://issues.chromium.org/540877702)
 defines+=allow_avx512=false
 endif
 
