@@ -1,10 +1,11 @@
 The piper extension requires libonnxruntime, which is not available on
 noble. Don't build the extension, don't test it.
 
+Note: Patch is generated with "quilt refresh -U2"
+
 --- a/setup/extensions.json
 +++ b/setup/extensions.json
-@@ -136,14 +136,6 @@
- 		"needs_c++": "17"
+@@ -136,12 +136,4 @@
      },
      {
 -        "name": "piper",
@@ -17,11 +18,9 @@ noble. Don't build the extension, don't test it.
 -    {
          "name": "html_as_json",
          "sources": "calibre/srv/html_as_json.cpp",
- 		"needs_c++": "11"
 --- a/src/calibre/test_build.py
 +++ b/src/calibre/test_build.py
-@@ -135,10 +135,6 @@ class BuildTest(unittest.TestCase):
-         from speechd.client import SSIPClient
+@@ -128,8 +128,4 @@ class BuildTest(unittest.TestCase):
          del SSIPClient
  
 -    def test_piper(self):
@@ -30,23 +29,18 @@ noble. Don't build the extension, don't test it.
 -
      def test_zeroconf(self):
          import ifaddr
-         import zeroconf as z
-@@ -150,6 +146,7 @@ class BuildTest(unittest.TestCase):
-         if islinux and not os.path.exists('/dev/bus/usb'):
+@@ -143,4 +139,5 @@ class BuildTest(unittest.TestCase):
              # libusb fails to initialize in containers without USB subsystems
              exclusions.update(set('libusb libmtp'.split()))
 +        exclusions.add('piper')  # XtraDeb
          from importlib import import_module
          from importlib.resources import files
-         for name in (path.name for path in files('calibre_extensions').iterdir()):
 --- a/src/calibre/utils/run_tests.py
 +++ b/src/calibre/utils/run_tests.py
-@@ -194,6 +194,8 @@ class TestImports(unittest.TestCase):
-             exclude_packages.add('calibre.gui2.tts')
+@@ -195,4 +195,6 @@ class TestImports(unittest.TestCase):
          if not isbsd:
              exclude_modules.add('calibre.devices.usbms.hal')
 +        exclude_modules.add('calibre.gui2.tts.piper')   # XtraDeb
 +        exclude_modules.add('calibre.utils.tts.piper')  # XtraDeb
          d = os.path.dirname
          SRC = d(d(d(os.path.abspath(__file__))))
-         self.assertGreater(self.base_check(os.path.join(SRC, 'odf'), exclude_packages, exclude_modules), 10)

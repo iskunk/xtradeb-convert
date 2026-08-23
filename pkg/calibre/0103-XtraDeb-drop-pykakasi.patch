@@ -1,0 +1,33 @@
+python3-pykakasi is not available in releases prior to stonking.
+
+Note: Patch is generated with "quilt refresh -U1"
+
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -47,3 +47,2 @@ dependencies = [
+ 	"Deprecated == 1.3.1",
+-	"pykakasi == 2.3.0",
+ 	"zeroconf == 0.149.16",
+--- a/src/calibre/ebooks/unihandecode/__init__.py
++++ b/src/calibre/ebooks/unihandecode/__init__.py
+@@ -26,3 +26,3 @@ class Unihandecoder:
+         lang = lang.lower()
+-        if lang[:2] == 'ja':
++        if lang[:2] == 'XtraDeb-UNSUPPORTED-ja':
+             from calibre.ebooks.unihandecode.jadecoder import Jadecoder
+--- a/src/calibre/ebooks/unihandecode/jadecoder.py
++++ b/src/calibre/ebooks/unihandecode/jadecoder.py
+@@ -20,6 +20,3 @@ from importlib.resources import files
+ 
+-from pykakasi import kakasi
+-from pykakasi.kanji import Itaiji, Kanwa
+-from pykakasi.properties import Configurations
+-from pykakasi.scripts import Jisyo
++# XtraDeb: no pykakasi
+ 
+--- a/src/calibre/test_build.py
++++ b/src/calibre/test_build.py
+@@ -410,2 +410,3 @@ class BuildTest(unittest.TestCase):
+     def test_pykakasi(self):
++        return  # XtraDeb: no pykakasi
+         from calibre.ebooks.unihandecode.jadecoder import Jadecoder

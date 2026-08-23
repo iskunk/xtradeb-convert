@@ -1,0 +1,12 @@
+Disable a test that fails in a disconnected network environment.
+
+--- a/src/calibre/srv/tests/loop.py
++++ b/src/calibre/srv/tests/loop.py
+@@ -100,6 +100,7 @@ class LoopTest(BaseTest):
+ 
+     def test_fallback_interface(self):
+         "Test falling back to default interface"
++        return  # XtraDeb: no network
+         with TestServer(lambda data: data.path[0] + data.read(), listen_on='1.1.1.1', fallback_to_detected_interface=True) as server:
+             self.assertNotEqual('1.1.1.1', server.address[0])
+ 
