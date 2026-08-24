@@ -45,6 +45,19 @@ sed -ri \
 sed -ri '/^\s+mingw-w64-common,$/d' $debian/control.in
 zap_control_package 'libclang-rt-\@\w+\@-dev-win' $debian/control.in
 
+if ubuntu_dist jammy noble
+then
+	# Avoid compile error on ppc64el related to
+	# the IBM-to-IEEE "long double" transition:
+	# https://developers.redhat.com/articles/2023/05/16/benefits-fedora-38-long-double-transition-ppc64le
+	sed -i \
+		-e '/^OFFLOAD_ARCHS *=/ { s/ppc64el//' \
+		-e '  i # XtraDeb: Drop ppc64el due to' \
+		-e '  i # https://github.com/llvm/llvm-project/issues/184994' \
+		-e '}' \
+		$debian/rules
+fi
+
 # Allow the creation of stamps/preconfigure to fail, in case
 # the source-package tree outside of debian/ is read-only during
 # the regeneration step below.
