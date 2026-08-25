@@ -80,6 +80,14 @@ then
 		$debian/build/rules.mk
 fi
 
+if ubuntu_dist jammy
+then
+	# Downgrade the required version of Node.js slightly
+	# (also needs a patch to a configure-time script; see below)
+	sed -ri '/^\s+nodejs / s/\b(12\.22)\.12\b/\1.9~/' \
+		$debian/control.in
+fi
+
 if ubuntu_dist noble
 then
 	# https://github.com/llvm/llvm-project/issues/131394
@@ -112,14 +120,29 @@ then
 		$debian/build/rules.mk
 fi
 
+# Useful for testing a fix
+cat >> $debian/rules << 'END'
+
+# XtraDeb: Utility target to resume a build
+# (note: -j1 is ineffective here)
+xtradeb-build-cont:
+	./mach build $(if $(VERBOSE),--verbose)
+END
+
 ##
 ## Patch series modifications
 ##
 
 new_patch xtradeb-mach-clobber-hang.patch
 
+if ubuntu_dist jammy
+then
+	new_patch xtradeb-nodejs-downgrade.patch
+fi
+
 if ubuntu_dist jammy noble
 then
+	new_patch xtradeb-riscv-llama.patch
 	new_patch xtradeb-riscv-no-unistd64.patch
 fi
 

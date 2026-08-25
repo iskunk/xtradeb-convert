@@ -1,0 +1,20 @@
+Avoid errors like the following in riscv64 builds on jammy and noble:
+
+  /<<PKGBUILDDIR>>/third_party/llama.cpp/ggml/src/ggml-cpu/vec.h:403:26: error: RISC-V type 'vfloat32m8_t' (aka '__rvv_float32m8_t') requires the 'zve32f' extension
+    403 |             vfloat32m8_t ax = __riscv_vle32_v_f32m8(&x[i], avl);
+        |                          ^
+
+The offending code is likely assuming support for RVA23.
+
+--- a/third_party/llama.cpp/ggml/src/ggml-impl.h
++++ b/third_party/llama.cpp/ggml/src/ggml-impl.h
+@@ -5,6 +5,9 @@
+ #include "ggml.h"
+ #include "gguf.h"
+ 
++// XtraDeb hack to fix riscv64 FTBFS
++#undef __riscv_v_intrinsic
++
+ #include <assert.h>
+ #include <math.h>
+ #include <stdlib.h> // load `stdlib.h` before other headers to work around MinGW bug: https://sourceforge.net/p/mingw-w64/bugs/192/
