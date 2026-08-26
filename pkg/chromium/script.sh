@@ -104,7 +104,7 @@ sed -ri \
 	-e '/^override_dh_auto_configure:/ s/ set_up_bindgen\b//' \
 	$debian/rules
 
-llvm_version_orig=19
+llvm_version_orig=22
 
 grep -Eq "^\\s+clang-$llvm_version_orig(:\\w+)?,\$" $debian/control \
 || error "original control file does not use clang-$llvm_version_orig"
@@ -299,11 +299,6 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch xtradeb/av1-vaapi.patch
-fi
-
-if [ $llvm_version -lt 20 ]
-then
-	new_patch xtradeb/clang-flags.patch
 fi
 
 if ubuntu_dist jammy
