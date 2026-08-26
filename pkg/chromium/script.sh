@@ -140,8 +140,11 @@ then
 	sed -i '/toolchain_supports_rust_thin_lto=false/ d' $debian/rules
 fi
 
-# This package will land in Ubuntu sometime after resolute
-sed -ri '/^\s+esbuild-wasm,/ d' $debian/control
+if ubuntu_dist jammy noble resolute
+then
+	# This was split out from the esbuild package as of stonking
+	sed -ri '/^\s+esbuild-wasm,/ d' $debian/control
+fi
 
 if ubuntu_dist jammy noble && $use_libcxx && ! $static_libcxx
 then

@@ -109,7 +109,7 @@ fi
 # The cdbs package dropped the entire /usr/share/cdbs/1/class/ directory
 # in resolute, which breaks the debianization. Bundle a copy of makefile.mk
 # and its dependencies to allow the build to proceed.
-if ubuntu_dist resolute
+if ! ubuntu_dist jammy noble
 then
 	cp -a $resource_dir/cdbs-class $debian/
 	sed -i \

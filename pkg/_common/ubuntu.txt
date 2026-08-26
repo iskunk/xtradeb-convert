@@ -5,7 +5,7 @@
 ##   https://packages.ubuntu.com/source/rustc-1
 ##
 #codename	release	is_lts	support_end	llvm	rust
-jammy		22.04	true	2027-06-01	20	1.91
-noble		24.04	true	2029-05-31	20	1.91
-questing	25.10	false	2026-07-09	21	1.91
-resolute	26.04	true	2031-05-29	21	1.91
+jammy		22.04	true	2027-06-01	22	1.91
+noble		24.04	true	2029-05-31	22	1.91
+resolute	26.04	true	2031-05-29	22	1.91
+stonking	26.10	false	2027-07-15	22	1.91
