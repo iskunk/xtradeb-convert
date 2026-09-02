@@ -110,16 +110,6 @@ A subset/adaptation of the modifications posted to
  Depends: ${misc:Depends}
  Conflicts: ${app:Conflicts}
  Provides: ${app:Provides}
---- a/debian/firefox.install.in
-+++ b/debian/firefox.install.in
-@@ -15,6 +15,7 @@
- # Binaries
- @MOZ_LIBDIR@/@MOZ_APP_NAME@
- @MOZ_LIBDIR@/gfxtest
-+@MOZ_LIBDIR@/vulkantest
- %%ifdef MOZ_ENABLE_BREAKPAD
- @MOZ_LIBDIR@/crashreporter
- %%endif
 --- a/debian/firefox.lintian-overrides.in
 +++ b/debian/firefox.lintian-overrides.in
 @@ -1,3 +1,8 @@
