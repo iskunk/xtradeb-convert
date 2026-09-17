@@ -140,6 +140,8 @@ then
 	new_patch xtradeb-nodejs-downgrade.patch
 fi
 
+new_patch xtradeb-ppc64el-assertions.patch
+
 if ubuntu_dist jammy noble
 then
 	new_patch xtradeb-riscv-llama.patch

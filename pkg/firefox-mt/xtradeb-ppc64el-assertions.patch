@@ -1,0 +1,19 @@
+Avoid the warning "Unsupported architecture, replace the code below with
+assembly suitable to crash the process" in Assertions.h on ppc64el.
+
+Thanks go to Tim Pearson at Raptor Engineering for providing this code!
+
+--- a/mfbt/Assertions.h
++++ b/mfbt/Assertions.h
+@@ -282,6 +282,11 @@ static inline void MOZ_CrashSequence(voi
+       "st.d %1,%0,0;\n"  // Write the line number to the crashing address
+       :                  // no output registers
+       : "r"(aAddress), "r"(aLine));
++#  elif defined(__powerpc64__)
++  asm volatile(
++      "std %1,0(%0);\n"  // Write the line number to the crashing address
++      :                  // no output registers
++      : "r"(aAddress), "r"(aLine));
+ #  else
+ #    warning \
+         "Unsupported architecture, replace the code below with assembly suitable to crash the process"

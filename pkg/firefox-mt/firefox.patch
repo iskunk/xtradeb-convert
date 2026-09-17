@@ -9,48 +9,10 @@ A subset/adaptation of the modifications posted to
  DEB_INSTALL_DOCS_ALL 	:= $(NULL)
  # Stop the buildd from timing out during long links
 -MAKE			:= python3 $(CURDIR)/debian/build/keepalive-wrapper.py 1440 $(MAKE)
-+MAKE			:= python3 $(CURDIR)/debian/build/keepalive-wrapper.py 3600 $(MAKE)
++MAKE			:= python3 $(CURDIR)/debian/build/keepalive-wrapper.py 6000 $(MAKE)
  
  MOZ_VERSION		:= $(shell cat $(DEB_SRCDIR)/$(MOZ_APP)/config/version.txt)
  MOZ_LIBDIR		:= usr/lib/$(MOZ_APP_NAME)
-@@ -128,13 +128,14 @@ endif
- MOZ_PKG_SUPPORT_SUGGESTS ?=
- 
- # Defines used for the Mozilla text preprocessor
--MOZ_DEFINES += 	-DMOZ_LIBDIR="$(MOZ_LIBDIR)" -DMOZ_APP_NAME="$(MOZ_APP_NAME)" -DMOZ_BUILDID="$(MOZ_BUILDID)" \
--		-DMOZ_INCDIR="$(MOZ_INCDIR)" -DMOZ_IDLDIR="$(MOZ_IDLDIR)" -DMOZ_VERSION="$(MOZ_VERSION)" -DDEB_HOST_ARCH="$(DEB_HOST_ARCH)" \
-+MOZ_DEFINES +=	-DMOZ_LIBDIR="$(MOZ_LIBDIR)" -DMOZ_APP_NAME="$(MOZ_APP_NAME)" -DMOZ_BUILDID="$(MOZ_BUILDID)" \
-+		-DMOZ_INCDIR="$(MOZ_INCDIR)" -DMOZ_IDLDIR="$(MOZ_IDLDIR)" -DMOZ_VERSION="$(MOZ_VERSION)" \
- 		-DMOZ_DISPLAY_NAME="$(MOZ_DISPLAY_NAME)" -DMOZ_PKG_NAME="$(MOZ_PKG_NAME)" -DDISTRIB="$(DISTRIB)" \
- 		-DMOZ_BRANDING_OPTION="$(MOZ_BRANDING_OPTION)" -DTOPSRCDIR="$(CURDIR)" -DDEB_HOST_GNU_TYPE="$(DEB_HOST_GNU_TYPE)" \
- 		-DMOZ_ADDONDIR="$(MOZ_ADDONDIR)" -DMOZ_SDKDIR="$(MOZ_SDKDIR)" -DMOZ_DISTDIR="$(MOZ_DISTDIR)" -DMOZ_UPDATE_CHANNEL="$(CHANNEL)" \
--		-DMOZ_OBJDIR="$(MOZ_OBJDIR)" -DDEB_BUILDDIR="$(DEB_BUILDDIR)" -DMOZ_PYTHON="$(MOZ_PYTHON)" -DDEB_BUILD_ARCH_BITS=$(DEB_BUILD_ARCH_BITS) \
-+		-DMOZ_OBJDIR="$(MOZ_OBJDIR)" -DDEB_BUILDDIR="$(DEB_BUILDDIR)" -DMOZ_PYTHON="$(MOZ_PYTHON)" \
- 		-DMOZ_DEFAULT_APP_NAME="$(MOZ_DEFAULT_APP_NAME)" -DDISTRIB_VERSION="$(DISTRIB_VERSION_MAJOR)$(DISTRIB_VERSION_MINOR)" \
-+		-DDEB_BUILD_ARCH_BITS=$(DEB_BUILD_ARCH_BITS) -DDEB_BUILD_ARCH="$(DEB_BUILD_ARCH)" -DDEB_HOST_ARCH="$(DEB_HOST_ARCH)" \
- 		-DDEB_RUSTC_VERSION="$(DEB_RUSTC_VERSION)" \
- 		-DDEB_LLVM_VERSION="$(DEB_LLVM_VERSION)"
- 
-@@ -357,15 +358,15 @@ pre-build:: debian/config/locales.shipped $(pkgname_subst_files) $(appname_subst
- # Conditionally patch the top-level Cargo.toml file to reduce the LTO to "thin"
- # on armhf to work around OOM failures on Launchpad builders. This is only one
- # half of the workaround, see also debian/patches/armhf-rustc-thin-lto.patch.
--ifneq (,$(filter armhf, $(DEB_HOST_ARCH)))
-+ifneq (,$(filter armhf i386, $(DEB_HOST_ARCH)))
- pre-build:: Cargo.toml.stamp-patch
--Cargo.toml.bak:
-+Cargo.toml.pre-patched:
- 	cp -p Cargo.toml $@
--Cargo.toml.stamp-patch: Cargo.toml.bak
-+Cargo.toml.stamp-patch: Cargo.toml.pre-patched
- 	sed '/^\[profile.release\]/ a lto = "thin"' $< > Cargo.toml
- 	touch $@
- clean::
--	test ! -f Cargo.toml.bak || mv Cargo.toml.bak Cargo.toml
-+	test ! -f Cargo.toml.pre-patched || mv Cargo.toml.pre-patched Cargo.toml
- 	rm -f Cargo.toml.stamp-patch
- endif
- 
 --- a/debian/config/mozconfig.in
 +++ b/debian/config/mozconfig.in
 @@ -84,7 +84,7 @@ ac_add_options --enable-rust-simd
@@ -72,55 +34,3 @@ A subset/adaptation of the modifications posted to
  Build-Depends: cdbs,
  	locales,
  	debhelper (>= 10),
-@@ -76,7 +77,7 @@ Description: Safe and easy web browser from Mozilla
- Package: @MOZ_PKG_NAME@-dbg
- Architecture: any
- Section: debug
--Priority: extra
-+Priority: optional
- Depends: ${shlibs:Depends}, 
- 	${misc:Depends}, 
- 	@MOZ_PKG_NAME@ (= ${binary:Version})
-@@ -93,7 +94,7 @@ Description: Safe and easy web browser from Mozilla - debug symbols
- Package: @MOZ_PKG_NAME@-dev
- Architecture: any
- Section: oldlibs
--Priority: extra
-+Priority: optional
- Depends: ${misc:Depends}
- Description: Safe and easy web browser from Mozilla - development files
-  This is a transitional package to ensure that upgrades work correctly.
-@@ -102,7 +103,7 @@ Description: Safe and easy web browser from Mozilla - development files
- Package: @MOZ_PKG_NAME@-mozsymbols
- Architecture: amd64 i386
- Section: debug
--Priority: extra
-+Priority: optional
- Depends: ${shlibs:Depends}, 
- 	${misc:Depends},
- Provides: ${app:Provides}
---- a/debian/control.langpacks.unavail
-+++ b/debian/control.langpacks.unavail
-@@ -1,6 +1,8 @@
- 
- Package: @MOZ_PKG_NAME@-locale-@LANGCODE@
- Architecture: any
-+Section: oldlibs
-+Priority: optional
- Depends: ${misc:Depends}
- Conflicts: ${app:Conflicts}
- Provides: ${app:Provides}
---- a/debian/firefox.lintian-overrides.in
-+++ b/debian/firefox.lintian-overrides.in
-@@ -1,3 +1,8 @@
--@MOZ_PKG_NAME@ binary: embedded-library @MOZ_LIBDIR@/libxul.so: libjpeg
--@MOZ_PKG_NAME@ binary: embedded-library @MOZ_LIBDIR@/libmozsqlite3.so: sqlite
--@MOZ_PKG_NAME@ binary: image-file-in-usr-lib
-+@MOZ_PKG_NAME@: embedded-library freetype     [@MOZ_LIBDIR@/libxul.so]
-+@MOZ_PKG_NAME@: embedded-library libavutil    [@MOZ_LIBDIR@/libmozavutil.so]
-+@MOZ_PKG_NAME@: embedded-library libjpeg      [@MOZ_LIBDIR@/libxul.so]
-+@MOZ_PKG_NAME@: embedded-library libjsoncpp   [@MOZ_LIBDIR@/libxul.so]
-+@MOZ_PKG_NAME@: embedded-library nspr         [@MOZ_LIBDIR@/libnspr4.so]
-+@MOZ_PKG_NAME@: embedded-library nss          [@MOZ_LIBDIR@/libnss3.so]
-+@MOZ_PKG_NAME@: embedded-library srtp         [@MOZ_LIBDIR@/libxul.so]
-+@MOZ_PKG_NAME@: image-file-in-usr-lib
