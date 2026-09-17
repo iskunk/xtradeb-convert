@@ -86,6 +86,13 @@ static_libcxx=$($use_libcxx \
 	&& grep -q '^export LDFLAGS:=.* -static-libstdc++' $debian/rules \
 	&& echo true || echo false)
 
+# Versions before git20260916 need a :native qualifier for cross builds
+sed -ri 's/^(\s+generate-ninja),/\1:native,/' $debian/control
+
+# TypeScript is only needed when generating the pre-gen tarball
+# (but we need a dummy version so that debian/rules doesn't break)
+sed -ri '/^\s+node-typescript / s/ \(.+\),/,/' $debian/control
+
 # rustc-web is only available in Debian (old)stable
 sed -ri '/^\s+rustc-web(:any)? \(.+\),/ s/-web//' $debian/control
 
@@ -274,27 +281,35 @@ then
 	new_patch bookworm/dav1d-extern.patch
 fi
 
-if ubuntu_dist jammy noble
+if ubuntu_dist jammy noble resolute
 then
 	new_patch bookworm/gn-absl.patch
 	new_patch bookworm/gn-allowlist.patch
 	new_patch bookworm/gn-funcs.patch
+fi
+
+if ubuntu_dist jammy noble
+then
 	new_patch bookworm/gn-hpp11.patch
 	new_patch bookworm/gn-path-exists2.patch
 fi
-
-if ubuntu_dist jammy noble questing
-then
-	new_patch trixie/gn-len.patch
-fi
-
-new_patch trixie/gn-module-name.patch
 
 if dpkg --compare-versions $rust_version le 1.91
 then
 	new_patch rust-1.85/file_as_c_str.patch
 	new_patch rust-1.85/mojo-features.patch
 fi
+
+new_patch trixie/gn-funcs.patch
+
+if ubuntu_dist jammy noble
+then
+	new_patch trixie/gn-len.patch
+fi
+
+new_patch trixie/gn-inputs2.patch
+new_patch trixie/gn-module-name.patch
+new_patch trixie/gn-unused-vars.patch
 
 if ubuntu_dist jammy
 then
