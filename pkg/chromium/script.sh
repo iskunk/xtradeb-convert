@@ -200,11 +200,9 @@ then
 	#   media/gpu/v4l2/v4l2_video_decoder_backend_stateless.cc:698:7: error: use of undeclared identifier 'V4L2_PIX_FMT_VP9_FRAME'
 	#         V4L2_PIX_FMT_VP9_FRAME,
 	#         ^
-	# The below edits use the same settings as the bullseye build.
-	# Related: https://bugs.debian.org/1011346
-	perl -pi \
-		-e '/^defines\+=host_cpu=."arm64."/ and s/use_v4l2_codec=true (use_vaapi)=false/$1=true/;' \
-		-e '/^defines\+=host_cpu=."arm."/ and s/\s*use_v4l2_codec=true//' \
+	sed -ri \
+		-e '/^defines\+=host_cpu=."arm64."/ s/\s*use_v4l2_codec=true//' \
+		-e '/^defines\+=host_cpu=."arm."/ s/\s*use_v4l2_codec=true//' \
 		$debian/rules
 
 	# Jammy does not have a recent enough kernel to use the AV1
@@ -214,6 +212,10 @@ then
 		$debian/rules
 	sed -ri '/^\s+linux-libc-dev / d' $debian/control
 fi
+
+# Enable VA-API for armhf, as it seems to work just fine there
+sed -ri '/^defines\+=host_cpu=."arm."/ s/(use_vaapi)=false/\1=true/' \
+	$debian/rules
 
 if ubuntu_dist jammy noble
 then
