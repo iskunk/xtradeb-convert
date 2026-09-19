@@ -1,0 +1,56 @@
+On noble, nettle-dev 3.9 lacks support for 128-bit SHA3, which is needed
+for ML-KEM support. This patch thus removes the missing functions, and
+disables support for ML-KEM, so that we get something we can build.
+
+Note: Patch is generated with "quilt refresh -U1"
+
+--- a/lib/crypt/util.cpp
++++ b/lib/crypt/util.cpp
+@@ -116,3 +116,2 @@ struct ShakeXOF
+ 	union {
+-		sha3_128_ctx ctx128;
+ 		sha3_256_ctx ctx256;
+@@ -127,4 +126,3 @@ ShakeXOF* shake128_xof_from_input(ptrlen
+ 	ctx->bits_ = 128;
+-	sha3_128_init(&ctx->ctx_.ctx128);
+-	sha3_128_update(&ctx->ctx_.ctx128, seed.len, reinterpret_cast<uint8_t const*>(seed.ptr));
++	abort();  // missing sha3_128_{init,update}()
+ 	return ctx;
+@@ -144,6 +142,6 @@ void shake_xof_read(ShakeXOF* h, void* o
+ 	if (h->bits_ == 128) {
+-		sha3_128_shake_output(&h->ctx_.ctx128, len, reinterpret_cast<uint8_t*>(out));
++		abort();  // missing sha3_128_shake_output()
+ 	}
+ 	else {
+-		sha3_256_shake_output(&h->ctx_.ctx256, len, reinterpret_cast<uint8_t*>(out));
++		abort();  // missing sha3_256_shake_output()
+ 	}
+--- a/lib/dh.cpp
++++ b/lib/dh.cpp
+@@ -681,5 +681,2 @@ hash_algorithm get_exchange_hash(std::st
+ 	}
+-	else if (alg == "mlkem768x25519-sha256"sv) {
+-		return hash_algorithm::sha256;
+-	}
+ 	return {};
+@@ -719,5 +716,2 @@ std::unique_ptr<dh_pubkey_base> create_d
+ 	}
+-	else if (alg == "mlkem768x25519-sha256"sv) {
+-		return std::make_unique<dh_pubkey_mlkem>();
+-	}
+ 
+@@ -758,5 +752,2 @@ std::unique_ptr<dh_privkey_base> create_
+ 	}
+-	else if (alg == "mlkem768x25519-sha256"sv) {
+-		return std::make_unique<dh_privkey_mlkem>(is_server);
+-	}
+ 
+--- a/meson.build
++++ b/meson.build
+@@ -15,4 +15,4 @@ soversion = '14.0.0'
+ lfz_dep = dependency('libfilezilla', version: '>= 0.57.0')
+-nettle_dep = dependency('nettle', version: '>= 3.10')
+-hogweed_dep = dependency('hogweed', version: '>= 3.10')
++nettle_dep = dependency('nettle', version: '>= 3.9')
++hogweed_dep = dependency('hogweed', version: '>= 3.9')
+ gmp_dep = dependency('gmp', version: '>= 6.2')

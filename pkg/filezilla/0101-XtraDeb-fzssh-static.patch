@@ -1,0 +1,33 @@
+Build the fzssh libraries statically.
+
+Note: Patch is generated with "quilt refresh -U1"
+
+--- a/meson.build
++++ b/meson.build
+@@ -81,3 +81,3 @@ endif
+ 
+-fzssh_crypt = shared_library('fzssh-crypt', fzssh_crypt_sources,
++fzssh_crypt = static_library('fzssh-crypt', fzssh_crypt_sources,
+ 	dependencies: fzssh_crypt_deps,
+@@ -86,3 +86,2 @@ fzssh_crypt = shared_library('fzssh-cryp
+ 	cpp_args: ['-DBUILDING_FZSSH_CRYPT'],
+-	soversion: soversion
+ )
+@@ -144,3 +143,3 @@ endif
+ 
+-fzssh = shared_library('fzssh', fzssh_sources,
++fzssh = static_library('fzssh', fzssh_sources,
+ 	dependencies: fzssh_deps,
+@@ -149,3 +148,2 @@ fzssh = shared_library('fzssh', fzssh_so
+ 	cpp_args: ['-DBUILDING_FZSSH'],
+-	soversion: soversion,
+ 	link_with: fzssh_crypt
+@@ -195,3 +193,3 @@ endif
+ 
+-fzssh_client = shared_library('fzssh-client', fzssh_client_sources,
++fzssh_client = static_library('fzssh-client', fzssh_client_sources,
+ 	dependencies: fzssh_client_deps,
+@@ -201,3 +199,2 @@ fzssh_client = shared_library('fzssh-cli
+ 	link_with: fzssh,
+-	soversion: soversion
+ )
