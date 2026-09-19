@@ -87,8 +87,14 @@ patch_series_tmp=$debian/xtradeb-series.tmp
 rm -f $patch_series_tmp
 resource_dir=$base_dir/pkg/$resource_name
 test_build_depends=
-version_suffix="xtradeb1.${ubuntu_ver/./}."
 zapped_package_list=
+
+version_suffix="xtradeb1.${ubuntu_ver/./}."
+if [[ "$deb_version" == *[a-z] ]]
+then
+	# Keep "xtradeb" distinct
+	version_suffix="+$version_suffix"
+fi
 
 before_sum=$(get_tree_sum $debian)
 
@@ -102,11 +108,12 @@ do
 		# Can't touch anything outside of debian/
 		! grep -E '^(---|\+\+\+) ' $patch \
 		  | grep -v -e '^--- a/debian/' -e '^+++ b/debian/' \
+		  | grep -v -e '^--- /dev/null$' -e '^+++ /dev/null$' \
 		  | grep -q . \
 		|| error "$patch: targets file outside of debian/"
 
 		echo "Applying $(basename $patch)"
-		(cd $debian && patch -p2 -F0) < $patch
+		patch -d $debian -p2 -F0 --no-backup-if-mismatch < $patch
 	fi
 done
 
@@ -191,6 +198,7 @@ urgency=$(dpkg-parsechangelog \
 debchange \
 	--no-conf \
 	--no-auto-nmu \
+	--preserve \
 	--local $version_suffix \
 	--urgency $urgency \
 	--changelog $debian/changelog \

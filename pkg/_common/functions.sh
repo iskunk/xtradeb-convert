@@ -349,6 +349,9 @@ zap_control_package()
 	local package_name="$1"	# can be a Perl regex
 	local file="$2"
 
+	# Keep a list of the vanquished package names
+	zapped_package_list+=$(perl -ne "/^Package: ($package_name)\$/ and print \"\$1 \"" $file)
+
 	perl -0777 -pi -e "s/^\\nPackage: $package_name(?:\\n.+)*\\n//gm" $file
 
 	# Also remove any Depends: references to this package
@@ -400,7 +403,7 @@ default_check()
 	#
 	elif lintian --version >/dev/null 2>&1
 	then
-		(set -x; lintian --tag-display-limit 0 "$@") 2>&1 || exit
+		(set -x; lintian --display-info --fail-on error --tag-display-limit 0 "$@") 2>&1 || exit
 	else
 		echo 'Skipping lintian checks as the tool is not installed.'
 	fi

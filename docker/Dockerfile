@@ -14,8 +14,9 @@ RUN perl -pi \
     /etc/apt/sources.list \
     /etc/apt/sources.list.d/*.sources
 
-RUN apt-get update && apt-get -y install whiptail \
-    && DEBIAN_FRONTEND=noninteractive apt-get -y install \
+RUN export DEBIAN_FRONTEND=noninteractive; set -x; apt-get update \
+    && apt-get -y install whiptail && apt-get -y install \
+    adduser \
     apt-utils \
     ccache \
     cdbs \
@@ -26,7 +27,9 @@ RUN apt-get update && apt-get -y install whiptail \
     dpkg-dev \
     equivs \
     git \
+    iproute2 \
     less \
+    lintian \
     nano \
     netcat-openbsd \
     pigz \

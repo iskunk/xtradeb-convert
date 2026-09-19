@@ -25,13 +25,13 @@ ifeq "$(DISTRO)" "debian"
 ifeq "$(RELEASE)" "sid"
 $(error please use "unstable" instead of "sid")
 endif
-ifeq "$(filter bullseye bookworm trixie unstable, $(RELEASE))" ""
+ifeq "$(filter bullseye bookworm trixie forky unstable, $(RELEASE))" ""
 $(error invalid Debian release "$(RELEASE)")
 endif
 endif
 
 ifeq "$(DISTRO)" "ubuntu"
-ifeq "$(filter jammy kinetic lunar mantic noble oracular plucky questing resolute, $(RELEASE))" ""
+ifeq "$(filter jammy kinetic lunar mantic noble oracular plucky questing resolute stonking, $(RELEASE))" ""
 $(error invalid Ubuntu release "$(RELEASE)")
 endif
 endif
@@ -71,6 +71,7 @@ run: $(build_stamp)
 		set -x; \
 		docker container run -it --rm $(platform_opt) \
 			--env=APT_MIRROR=$(APT_MIRROR) \
+			--env=CONTAINER_HOST_ARCH="$$(uname -m)" \
 			--name=$(CONTAINER) \
 			--hostname=$(CONTAINER) \
 			--network=host \
@@ -90,6 +91,7 @@ $(build_stamp): Dockerfile hybrid-amd64-setup.sh setup.sh
 	TMPDIR=$(CTX) docker build $(platform_opt) \
 		--build-arg DISTRO_RELEASE=$(DISTRO):$(RELEASE) \
 		$(if $(APT_MIRROR),--build-arg APT_MIRROR=$(APT_MIRROR)) \
+		--env=CONTAINER_HOST_ARCH="$$(uname -m)" \
 		--network=host \
 		--progress plain \
 		--tag $(IMAGE) \

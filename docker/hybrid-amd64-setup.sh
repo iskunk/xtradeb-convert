@@ -1,6 +1,7 @@
 #!/bin/sh
 # hybrid-amd64-setup.sh
 
+export DEBEMAIL=root@example.com
 export DEBIAN_FRONTEND=noninteractive
 
 set -e
@@ -11,14 +12,14 @@ suite=$(lsb_release -cs 2>/dev/null)
 
 case "$arch" in
 	amd64 | i[3-6]86)
-	echo 'Not applicable to this architecture'
+	echo 'Not applicable to this architecture.'
 	exit 0
 	;;
 esac
 
-if [ "_$(uname -m)" != _x86_64 ]
+if [ "_$CONTAINER_HOST_ARCH" != _x86_64 ]
 then
-	echo 'Not applicable, not running on amd64'
+	echo 'Not applicable, not running on amd64.'
 	exit 0
 fi
 
@@ -113,10 +114,13 @@ essential_pkgs=$(echo \
 	apt \
 	apt-utils \
 	bash \
-	coreutils \
+	$(test -f /var/lib/dpkg/info/gnu-coreutils.list \
+		&& echo gnu-coreutils || echo coreutils) \
+	$(test -f /var/lib/dpkg/info/rust-coreutils.list \
+		&& echo rust-coreutils || :) \
 	dash \
-	dpkg \
 	findutils \
+	grep \
 	gzip \
 	sed \
 	tar \
@@ -141,25 +145,20 @@ END
  rm hybrid-hack-essential*
 )
 
-# Hang onto the native dpkg binary, as there is no way to tell it the
-# primary system architecture like there is with APT
-run_cmd cp -p /usr/bin/dpkg /usr/bin/dpkg.$arch
-
 cat > /etc/apt/apt.conf.d/02hybrid-hack << END
 APT::Architecture "$arch";
-Dir::Bin::dpkg "/usr/bin/dpkg.$arch";
 END
 
-# Replace dpkg first, to avoid missing-program errors
-run_cmd apt-get -y \
-	--allow-remove-essential \
-	--no-install-recommends \
-	install \
-	dpkg:amd64 dpkg:$arch-
-
-# Workaround for dpkg-architecture(1)
-# (see get_raw_build_arch() in /usr/share/perl5/Dpkg/Arch.pm)
-run_cmd ln -s ../../bin/dpkg.$arch /usr/local/bin/dpkg
+# Create temporary copies of some coreutils programs, as dpkg will need
+# them while swapping out the coreutils package(s)
+mkdir /tmp/coreutils-tmp
+for x in cp mv rm
+do
+	cp /usr/bin/$x /tmp/coreutils-tmp/
+done
+cat > /etc/apt/apt.conf.d/99coretils-tmp << END
+DPkg::Path "/tmp/coreutils-tmp:/usr/sbin:/usr/bin:/sbin:/bin";
+END
 
 run_cmd apt-get -y \
 	--allow-remove-essential \
@@ -168,6 +167,8 @@ run_cmd apt-get -y \
 	$(add_arch_suffix amd64  $essential_pkgs) \
 	$(add_arch_suffix $arch- $essential_pkgs)
 
+rm -r /tmp/coreutils-tmp /etc/apt/apt.conf.d/99coretils-tmp
+
 # Miscellaneous
 
 # Note: Don't include generate-ninja, as its {host,current,target}_cpu
@@ -175,32 +176,17 @@ run_cmd apt-get -y \
 #
 tool_pkgs=$(echo \
 	ccache \
+	make \
 	ninja-build \
+	openssh-client \
 	patch \
 	xz-utils \
 )
 
-run_cmd apt-get -y install \
-	$(add_arch_suffix amd64  $tool_pkgs) \
-	$(add_arch_suffix $arch- $tool_pkgs)
-
-########
-
-# Workaround for
-#   https://bugs.debian.org/1106209
-#   https://bugs.launchpad.net/bugs/2111189
-if [ $distro = Debian ]
-then
-	run_cmd apt-get -y install node-corepack node-minimatch
-else
-	run_cmd apt-get -y install node-minimatch
-fi
-tmp_nodejs_deps='node-corepack:amd64 (= 9.9.9), node-minimatch:amd64 (= 9.9.9)'
-
 ctl_file=/tmp/hybrid-hack-tools.ctl
 cat > $ctl_file << END
 Package: hybrid-hack-tools
-Provides: $(make_provides $arch $tool_pkgs nodejs node-types-node), $tmp_nodejs_deps
+Provides: $(make_provides $arch $tool_pkgs)
 Architecture: $arch
 Multi-Arch: same
 Description: Hybrid $arch/amd64 system hack - tool packages
@@ -215,9 +201,41 @@ END
  rm hybrid-hack-tools*
 )
 
+run_cmd apt-get -y install \
+	$(add_arch_suffix amd64  $tool_pkgs) \
+	$(add_arch_suffix $arch- $tool_pkgs)
+
 ########
 
 # Node.js
+
+# Workaround for
+#   https://bugs.debian.org/1106209
+#   https://bugs.launchpad.net/bugs/2111189
+if [ $distro = Debian ]
+then
+	run_cmd apt-get -y install node-corepack node-minimatch
+else
+	run_cmd apt-get -y install node-minimatch
+fi
+tmp_nodejs_deps='node-corepack:amd64 (= 9.9.9), node-minimatch:amd64 (= 9.9.9)'
+
+ctl_file=/tmp/hybrid-hack-nodejs.ctl
+cat > $ctl_file << END
+Package: hybrid-hack-nodejs
+Provides: $(make_provides $arch nodejs node-types-node), $tmp_nodejs_deps
+Architecture: $arch
+Multi-Arch: same
+Description: Hybrid $arch/amd64 system hack - Node.js packages
+ This metapackage smooths over package dependencies on the native builds of
+ Node.js packages that have been replaced with their amd64 counterparts.
+END
+(cd /tmp
+ echo ----; cat $ctl_file; echo ----
+ run_cmd equivs-build $ctl_file
+ run_cmd apt-get -y install ./hybrid-hack-nodejs_*.deb
+ rm hybrid-hack-nodejs*
+)
 
 run_cmd apt-get -y install nodejs:amd64
 run_cmd apt-mark hold nodejs:amd64

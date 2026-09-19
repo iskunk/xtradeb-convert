@@ -225,7 +225,7 @@ do
 	#
 	case "$pkg" in
 		/* | ./* | ../*) ;;
-		*.deb) pkg="./$pkg" ;;
+		*.deb | *.ddeb) pkg="./$pkg" ;;
 	esac
 	packages+=" $pkg"
 done

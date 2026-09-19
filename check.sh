@@ -17,8 +17,8 @@ usage()
 }
 
 case "$ubuntu_dist_raw" in
-	''|*.deb)  usage 1 ;;
-	-h|--help) usage 0 ;;
+	'' | *.deb | *.ddeb) usage 1 ;;
+	-h | --help) usage 0 ;;
 esac
 
 set_ubuntu_dist "$ubuntu_dist_raw"
@@ -30,7 +30,7 @@ declare -a all_deb_file_list
 for arg in "$@"
 do
 	case "$arg" in
-		*.deb)
+		*.deb | *.ddeb)
 		if [ -f "$arg" ]
 		then
 			all_deb_file_list+=($arg)

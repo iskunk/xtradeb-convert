@@ -29,7 +29,7 @@ $dir/hybrid-amd64-setup.sh
 
 x=/usr/share/perl5/Dpkg/Vendor/Ubuntu.pm
 
-if [ -f $x -a "_$(uname -m)" = _riscv64 ]
+if [ -f $x -a "_$CONTAINER_HOST_ARCH" = _riscv64 ]
 then
 	sed -ri 's/^(\s+)(.*nocheck.*riscv64)/\1#xtradeb#\2/' $x
 fi
