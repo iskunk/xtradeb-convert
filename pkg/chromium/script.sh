@@ -283,19 +283,6 @@ then
 	new_patch bookworm/dav1d-extern.patch
 fi
 
-if ubuntu_dist jammy noble resolute
-then
-	new_patch bookworm/gn-absl.patch
-	new_patch bookworm/gn-allowlist.patch
-	new_patch bookworm/gn-funcs.patch
-fi
-
-if ubuntu_dist jammy noble
-then
-	new_patch bookworm/gn-hpp11.patch
-	new_patch bookworm/gn-path-exists2.patch
-fi
-
 if dpkg --compare-versions $rust_version le 1.91
 then
 	new_patch rust-1.85/file_as_c_str.patch
@@ -303,15 +290,6 @@ then
 fi
 
 new_patch trixie/gn-funcs.patch
-
-if ubuntu_dist jammy noble
-then
-	new_patch trixie/gn-len.patch
-fi
-
-new_patch trixie/gn-inputs2.patch
-new_patch trixie/gn-module-name.patch
-new_patch trixie/gn-unused-vars.patch
 
 if ubuntu_dist jammy
 then
@@ -340,6 +318,7 @@ fi
 
 if ubuntu_dist jammy
 then
+	new_patch xtradeb/node12-compat.patch
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
 fi
 

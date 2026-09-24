@@ -1,0 +1,18 @@
+Node.js v12 does not have .replaceAll(), and this slash replacement is not
+needed in a Linux build.
+
+(Note that this script is used even when the pre-gen facility is active)
+
+--- a/third_party/devtools-frontend/src/scripts/build/compress_files.js
++++ b/third_party/devtools-frontend/src/scripts/build/compress_files.js
+@@ -95,8 +95,8 @@ async function main(argv) {
+   const depfileIndex = argv.indexOf('--depfile');
+   if (depfileIndex !== -1 && files.length > 0) {
+     const depfilePath = argv[depfileIndex + 1];
+-    const firstOutput = (files[0] + '.compressed').replaceAll('\\', '/');
+-    const normalizedFiles = files.map(f => f.replaceAll('\\', '/'));
++    const firstOutput = (files[0] + '.compressed');
++    const normalizedFiles = files;
+     const depfileContent = `${firstOutput}: ${normalizedFiles.join(' ')}\n`;
+     await writeTextFile(depfilePath, depfileContent);
+   }
