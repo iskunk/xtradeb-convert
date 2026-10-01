@@ -271,7 +271,17 @@ END
 		-e '/^# disable clang plugins/{r xtradeb.tmp' -e 'N}' \
 		rules)
 	rm $debian/xtradeb.tmp
+
+	# The -Wl,-mllvm,* flag only works with the LLVM linker
+	sed -ri 's!^(out/Release/gn):!\1: LDFLAGS+=-fuse-ld=lld-'"$llvm_version"'\n\1:!' \
+		$debian/rules
 fi
+
+# Temporary fix for ungoogled-chromium 154.0.8037.92
+sed -i \
+	-e 's!^#ungoogled#(ungoogled/crubit.patch)$!\1!' \
+	-e 's!^#ungoogled#(ungoogled/verification-tokens.patch)$!\1!' \
+	$debian/patches/series
 
 ##
 ## Patch series modifications
