@@ -277,12 +277,6 @@ END
 		$debian/rules
 fi
 
-# Temporary fix for ungoogled-chromium 154.0.8037.92
-sed -ri \
-	-e 's!^#ungoogled#(ungoogled/crubit.patch)$!\1!' \
-	-e 's!^#ungoogled#(ungoogled/verification-tokens.patch)$!\1!' \
-	$debian/patches/series
-
 ##
 ## Patch series modifications
 ##

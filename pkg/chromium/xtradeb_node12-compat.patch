@@ -1,8 +1,46 @@
-Node.js v12 does not have .replaceAll(), and this slash replacement is not
-needed in a Linux build.
+Jammy only has Node.js v12. The scripts modified below are used even when
+the pre-gen facility is active.
 
-(Note that this script is used even when the pre-gen facility is active)
-
+--- a/third_party/devtools-frontend/src/scripts/build/build_ai_skills.mjs
++++ b/third_party/devtools-frontend/src/scripts/build/build_ai_skills.mjs
+@@ -3,7 +3,7 @@
+ // found in the LICENSE file.
+ 
+ import yaml from 'js-yaml';
+-import * as fs from 'node:fs/promises';
++import * as fs from 'node:fs';
+ import * as path from 'node:path';
+ 
+ import {writeIfChanged} from './ninja/write-if-changed.js';
+@@ -40,11 +40,11 @@ export function parseSkill(content) {
+   };
+ }
+ 
+-async function runMain() {
++function runMain() {
+   const [, , buildTimestamp, inputFile, outputFile] = process.argv;
+   const year = new Date(Number(buildTimestamp) * 1000).getUTCFullYear();
+ 
+-  const content = await fs.readFile(inputFile, 'utf-8');
++  const content = fs.readFileSync(inputFile, 'utf-8');
+   const skill = parseSkill(content);
+ 
+   const outputContent = `// Copyright ${year} The Chromium Authors. All rights reserved.
+@@ -56,11 +56,11 @@ export const skill = ${JSON.stringify(sk
+ `;
+ 
+   // Ensure target directory exists
+-  await fs.mkdir(path.dirname(outputFile), {recursive: true});
++  fs.mkdirSync(path.dirname(outputFile), {recursive: true});
+ 
+-  await writeIfChanged(outputFile, outputContent);
++  writeIfChanged(outputFile, outputContent);
+ }
+ 
+ if (import.meta.main) {
+-  await runMain();
++  runMain();
+ }
 --- a/third_party/devtools-frontend/src/scripts/build/compress_files.js
 +++ b/third_party/devtools-frontend/src/scripts/build/compress_files.js
 @@ -95,8 +95,8 @@ async function main(argv) {
@@ -16,3 +54,165 @@ needed in a Linux build.
      const depfileContent = `${firstOutput}: ${normalizedFiles.join(' ')}\n`;
      await writeTextFile(depfilePath, depfileContent);
    }
+--- a/third_party/devtools-frontend/src/scripts/build/generate_html_entrypoint.js
++++ b/third_party/devtools-frontend/src/scripts/build/generate_html_entrypoint.js
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
+-import fs from 'node:fs/promises';
++import fs from 'node:fs';
+ import path from 'node:path';
+ import yargs from 'yargs';
+ import {hideBin} from 'yargs/helpers';
+@@ -34,18 +34,15 @@ if (!Array.isArray(entrypoints)) {
+   throw new Error('Must specify multiple entrypoints as array');
+ }
+ 
+-const templatePath = String(template);
+-const outDirectoryPath = String(outDirectory);
++const templateContent = fs.readFileSync(template, 'utf-8');
+ 
+-const templateContent = await fs.readFile(templatePath, 'utf-8');
+-
+-await Promise.all(entrypoints.map(async entrypoint => {
++for (const entrypoint of entrypoints) {
+   const rewrittenTemplateContent = templateContent.replace(
+       new RegExp('%ENTRYPOINT_NAME%', 'g'),
+-      String(entrypoint),
++      entrypoint,
+   );
+-  await writeIfChanged(
+-      path.join(outDirectoryPath, `${entrypoint}.html`),
++  writeIfChanged(
++      path.join(outDirectory, `${entrypoint}.html`),
+       rewrittenTemplateContent,
+   );
+-}));
++}
+--- a/third_party/devtools-frontend/src/scripts/build/ninja/copy-files.js
++++ b/third_party/devtools-frontend/src/scripts/build/ninja/copy-files.js
+@@ -1,17 +1,40 @@
+ // Copyright 2020 The Chromium Authors
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+-import fs from 'node:fs/promises';
++import fs from 'node:fs';
+ import path from 'node:path';
+ 
+ import {writeIfChanged} from './write-if-changed.js';
+ 
+ const [, , src, dest, files] = process.argv;
+ 
+-await Promise.all(files.split(',').map(async file => {
++for (const file of files.split(',')) {
+   const srcPath = path.join(src, file);
+   const destPath = path.join(dest, file);
+ 
+-  const srcContents = await fs.readFile(srcPath);
+-  await writeIfChanged(destPath, srcContents);
+-}));
++  // If there's a file there from a previous build, unlink it first. This
++  // is because the file in that location might be a hardlinked file, and
++  // overwriting it doesn't change the fact that it's hardlinked.
++  const srcContents = fs.readFileSync(srcPath);
++  if (fileExists(destPath)) {
++    // Check contents, return early if match
++    const destContents = fs.readFileSync(destPath);
++    if (srcContents.equals(destContents)) {
++      continue;
++    }
++  }
++
++  // Force a write to the target filesystem, since by default the ninja
++  // toolchain will create a hardlink, which in turn reflects changes in
++  // gen and resources/inspector back to //front_end.
++  writeIfChanged(destPath, srcContents);
++}
++
++/**
++ * Case sensitive implementation of a file look up.
++ */
++function fileExists(filePath) {
++  const dir = path.dirname(filePath);
++  const files = fs.readdirSync(dir);
++  return files.includes(path.basename(filePath));
++}
+--- a/third_party/devtools-frontend/src/scripts/build/ninja/minify-json-files.js
++++ b/third_party/devtools-frontend/src/scripts/build/ninja/minify-json-files.js
+@@ -2,19 +2,19 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
+-import fs from 'node:fs/promises';
++import fs from 'node:fs';
+ import path from 'node:path';
+ 
+ import {writeIfChanged} from './write-if-changed.js';
+ 
+ const [, , dest, ...files] = process.argv;
+ 
+-await Promise.all(files.map(async file => {
++for (const file of files) {
+   const filename = path.basename(file);
+   const destPath = path.join(dest, filename);
+ 
+   // Minifying JSON is straight-forward as JSON.stringify omits whitespace.
+-  const srcContents = await fs.readFile(file, 'utf-8');
++  const srcContents = fs.readFileSync(file);
+   const destContents = JSON.stringify(JSON.parse(srcContents));
+-  await writeIfChanged(destPath, destContents);
+-}));
++  writeIfChanged(destPath, destContents);
++}
+--- a/third_party/devtools-frontend/src/scripts/build/ninja/write-if-changed.js
++++ b/third_party/devtools-frontend/src/scripts/build/ninja/write-if-changed.js
+@@ -2,7 +2,7 @@
+ // Use of this source code is governed by a BSD-style license that can be
+ // found in the LICENSE file.
+ 
+-import * as fs from 'node:fs/promises';
++import * as fs from 'node:fs';
+ 
+ /**
+  * Only write content to a file if the content is different that what it previously contained.
+@@ -13,29 +13,18 @@ import * as fs from 'node:fs/promises';
+  * unchanged. This would preserve the original file timestamps and hence GN can correctly conclude
+  * the file output hasn't changed.
+  *
+- * @param {string} generatedFileLocation Location to write to
+- * @param {string | Buffer | Uint8Array} newContents The contents to write (or noop if unchanged with previous content)
++ * @param generatedFileLocation Location to write to
++ * @param newContents The contents to write (or noop if unchanged with previous content)
+  */
+-export async function writeIfChanged(generatedFileLocation, newContents) {
+-  if (typeof newContents === 'string') {
+-    try {
+-      const existing = await fs.readFile(generatedFileLocation, 'utf-8');
+-      if (existing === newContents) {
+-        return;
+-      }
+-    } catch {
+-      // If the file doesn't exist, we'll create it.
+-    }
+-  } else {
+-    try {
+-      const existing = await fs.readFile(generatedFileLocation);
+-      if (existing.equals(newContents)) {
+-        return;
+-      }
+-    } catch {
+-      // If the file doesn't exist, we'll create it.
++export function writeIfChanged(generatedFileLocation, newContents) {
++  if (fs.existsSync(generatedFileLocation)) {
++    if (fs.readFileSync(generatedFileLocation, {
++          encoding: 'utf8',
++          flag: 'r',
++        }) === newContents) {
++      return;
+     }
+   }
+ 
+-  await fs.writeFile(generatedFileLocation, newContents);
++  fs.writeFileSync(generatedFileLocation, newContents, {encoding: 'utf-8'});
+ }
