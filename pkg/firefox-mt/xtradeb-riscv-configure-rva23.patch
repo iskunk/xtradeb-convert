@@ -1,0 +1,54 @@
+Seen in a riscv64 build on stonking:
+
+  [...]
+  checking rustc version... 1.95.0
+  checking cargo version... 1.95.0
+  checking for rust host triplet...
+  ERROR: The rust compiler host (riscv64a23-unknown-linux-gnu) is not suitable for the configure host (riscv64-unknown-linux-gnu/riscv64gc-unknown-linux-gnu).
+
+  To resolve this, install and select a Rust toolchain for riscv64gc-unknown-linux-gnu:
+    rustup default stable-riscv64gc-unknown-linux-gnu
+
+  Then rerun configure.
+
+  E *** Fix above errors and then restart with "./mach build"
+  make: *** [/<<PKGBUILDDIR>>/debian/build/rules.mk:238: debian/stamp-mach-configure] Error 1
+
+The Firefox configuration tooling is confused by the new RVA23-specific
+host triplet reported by rustc, which came about with version 1.92:
+
+  # rustc-1.91 --version --verbose
+  rustc 1.91.1 (ed61e7d7e 2025-11-07) (built from a source tarball)
+  binary: rustc
+  commit-hash: ed61e7d7e242494fb7057f2657300d9e77bb4fcb
+  commit-date: 2025-11-07
+  host: riscv64gc-unknown-linux-gnu
+  release: 1.91.1
+  LLVM version: 21.1.8
+
+  rustc 1.92.0 (ded5c06cf 2025-12-08) (built from a source tarball)
+  binary: rustc
+  commit-hash: ded5c06cf21d2b93bffd5d884aa6e96934ee4234
+  commit-date: 2025-12-08
+  host: riscv64a23-unknown-linux-gnu
+  release: 1.92.0
+  LLVM version: 21.1.8
+
+Note that it doesn't work to add the *a23 variant in addition to the *gc
+one, because then a different failure mode results as the tooling cannot
+determine which of the two it should use:
+
+  checking for rust host triplet...
+  ERROR: Don't know how to translate riscv64-unknown-linux-gnu for rustc
+
+--- a/build/moz.configure/init.configure
++++ b/build/moz.configure/init.configure
+@@ -578,7 +578,7 @@ def split_triplet(triplet, allow_wasi=Fa
+     elif cpu.startswith("aarch64"):
+         canonical_cpu = "aarch64"
+         endianness = "little"
+-    elif cpu in ("riscv64", "riscv64gc"):
++    elif cpu in ("riscv64", "riscv64a23"):
+         canonical_cpu = "riscv64"
+         endianness = "little"
+     elif cpu.startswith("loongarch64"):

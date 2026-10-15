@@ -142,6 +142,11 @@ fi
 
 new_patch xtradeb-ppc64el-assertions.patch
 
+if dpkg --compare-versions $rust_version ge 1.92
+then
+	new_patch xtradeb-riscv-configure-rva23.patch
+fi
+
 if ubuntu_dist jammy noble
 then
 	new_patch xtradeb-riscv-llama.patch
