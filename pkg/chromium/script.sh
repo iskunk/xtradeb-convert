@@ -92,6 +92,12 @@ sed -ri 's/^(\s+generate-ninja),/\1:native,/' $debian/control
 # TypeScript is only needed when generating the pre-gen tarball
 # (but we need a dummy version so that debian/rules doesn't break)
 sed -ri '/^\s+node-typescript / s/ \(.+\),/,/' $debian/control
+#
+# Similarly for tsx(1), save for needing the dummy version
+if ubuntu_dist jammy noble resolute
+then
+	sed -ri '/^\s+tsx,/ d' $debian/control
+fi
 
 # rustc-web is only available in Debian (old)stable
 sed -ri '/^\s+rustc-web(:any)? \(.+\),/ s/-web//' $debian/control
@@ -284,7 +290,6 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch bookworm/dav1d-drop-hdr.patch
-	new_patch bookworm/dav1d-extern.patch
 fi
 
 if dpkg --compare-versions $rust_version le 1.91
@@ -325,8 +330,6 @@ then
 	new_patch xtradeb/node12-compat.patch
 	new_patch xtradeb/openjpeg-no-strict-mode.patch
 fi
-
-new_patch xtradeb/rustfmt-path.patch
 
 if ubuntu_dist resolute
 then
