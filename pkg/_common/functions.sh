@@ -40,9 +40,10 @@ common_package_convert()
 			# noble and later:
 			#   $package: embedded-library $lib [usr/lib/libfoo.so]
 			sed -ri \
+				-e 's!(elevated-privileges\s+)(\S+)\s+(\S+)\s+\[(\S+)\]!\1\4 \2 \3!' \
 				-e 's!(embedded-library\s+)(\S+):\s+(\S+)$!\1\3 \2!' \
 				-e 's!(embedded-library\s+)(\S+)\s+\[(\S+)\]$!\1\2 \3!' \
-				-e 's!(shared-library-lacks-prerequisites)\s+\[(\S+)\]$!\1 \2!' \
+				-e 's!(\s+)\[(\S+)\]\s*$!\1\2!' \
 				$l_o
 		done
 

@@ -290,6 +290,7 @@ fi
 if ubuntu_dist jammy
 then
 	new_patch bookworm/dav1d-drop-hdr.patch
+	new_patch bookworm/dav1d-extern.patch
 fi
 
 if dpkg --compare-versions $rust_version le 1.91
