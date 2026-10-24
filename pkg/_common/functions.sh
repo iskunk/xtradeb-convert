@@ -70,6 +70,7 @@ get_resource_name()
 		llvm-toolchain-*) name=llvm-toolchain ;;
 		qt6-base) name=qt6 ;;
 		rustc-[1-9].[0-9]*) name=rustc ;;
+		seafile-client) name=seafile ;;
 		simgear) name=flightgear ;;
 		ungoogled-chromium) name=chromium ;;
 		wxwidgets[3-9].*) name=wxwidgets ;;
