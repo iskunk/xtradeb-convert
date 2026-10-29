@@ -339,7 +339,8 @@ fi
 
 new_patch xtradeb/swiftshader-llvm-16.patch
 
-# Disable the loong64 patches, as Ubuntu doesn't support that architecture
+# Disable loong64, as Ubuntu doesn't support that architecture
+sed -i '/^Architecture:/ s/ loong64\b//' $debian/control
 sed -i '/^loongarch64/ s/^/#xd#/' $debian/patches/series
 
 } # xd_convert()
