@@ -12,14 +12,12 @@ https://bugs.debian.org/1089507 :
       from urllib3.packages import six
   E   ImportError: cannot import name 'six' from 'urllib3.packages' (/usr/lib/python3/dist-packages/urllib3/packages/__init__.py)
 
+Note: Patch is generated with "quilt refresh -U1"
+
 --- a/test/test_http_proxy.py
 +++ b/test/test_http_proxy.py
-@@ -84,7 +84,7 @@ class HTTPProxyHandler(BaseHTTPRequestHa
-         self.server.close_request(self.request)
- 
+@@ -92,3 +92,3 @@ class HTTPProxyHandler(BaseHTTPRequestHa
  
 -if urllib3:
 +if False:  # XtraDeb
      import urllib3.util.ssltransport
- 
-     class SSLTransport(urllib3.util.ssltransport.SSLTransport):
