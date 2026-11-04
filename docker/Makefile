@@ -52,6 +52,12 @@ else
 platform_opt =
 endif
 
+#MEM_MODE = 1
+MEM_STORAGE_DIR = $(XDG_RUNTIME_DIR)/containers-storage
+mem_opt := $(if $(MEM_MODE),--root=$(MEM_STORAGE_DIR))
+IMAGE_DIR = $(HOME)/.cache/xtradeb-image
+image_file = $(IMAGE_DIR)/$(IMAGE).tar.zst
+
 CCACHE_DIR := $(firstword $(wildcard $(SCRATCH)/xtradeb/ccache$(_arch_tag) $(HOME)/xtradeb/ccache$(_arch_tag)))
 ifneq "$(CCACHE_DIR)" ""
 VOL_MOUNTS += -v $(CCACHE_DIR):/external/ccache
@@ -63,13 +69,30 @@ export PODMAN_USERNS = keep-id:uid=1024,gid=100
 # Don't use "docker attach", as the container will be stopped when the
 # shell exits. We want that to happen only for the initial shell.
 #
-run: $(build_stamp)
-	@if docker container inspect $(CONTAINER) >/dev/null 2>&1; then \
+ifdef MEM_MODE
+run: export XDG_CONFIG_HOME = $(MEM_STORAGE_DIR)/config
+run: export XDG_DATA_HOME   = $(MEM_STORAGE_DIR)/data
+endif
+run: in_mem_mode = $(if $(MEM_MODE),true,false)
+run: $(build_stamp) $(if $(MEM_MODE),$(image_file))
+ifdef MEM_MODE
+	@umask 077; mkdir -p $(MEM_STORAGE_DIR)/tmp
+	@mkdir -p $(XDG_CONFIG_HOME)/containers $(XDG_DATA_HOME)/share
+# We use "vfs" because "overlay" makes dir renames fail with EXDEV
+	@(echo '[storage]'; echo 'driver = "vfs"') \
+	> $(XDG_CONFIG_HOME)/containers/storage.conf
+endif
+	@if docker $(mem_opt) container inspect $(CONTAINER) >/dev/null 2>&1; then \
 		set -x; \
-		docker container exec -it $(CONTAINER) /bin/bash; \
+		docker $(mem_opt) container exec -it $(CONTAINER) /bin/bash; \
 	else \
-		set -x; \
-		docker container run -it --rm $(platform_opt) \
+		if $(in_mem_mode); then \
+			(set -x; zstd -cd $(image_file) \
+			 | TMPDIR=$(MEM_STORAGE_DIR)/tmp podman $(mem_opt) load \
+			) || exit; \
+		fi; \
+		ret=0; \
+		(set -x; docker $(mem_opt) container run -it --rm $(platform_opt) \
 			--env=APT_MIRROR=$(APT_MIRROR) \
 			--env=CONTAINER_HOST_ARCH="$$(uname -m)" \
 			--name=$(CONTAINER) \
@@ -79,7 +102,13 @@ run: $(build_stamp)
 			--user=root \
 			--cap-add=SYS_PTRACE \
 			$(VOL_MOUNTS) \
-			$(IMAGE); \
+			$(IMAGE) \
+		) || ret=$$?; \
+		if $(in_mem_mode); then \
+			docker $(mem_opt) container ls --noheading | grep -q . \
+			|| (set -x; docker unshare rm -rf $(MEM_STORAGE_DIR)); \
+		fi; \
+		exit $$ret; \
 	fi
 
 build: $(build_stamp)
@@ -97,11 +126,18 @@ $(build_stamp): Dockerfile hybrid-amd64-setup.sh setup.sh
 		--tag $(IMAGE) \
 		$(CTX)
 	rm -rf $(CTX)
+ifdef MEM_MODE
+	docker save $(IMAGE) | zstd -T0 > $(image_file)
+else
 	docker container run --rm $(platform_opt) $(IMAGE) true
+endif
 	touch $@
 
 clean:
 	-docker image rm $(IMAGE)
+ifdef MEM_MODE
+	rm -f $(image_file)
+endif
 	rm -f $(build_stamp)
 	-chmod -R u+rw $(CTX)
 	rm -rf $(CTX)
