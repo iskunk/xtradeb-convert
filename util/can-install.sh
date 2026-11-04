@@ -132,6 +132,12 @@ then
 			|| echo "$dist_release") \
 		main universe multiverse
 
+	# Add the -updates suite, for broader compatibility
+	(cd $chdist_data/$release/etc/apt && \
+	 awk '/^deb/ && $3 !~ /-updates/ {print; $3 = $3 "-updates"} {print}' \
+		sources.list > new.list && \
+	 mv new.list sources.list)
+
 	if [ -n "$xtradeb_ppa" ]
 	then
 		print_xtradeb_sources \
