@@ -86,6 +86,11 @@ sed -ri \
 	-e '/^\s+dh_auto_build/ i \	debian/keepalive-wrapper.py 9999 \\' \
 	$debian/rules
 
+# Fix a bizarre issue that causes a second-round build to immediately
+# jump ahead to the "install" stage, even after running "clean"
+sed -ri '/^\s+rm -rf debian.\.debhelper/ a \	rm -f debian/debhelper-build-stamp' \
+	$debian/rules
+
 ##
 ## Patch series modifications
 ##
