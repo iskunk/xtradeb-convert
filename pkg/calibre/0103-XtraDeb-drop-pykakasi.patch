@@ -10,7 +10,7 @@ Note: Patch is generated with "quilt refresh -U1"
  	"zeroconf == 0.149.16",
 --- a/src/calibre/ebooks/unihandecode/__init__.py
 +++ b/src/calibre/ebooks/unihandecode/__init__.py
-@@ -26,3 +26,3 @@ class Unihandecoder:
+@@ -30,3 +30,3 @@ class Unihandecoder:
          lang = lang.lower()
 -        if lang[:2] == 'ja':
 +        if lang[:2] == 'XtraDeb-UNSUPPORTED-ja':
@@ -27,7 +27,7 @@ Note: Patch is generated with "quilt refresh -U1"
  
 --- a/src/calibre/test_build.py
 +++ b/src/calibre/test_build.py
-@@ -410,2 +410,3 @@ class BuildTest(unittest.TestCase):
-     def test_pykakasi(self):
+@@ -439,2 +439,3 @@ class BuildTest(unittest.TestCase):
+     def test_pykakasi(self) -> None:
 +        return  # XtraDeb: no pykakasi
          from calibre.ebooks.unihandecode.jadecoder import Jadecoder

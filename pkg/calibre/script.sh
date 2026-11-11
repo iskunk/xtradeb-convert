@@ -19,6 +19,7 @@ then
 elif dpkg --compare-versions $deb_version ge 8.0.0
 then
 	ubuntu_dist noble VENDOR \
+	|| test -n "$XTRADEB_NON_PRODUCTION" \
 	|| not_applicable 'please build version >= 9.x.x'
 else
 	error 'package version is too old for conversion'
@@ -38,6 +39,12 @@ then
 	sed -ri \
 		-e '/^\s+libonnxruntime-dev,/ d' \
 		-e '/^\s+qt6-svg-plugins,/ d' \
+		$debian/control
+fi
+
+if ubuntu_dist resolute
+then
+	sed -ri '/^\s+debhelper-compat / s/\b14\b/13/' \
 		$debian/control
 fi
 
@@ -61,13 +68,23 @@ END
 (cd $debian && sed -i '/^export VERBOSE=1/ r xtradeb.tmp' rules)
 rm $debian/xtradeb.tmp
 
-# 900+ lintian warnings from these
-cat >> $debian/calibre.lintian-overrides << END
+case $major_version in
+	8)
+	# 900+ lintian warnings from these
+	cat >> $debian/calibre.lintian-overrides << END
 
 # XtraDeb
 calibre: unusual-interpreter python [usr/lib/calibre/**/*.py]
 calibre: unusual-interpreter python [usr/share/calibre/default_tweaks.py]
 END
+	;;
+
+	9)
+	# Lintian gives an "alien-tag" error for this
+	sed -i '/^calibre: woff-font-in-wrong-dir / d' \
+		$debian/calibre.lintian-overrides
+	;;
+esac
 
 ##
 ## Patch series modifications
@@ -92,6 +109,11 @@ then
 fi
 
 new_patch 0104-XtraDeb-no-network-v$major_version.patch
+
+if [ $major_version -eq 9 ]
+then
+	new_patch 0105-XtraDeb-trash-dir.patch
+fi
 
 } # xd_convert()
 

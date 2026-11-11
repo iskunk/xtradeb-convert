@@ -1,0 +1,34 @@
+Work around https://bugs.launchpad.net/bugs/2173946
+
+  ======================================================================
+  ERROR: calibre.db.cli.tests.DataFilesTest.test_data_files
+  ----------------------------------------------------------------------
+  calibre.db.cli.tests.DataFilesTest.test_data_files (is_remote=False)
+  Traceback (most recent call last):
+    File "/tmp/calibre-9.18.0+ds+~1.1.2/src/calibre/db/cli/tests.py", line 1081, in test_data_files
+      run('remove', '1', 'sub/other/moved.txt', *(('--permanent',) if is_remote else ()))
+      ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "/tmp/calibre-9.18.0+ds+~1.1.2/src/calibre/db/cli/tests.py", line 1047, in run
+      return self.run_data_files(db, *args, is_remote=is_remote)
+             ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "/tmp/calibre-9.18.0+ds+~1.1.2/src/calibre/db/cli/tests.py", line 1036, in run_data_files
+      self.assertEqual(main(opts, cmd_args, ctx), 0)
+                       ~~~~^^^^^^^^^^^^^^^^^^^^^
+    File "/tmp/calibre-9.18.0+ds+~1.1.2/src/calibre/db/cli/cmd_data_files.py", line 312, in main
+      run(dbctx, action, book_id, args[1], opts.permanent)
+      ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "/tmp/calibre-9.18.0+ds+~1.1.2/src/calibre/db/cli/cmd_data_files.py", line 242, in run
+      raise SystemExit(ans)
+  SystemExit: [Errno 13] Permission denied: '/.Trash-1001'
+
+--- a/src/calibre/utils/linux_trash.py
++++ b/src/calibre/utils/linux_trash.py
+@@ -137,7 +137,7 @@ def find_ext_volume_fallback_trash(volum
+ def find_ext_volume_trash(volume_root: str) -> str:
+     trash_dir = find_ext_volume_global_trash(volume_root)
+     if trash_dir is None:
+-        trash_dir = find_ext_volume_fallback_trash(volume_root)
++        trash_dir = find_ext_volume_fallback_trash("/tmp")
+     return trash_dir
+ 
+ 
