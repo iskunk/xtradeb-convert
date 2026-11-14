@@ -41,9 +41,11 @@ common_package_convert()
 			#   $package: embedded-library $lib [usr/lib/libfoo.so]
 			sed -ri \
 				-e 's!(elevated-privileges\s+)(\S+)\s+(\S+)\s+\[(\S+)\]!\1\4 \2 \3!' \
+				-e 's!(embedded-javascript-library)\s+(please(\s+\S+)+)\s+(\S+)!\1 \4 \2!' \
 				-e 's!(embedded-library\s+)(\S+):\s+(\S+)$!\1\3 \2!' \
 				-e 's!(embedded-library\s+)(\S+)\s+\[(\S+)\]$!\1\2 \3!' \
-				-e 's!(\s+)\[(\S+)\]\s*$!\1\2!' \
+				-e '/\b(shared-library-symbols-not-tracked|ships-undeclared-shared-library|symbols-file-contains-current-version-with-debian-revision)\b/ s!\s+\[\w+\]$!!' \
+				-e '/\b(custom-library-search-path)\b/! s!(\s+)\[(\S+)\]\s*$!\1\2!' \
 				$l_o
 		done
 
@@ -270,7 +272,15 @@ new_patch()
 	fi
 
 	local patch_path=$1
-	local patch_file=$(echo $patch_path | tr / _)
+	local patch_file=${patch_path//\//_}
+	case "$patch_path" in
+		pkg/*:*)
+		# Reference to patch in a different package subdir
+		patch_file=../../${patch_path%:*}/$(tr / _ <<< ${patch_path#*:})
+		patch_path=${patch_path#*:}
+		;;
+	esac
+	test -z "${2:-}" || patch_path=$2  # Explicitly-specified path
 
 	if [ ! -d $debian/patches ]
 	then
