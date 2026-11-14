@@ -74,6 +74,25 @@ sed -ri 's/^(\s+if) (! (dh_listpackages|dpkg -l)\|grep -q )/\1 false XtraDeb \&\
 sed -ri '/^\s+..(snapshot|verify)_generated_tracked_files./ s/^/#XtraDeb#/' \
 	$debian/rules
 
+# Politely decline OCaml support.
+sed -ri '/^OCAML_RELEASES =/,/^\S/ s/\b(jammy|noble|resolute)\b/$(EMPTY)/g' \
+	$debian/rules
+
+# Add some lintian overrides to avoid errors
+add_override() { (test ! -s $2 || echo; echo '# XtraDeb'; echo "$1") >> $2; }
+add_override 'clang-format-@LLVM_VERSION@: empty-manual-page [usr/share/man/man1/git-clang-format-*.1.gz]' \
+	$debian/clang-format-X.Y.lintian-overrides.in
+add_override 'clang-tidy-@LLVM_VERSION@: empty-manual-page [usr/share/man/man1/run-clang-tidy-*.1.gz]' \
+	$debian/clang-tidy-X.Y.lintian-overrides.in
+add_override 'clang-tools-@LLVM_VERSION@: custom-library-search-path RUNPATH */build-llvm/tools/clang/stage2-bins/lib [usr/lib/llvm-*/bin/clang-query]' \
+	$debian/clang-tools-X.Y.lintian-overrides.in
+add_override 'libomp5: symbols-file-contains-current-version-with-debian-revision * (libomp.so.*) [symbols]' \
+	$debian/libomp5.lintian-overrides
+#
+# Fix typo leading to "alien-tag" error
+sed -ri 's/ (privacy-breach-generic):/ \1/' \
+	$debian/clang-X.Y-doc.lintian-overrides.in
+
 ##
 ## Patch series modifications
 ##
