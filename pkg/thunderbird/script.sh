@@ -78,17 +78,38 @@ if ubuntu_dist jammy
 then
 	# No ...t64 form available
 	sed -ri 's/^(\s+libotr5)t64,/\1,/' $debian/control
+fi
 
-	# Downgrade this dependency
-	sed -ri '/^\s+librnp(-dev|0) / s/0\.17\.0/0.15.2/' $debian/control
+if ubuntu_dist jammy noble
+then
+	# Use the bundled librnp
+	sed -ri '/^\s+librnp(-dev|0) / d' $debian/control
+	sed -i '/--with-system-librnp/ s/with/without/' \
+		$debian/mozconfig.default
+	printf '\n# XtraDeb\n%s: embedded-library bzip2 [usr/lib/%s/librnp.so]\n' \
+		$source_name $source_name \
+	>> $debian/$source_name.lintian-overrides
+else
+	# Add a configure-time check to ensure the system librnp actually
+	# meets Thunderbird's minimum version requirement (note that the
+	# library is loaded dynamically at run-time)
+	cat > $debian/xtradeb.tmp << 'END'
+	# XtraDeb: Check that the system librnp passes muster
+	min_rnp_version=$$(sed -nr '/^const MIN_RNP_VERSION =/ { s/.*\[(.+)\].*/\1/; s/, */./g; p }' \
+		comm/mail/extensions/openpgp/content/modules/RNPLib.sys.mjs) && \
+	test -n "$$min_rnp_version" && \
+	pkg-config --atleast-version=$$min_rnp_version librnp
+END
+	(cd $debian && sed -i '/^override_dh_auto_configure:/ r xtradeb.tmp' \
+		rules)
+	rm $debian/xtradeb.tmp
 fi
 
 # Use a keepalive wrapper, as some link operations take a long time,
 # and nice(1) the build down when running on Launchpad to avoid spurious
 # (and log-less) "Failed to build" outcomes
 cp $base_dir/pkg/chromium/keepalive-wrapper.py $debian/
-sed -ri \
-	-e '/^\s+dh_auto_build/ i \	debian/keepalive-wrapper.py 9999 \\' \
+sed -ri '/^\s+dh_auto_build/ i \	debian/keepalive-wrapper.py 3600 \\' \
 	$debian/rules
 
 # Fix a bizarre issue that causes a second-round build to immediately
