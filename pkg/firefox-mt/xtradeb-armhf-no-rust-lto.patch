@@ -1,0 +1,15 @@
+--- a/python/mozbuild/mozbuild/rust_commands.py
++++ b/python/mozbuild/mozbuild/rust_commands.py
+@@ -417,7 +417,12 @@ def applies_library_lto(kind, lto, subst
+ 
+     Release builds enable link time optimization unless the library opted out.
+     """
++    import os
+     return bool(
++        # XtraDeb: No LTO for gkrust on armhf
++        ("arm-unknown-linux-gnueabihf" not in " ".join(_cargo_config(substs).get("MOZ_CARGO_HOST_TARGET_ARGS")) or
++         not os.getcwd().endswith("/toolkit/library/rust")
++        ) and
+         kind == "library" and _cargo_config(substs).get("RUST_LTO_ELIGIBLE") and lto
+     )
+ 

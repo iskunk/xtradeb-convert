@@ -120,6 +120,17 @@ then
 		$debian/build/rules.mk
 fi
 
+# Disable LTO altogether on armhf; even the thin kind is too much
+sed -i \
+	-e 's/reduce the LTO to "thin"/disable LTO altogether/' \
+	-e '/profile\.release/ s/"thin"/false/' \
+	$debian/build/rules.mk
+cat >> $debian/config/mozconfig.in << END
+%%if DEB_BUILD_ARCH == armhf
+ac_add_options --disable-lto
+%%endif
+END
+
 # Useful for testing a fix
 cat >> $debian/rules << 'END'
 
@@ -132,6 +143,8 @@ END
 ##
 ## Patch series modifications
 ##
+
+new_patch xtradeb-armhf-no-rust-lto.patch
 
 new_patch xtradeb-mach-clobber-hang.patch
 
