@@ -133,6 +133,11 @@ then
 	new_patch xtradeb/libyuv-rvv-support.patch
 fi
 
+if ubuntu_dist jammy
+then
+	new_patch xtradeb/nodejs-downgrade.patch
+fi
+
 if ubuntu_dist jammy noble resolute
 then
 	new_patch pkg/firefox:xtradeb/ppc64el-workaround-for-llvm-assembler.patch
