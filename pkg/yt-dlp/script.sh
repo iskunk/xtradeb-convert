@@ -23,7 +23,7 @@ END
 
 	sed -ri 's/\b(PYTHON)=python3$/\1=$(PYTHON)/' $debian/rules
 
-	# A bug in the python3-py package breaks pytest:
+	# Use a build hack to avoid breaking the test suite:
 	#
 	#   make offlinetest PYTHON=python3.11
 	#   make[2]: Entering directory '...'
@@ -34,7 +34,8 @@ END
 	#                           ~~~~~~~~~~~~^^^^^^
 	#   KeyError: '__spec__'
 	#
-	sed -ri 's/^(\s+)(make offlinetest)/\1-\2/' $debian/rules
+	sed -i '/^Build-Depends:/ a \ xtradeb-build-hack-python3-py <!noxtradeb>,' \
+		$debian/control
 fi
 
 if ubuntu_dist jammy noble
