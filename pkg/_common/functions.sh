@@ -70,6 +70,7 @@ get_resource_name()
 		firefox-esr) name=firefox ;;
 		flightgear-data) name=flightgear ;;
 		fzssh) name=filezilla ;;
+		ggml) name=llama.cpp ;;
 		libfilezilla) name=filezilla ;;
 		librewolf) name=firefox ;;
 		llvm-toolchain-*) name=llvm-toolchain ;;
@@ -77,6 +78,7 @@ get_resource_name()
 		rustc-[1-9].[0-9]*) name=rustc ;;
 		seafile-client) name=seafile ;;
 		simgear) name=flightgear ;;
+		tokenizers) name=llama.cpp ;;
 		ungoogled-chromium) name=chromium ;;
 		wesnoth-[1-9].[0-9]*) name=wesnoth ;;
 		wxwidgets[3-9].*) name=wxwidgets ;;
