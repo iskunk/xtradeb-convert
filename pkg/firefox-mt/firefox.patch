@@ -13,6 +13,28 @@ A subset/adaptation of the modifications posted to
  
  MOZ_VERSION		:= $(shell cat $(DEB_SRCDIR)/$(MOZ_APP)/config/version.txt)
  MOZ_LIBDIR		:= usr/lib/$(MOZ_APP_NAME)
+@@ -355,21 +355,6 @@ pre-build::
+ pre-build:: debian/config/locales.shipped $(pkgname_subst_files) $(appname_subst_files) mozconfig
+ 	$(call cmp_auto_generated_file,debian/config/locales.shipped,refresh-supported-locales)
+ 
+-# Conditionally patch the top-level Cargo.toml file to reduce the LTO to "thin"
+-# on armhf to work around OOM failures on Launchpad builders. This is only one
+-# half of the workaround, see also debian/patches/armhf-rustc-thin-lto.patch.
+-ifneq (,$(filter armhf, $(DEB_HOST_ARCH)))
+-pre-build:: Cargo.toml.stamp-patch
+-Cargo.toml.pre-patched:
+-	cp -p Cargo.toml $@
+-Cargo.toml.stamp-patch: Cargo.toml.pre-patched
+-	sed '/^\[profile.release\]/ a lto = "thin"' $< > Cargo.toml
+-	touch $@
+-clean::
+-	test ! -f Cargo.toml.pre-patched || mv Cargo.toml.pre-patched Cargo.toml
+-	rm -f Cargo.toml.stamp-patch
+-endif
+-
+ EXTRACT_TARBALL = $(firstword $(shell TMPDIR=`mktemp -d`; tar -jxf $(1) -C $$TMPDIR > /dev/null 2>&1; echo $$TMPDIR/`ls $$TMPDIR/ | head -n1`))
+ 
+ ifdef LANGPACK_O_MATIC
 --- a/debian/config/mozconfig.in
 +++ b/debian/config/mozconfig.in
 @@ -84,7 +84,7 @@ ac_add_options --enable-rust-simd
