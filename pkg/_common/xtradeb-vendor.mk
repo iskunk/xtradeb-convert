@@ -13,6 +13,22 @@ ifndef VENDOR_VERSION
 $(error VENDOR_VERSION is not defined)
 endif
 
+VENDOR_CARGO_LOCK := $(if $(VENDOR_CARGO_MANIFEST_PATH),$(VENDOR_CARGO_MANIFEST_PATH)/)Cargo.lock
+
+ifneq "" "$(wildcard go.sum)"
+VENDOR_GO_SUPPORT = 1
+endif
+
+ifneq "" "$(wildcard package-lock.json)"
+VENDOR_NODEJS_SUPPORT = 1
+endif
+
+ifneq "" "$(wildcard $(VENDOR_CARGO_LOCK))"
+VENDOR_RUST_SUPPORT = 1
+# Note: This is used by dh-cargo tooling, not Cargo
+export CARGO_VENDOR_DIR = vendor/cargo_registry
+endif
+
 # Run one of these from a (e.g.) "execute_after_dh_auto_configure" target
 
 vendor_dir_check = \
@@ -21,6 +37,8 @@ vendor_dir_check = \
 		echo 'Is the orig-vendor tarball generated and present?'; \
 		exit 1; \
 	fi
+
+.PHONY: setup-vendor-go setup-vendor-nodejs setup-vendor-rust
 
 setup-vendor-go:
 	@$(vendor_dir_check)
@@ -32,29 +50,24 @@ setup-vendor-nodejs:
 
 setup-vendor-rust:
 	@$(vendor_dir_check)
-	test -d debian/cargo_registry
-	for crate in $$(cd vendor/cargo_registry && echo *); do \
-		test -f vendor/cargo_registry/$$crate/Cargo.toml || continue; \
-		test ! -e debian/cargo_registry/$$crate || continue; \
-		ln -s ../../vendor/cargo_registry/$$crate debian/cargo_registry/ || exit; \
-	done
 
 # Populate the vendor/ subdirectory
 #
+.PHONY: get-vendor-source
 get-vendor-source:
 	rm -rf vendor
 #
 # Go
 #
-ifneq "" "$(wildcard go.sum)"
+ifdef VENDOR_GO_SUPPORT
 	go version
 	go mod vendor -v
 	echo "Vendored Go dependencies collected using $$(go version)" >> vendor/README
-endif # go.mod
+endif # VENDOR_GO_SUPPORT
 #
 # Node.js
 #
-ifneq "" "$(wildcard package-lock.json)"
+ifdef VENDOR_NODEJS_SUPPORT
 	npm --version
 	test ! -d node_modules
 	npm ci --ignore-scripts
@@ -67,22 +80,34 @@ ifneq "" "$(wildcard package-lock.json)"
 	mv node_modules vendor/
 	rm -fv debian/nodejs/extcopies debian/nodejs/extlinks
 	echo "Vendored Node.js dependencies collected using npm version $$(npm --version)" >> vendor/README
-endif # package-lock.json
+endif # VENDOR_NODEJS_SUPPORT
 #
 # Rust
 #
-ifneq "" "$(wildcard Cargo.lock)"
+ifdef VENDOR_RUST_SUPPORT
 	cargo --version
-	umask 022; cargo vendor --locked vendor/cargo_registry
+	umask 022; unset CARGO_NET_OFFLINE; cargo vendor \
+		$(if $(VENDOR_CARGO_MANIFEST_PATH), \
+			--manifest-path $(VENDOR_CARGO_MANIFEST_PATH)/Cargo.toml \
+		) \
+		--locked \
+		$(CARGO_VENDOR_DIR)
 	@echo '# # #'
 #
-# Generate the XS-Vendored-Sources-Rust: header for the control file
-	CARGO_VENDOR_DIR=vendor/cargo_registry \
+# Generate the XS-Vendored-Sources-Rust: field for the control file
 	/usr/share/cargo/bin/dh-cargo-vendored-sources --output-expected > tmp.vsr
-	sed -i 's/^/XS-Vendored-Sources-Rust: /; s/$$/,/; s/ /\n /g' tmp.vsr
+	sed -i 's/^/XS-Vendored-Sources-Rust: /; s/ /\n /g' tmp.vsr
+# Work around $BUG
+	perl -0777 -pi -e 's/(Rust:)\n/$$1/' tmp.vsr
 	mv tmp.vsr vendor/cargo_registry/00-control-header.txt
 #
-# Delete superfluous MS Windows crates to save some space
+# Update the control file if a substitution marker is present
+	regex='^#@XS-Vendored-Sources-Rust@'; \
+	! grep -q "$$regex" debian/control \
+	|| sed -i -e "/$$regex/ { r vendor/cargo_registry/00-control-header.txt" -e 'd }' \
+		debian/control
+#
+# Hollow out superfluous MS Windows crates to save some space
 	for crate in \
 		vendor/cargo_registry/winapi* \
 		vendor/cargo_registry/windows* ; \
@@ -104,8 +129,13 @@ ifneq "" "$(wildcard Cargo.lock)"
 	find vendor -type f -name .cargo-checksum.json \
 	| while read x; do echo '{"files":{}}' > "$$x"; done
 	echo "Vendored Rust dependencies collected using $$(cargo --version)" >> vendor/README
-endif # Cargo.lock
+endif # VENDOR_RUST_SUPPORT
 #
+# Run the vendoring hook, if one was provided
+	! grep -q '^get-vendor-source-hook\s*:' debian/rules \
+	|| debian/rules get-vendor-source-hook
+#
+# Finishing touches
 	cd vendor && find . -mindepth 2 -type f -printf '%P\n' \
 	| LC_COLLATE=C sort | xargs -d '\n' md5sum > MD5SUMS
 	(echo; \
@@ -114,6 +144,7 @@ endif # Cargo.lock
 	) >> vendor/README
 	echo '$(VENDOR_VERSION)' > vendor/VERSION
 
+.PHONY: vendor-tarball
 vendor-tarball: get-vendor-source
 	chmod -R g=u-w,o=u-w vendor
 	source=$$(dpkg-parsechangelog -S Source) \
