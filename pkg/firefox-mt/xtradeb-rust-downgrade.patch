@@ -1,0 +1,37 @@
+Firefox build: "ERROR: Rust compiler 1.91.1 is too old."
+
+Me: "Nuh uh."
+
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -157,7 +157,7 @@ exclude = [
+ resolver = "2"
+ 
+ [workspace.package]
+-rust-version = "1.95.0"
++rust-version = "1.91.0"
+ 
+ [workspace.dependencies]
+ # Shared across multiple UniFFI consumers.
+--- a/python/mozboot/mozboot/util.py
++++ b/python/mozboot/mozboot/util.py
+@@ -15,7 +15,7 @@ from mach.site import PythonVirtualenv
+ from mach.util import get_state_dir
+ 
+ # Keep in sync with rust-version in top-level Cargo.toml.
+-MINIMUM_RUST_VERSION = "1.95.0"
++MINIMUM_RUST_VERSION = "1.91.0"
+ 
+ 
+ def is_win_aarch64_host():
+--- a/third_party/rust/happy-eyeballs/Cargo.toml
++++ b/third_party/rust/happy-eyeballs/Cargo.toml
+@@ -11,7 +11,7 @@
+ 
+ [package]
+ edition = "2024"
+-rust-version = "1.95.0"
++rust-version = "1.91.0"
+ name = "happy-eyeballs"
+ version = "2.0.0"
+ build = false

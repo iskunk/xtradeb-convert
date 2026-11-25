@@ -137,6 +137,12 @@ then
 	new_patch xtradeb-riscv-no-unistd64.patch
 fi
 
+if dpkg --compare-versions $rust_version lt 1.95
+then
+	new_patch xtradeb-rust-downgrade.patch
+	new_patch xtradeb-rust-downgrade-checksums.patch
+fi
+
 need_version_epoch_bump=yes
 
 } # xd_convert()
