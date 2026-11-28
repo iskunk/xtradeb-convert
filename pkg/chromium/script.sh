@@ -44,6 +44,19 @@ END
 		sed -ri -e '/^export DEB_CXXFLAGS_MAINT_STRIP=-g/{r xtradeb.tmp' -e '}' rules)
 fi
 
+if ubuntu_dist jammy noble
+then
+	sed -i \
+		-e '/^export LDFLAGS+=-Wl,--stats/ {' \
+		-e '  a \\' \
+		-e '  a ifeq (armhf,$(DEB_HOST_ARCH))' \
+		-e '  a # avoid "debugedit: Cannot handle 8-byte build ID" error from dh_strip(1)' \
+		-e '  a export LDFLAGS+=-Wl,--build-id=sha1' \
+		-e '  a endif' \
+		-e '}' \
+		$debian/rules
+fi
+
 cat > $debian/xtradeb.tmp << 'END'
 
 ifeq (amd64v3,$(DEB_HOST_ARCH_VARIANT))
